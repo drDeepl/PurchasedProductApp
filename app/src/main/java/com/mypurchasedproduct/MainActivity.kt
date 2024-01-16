@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.mypurchasedproduct.screens.MainScreen
+import com.mypurchasedproduct.screens.SignUpScreen
 import com.mypurchasedproduct.ui.theme.MyPurchasedProductTheme
 
 
@@ -20,7 +21,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyPurchasedProductTheme {
                 // A surface container using the 'background' color from the theme
-                MainScreen()
+//                MainScreen()
+                SignUpScreen()
             }
         }
     }

@@ -2,4 +2,7 @@
     <string name="app_name">MyPurchasedProduct</string>
     <string name="hello">Привет,</string>
     <string name="create_account">Создай Аккаунт</string>
+    <string name="hide_password">скрыть пароль</string>
+    <string name="show_password">показать пароль</string>
+    <string name="term_and_conditions">продолжая, вы соглашаетесь с нашей политикой</string>
 </resources>
