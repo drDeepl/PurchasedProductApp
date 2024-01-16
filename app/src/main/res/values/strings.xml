@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MyPurchasedProduct</string>
+    <string name="hello">Привет,</string>
+    <string name="create_account">Создай Аккаунт</string>
+</resources>
