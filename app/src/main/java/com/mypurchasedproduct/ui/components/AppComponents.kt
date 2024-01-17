@@ -1,16 +1,29 @@
 package com.mypurchasedproduct.ui.components
 
 
+import android.util.Log
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxColors
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Divider
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,21 +40,30 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.ui.theme.AccentLightYellow
 import com.mypurchasedproduct.ui.theme.TextColor
 import com.mypurchasedproduct.ui.theme.AccentYellowColor
 import com.mypurchasedproduct.ui.theme.BackgroundColor
@@ -86,7 +108,7 @@ fun HeadingTextComponent(value: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextField(labelValue: String, icon: Painter){
+fun MyTextField(labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
     val textValue = remember {
         mutableStateOf("")
     }
@@ -105,7 +127,7 @@ fun MyTextField(labelValue: String, icon: Painter){
             unfocusedBorderColor = LightGreyColor
         ),
         shape = componentShapes.large,
-        keyboardOptions = KeyboardOptions.Default,
+        keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))}
 
     )
@@ -114,7 +136,7 @@ fun MyTextField(labelValue: String, icon: Painter){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldPassword(labelValue: String, icon: Painter){
+fun MyTextFieldPassword(labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
     val passwordValue = remember {
         mutableStateOf("")
     }
@@ -136,7 +158,7 @@ fun MyTextFieldPassword(labelValue: String, icon: Painter){
 
         ),
         shape = componentShapes.large,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
         trailingIcon = {
             var iconImage = if(passwordVisibility.value){
@@ -153,6 +175,7 @@ fun MyTextFieldPassword(labelValue: String, icon: Painter){
 
             IconButton(onClick = { passwordVisibility.value = !passwordVisibility.value}) {
                 Icon(imageVector = iconImage, contentDescription=description)
+
             }
         },
         visualTransformation = if(passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation()
@@ -161,7 +184,7 @@ fun MyTextFieldPassword(labelValue: String, icon: Painter){
 }
 
 @Composable
-fun CheckBoxComponent(textValue:String){
+fun CheckBoxComponent(textValue:String, onTextSelected: (String) -> Unit){
     Row(modifier= Modifier
         .fillMaxWidth()
         .heightIn(56.dp)
@@ -169,13 +192,133 @@ fun CheckBoxComponent(textValue:String){
         verticalAlignment = Alignment.CenterVertically){
         val checkedState = remember{ mutableStateOf<Boolean>(false) }
 
-        Checkbox(checked = checkedState.value, onCheckedChange = {checkedState.value = !checkedState.value})
-        NormalTextComponent(value = textValue)
+        Checkbox(
+            checked = checkedState.value,
+            onCheckedChange = {checkedState.value = !checkedState.value},
+            colors= CheckboxDefaults.colors(
+                checkedColor= AccentYellowColor
+            ),
+            )
+        ClickableTextComponent(value = textValue, onTextSelected)
     }
 }
 
 @Composable
-fun ClickableTextComponent(value:String){
-    // TOOD
+fun ClickableTextComponent(value:String, onTextSelected: (String) -> Unit){
+    val initialText = "Продолжая, вы соглашаетесь с нашей "
+    val privacyPolicyText = " Политикой Приватности "
+    val andText = " и "
+    val termsAndConditionsText = " Правилами Использования приложения."
 
+    val annotedString = buildAnnotatedString {
+        append(initialText)
+        withStyle(style= SpanStyle(color= AccentYellowColor)){
+            pushStringAnnotation(tag = privacyPolicyText, annotation = privacyPolicyText)
+            append(privacyPolicyText)
+        }
+        append(andText)
+        withStyle(style= SpanStyle(color= AccentYellowColor)){
+            pushStringAnnotation(tag = termsAndConditionsText, annotation = termsAndConditionsText)
+            append(termsAndConditionsText)
+        }
+
+    }
+    ClickableText(
+        style=TextStyle(color= TextColor),
+        text=annotedString, onClick = {offset ->
+        annotedString.getStringAnnotations(offset, offset).firstOrNull()?.also {span ->
+            Log.d("ClickableTextComponent", "{$span}")
+            if((span.item == termsAndConditionsText) || (span.item == privacyPolicyText)){
+                onTextSelected(span.item)
+            }
+
+        }
+    })
+}
+
+@Composable
+fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
+    val initialText = "Уже есть аккаунт?"
+    val logInText = " Войти"
+
+    val annotedString = buildAnnotatedString {
+        append(initialText)
+        withStyle(style=SpanStyle(color= AccentYellowColor)){
+            pushStringAnnotation(tag=logInText, annotation = logInText)
+            append(logInText)
+        }
+    }
+
+    ClickableText(
+        text = annotedString,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 40.dp),
+        style= TextStyle(
+            color = TextColor,
+            fontSize=21.sp,
+            fontWeight = FontWeight.Normal,
+            fontStyle= FontStyle.Normal,
+            textAlign = TextAlign.Center
+        ),
+        onClick = { offset ->
+        annotedString.getStringAnnotations(offset,offset).firstOrNull()?.also{span ->
+            Log.d("ClickableTextComponent", "{$span}")
+            if(span.item == logInText){
+                onTextSelected(span.item)
+            }
+        }
+    })
+}
+@Composable
+fun ButtonComponent(value: String){
+    Button(
+        onClick={},
+        modifier= Modifier
+            .fillMaxWidth()
+            .heightIn(48.dp),
+        contentPadding = PaddingValues(),
+        colors = ButtonDefaults.buttonColors(),
+        border = null
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(listOf(AccentLightYellow, AccentYellowColor)),
+                    shape = RoundedCornerShape(50.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ){
+            Text(
+                text=value,
+                fontSize=18.sp,
+                fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable
+fun DeviderTextComponent(value:String){
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            color= TextColor,
+            thickness = 1.dp)
+
+        Text(text=value, fontSize=14.sp, color= TextColor, modifier= Modifier.padding(5.dp))
+
+        Divider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+            color= TextColor,
+            thickness = 1.dp)
+    }
 }
