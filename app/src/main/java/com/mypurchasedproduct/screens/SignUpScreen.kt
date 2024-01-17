@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.screens
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -18,6 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -45,6 +48,16 @@ import com.mypurchasedproduct.ui.theme.componentShapes
 
 @Composable
 fun SignUpScreen() {
+
+    val passwordValue = remember {
+        mutableStateOf("")
+    }
+    val usernameValue = remember {
+        mutableStateOf("")
+    }
+
+    val isTermsAndConditionApply = remember{ mutableStateOf<Boolean>(false) }
+
     Surface(
         color = Color.White,
         modifier = Modifier
@@ -59,6 +72,7 @@ fun SignUpScreen() {
 
             NormalTextComponent(value= stringResource(id= R.string.hello))
             HeadingTextComponent(value = stringResource(id = R.string.create_account))
+
         }
         Column(
             modifier=Modifier.fillMaxSize(),
@@ -79,14 +93,17 @@ fun SignUpScreen() {
                     .fillMaxWidth()
                     .padding(15.dp),
                     verticalArrangement= Arrangement.Center){
-                    MyTextField(labelValue = "Имя пользователя", painterResource(id = R.drawable.user_icon), KeyboardOptions(imeAction = ImeAction.Next))
+                    MyTextField(usernameValue, labelValue = "Имя пользователя", painterResource(id = R.drawable.user_icon), KeyboardOptions(imeAction = ImeAction.Next))
                     Spacer(modifier=Modifier.height(10.dp))
-                    MyTextFieldPassword(labelValue = "Пароль", painterResource(id = R.drawable.password_icon), KeyboardOptions(keyboardType= KeyboardType.Password, imeAction = ImeAction.Go))
-                    CheckBoxComponent(stringResource(id = R.string.term_and_conditions), onTextSelected={
+
+                    MyTextFieldPassword(passwordValue=passwordValue,labelValue = "Пароль", painterResource(id = R.drawable.password_icon), KeyboardOptions(keyboardType= KeyboardType.Password, imeAction = ImeAction.Go))
+                    CheckBoxComponent(isTermsAndConditionApply, stringResource(id = R.string.term_and_conditions), onTextSelected={
                         PurchasedProductAppRouter.navigateTo(Screen.TermsAndConditionsScreen)
                     } )
                     Spacer(modifier=Modifier.height(20.dp))
-                    ButtonComponent(stringResource(R.string.signup_btn_text))
+
+                    ButtonComponent(stringResource(R.string.signup_btn_text), {})
+
                     Spacer(modifier=Modifier.height(20.dp))
                     DeviderTextComponent("или")
                     ClickableTextLogInComponent(

@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -108,10 +109,7 @@ fun HeadingTextComponent(value: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextField(labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
-    val textValue = remember {
-        mutableStateOf("")
-    }
+fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
 
     OutlinedTextField(
         modifier = Modifier
@@ -136,10 +134,10 @@ fun MyTextField(labelValue: String, icon: Painter, keyboardOptions: KeyboardOpti
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldPassword(labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
-    val passwordValue = remember {
-        mutableStateOf("")
-    }
+fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
+//    val passwordValue = remember {
+//        mutableStateOf("")
+//    }
 
     val passwordVisibility = remember{ mutableStateOf(false) }
 
@@ -184,13 +182,12 @@ fun MyTextFieldPassword(labelValue: String, icon: Painter, keyboardOptions: Keyb
 }
 
 @Composable
-fun CheckBoxComponent(textValue:String, onTextSelected: (String) -> Unit){
+fun CheckBoxComponent(checkedState: MutableState<Boolean>, textValue:String, onTextSelected: (String) -> Unit){
     Row(modifier= Modifier
         .fillMaxWidth()
         .heightIn(56.dp)
         .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically){
-        val checkedState = remember{ mutableStateOf<Boolean>(false) }
 
         Checkbox(
             checked = checkedState.value,
@@ -271,9 +268,9 @@ fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
     })
 }
 @Composable
-fun ButtonComponent(value: String){
+fun ButtonComponent(value: String, onClickButton: () -> Unit){
     Button(
-        onClick={},
+        onClick=onClickButton,
         modifier= Modifier
             .fillMaxWidth()
             .heightIn(48.dp),
