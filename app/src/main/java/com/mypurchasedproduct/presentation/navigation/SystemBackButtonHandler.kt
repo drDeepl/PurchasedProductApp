@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.navigation
+package com.mypurchasedproduct.presentation.navigation
 
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -27,7 +27,7 @@ internal fun composableHandler(
 ){
     val dispatcher = (LocalBackPressedDispatcher.current ?: return).onBackPressedDispatcher
 
-    val handler = remember{ComposableBackNavigationHandler(enabled)}
+    val handler = remember{ ComposableBackNavigationHandler(enabled) }
 
     DisposableEffect(dispatcher){
         dispatcher.addCallback(handler)

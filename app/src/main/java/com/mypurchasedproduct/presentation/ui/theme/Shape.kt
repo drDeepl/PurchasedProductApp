@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.ui.theme
+package com.mypurchasedproduct.presentation.ui.theme
 
 import android.view.RoundedCorner
 import androidx.compose.foundation.shape.RoundedCornerShape

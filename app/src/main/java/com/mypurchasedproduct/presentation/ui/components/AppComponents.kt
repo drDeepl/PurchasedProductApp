@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.ui.components
+package com.mypurchasedproduct.presentation.ui.components
 
 
 import android.util.Log
@@ -64,15 +64,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.ui.theme.AccentLightYellow
-import com.mypurchasedproduct.ui.theme.TextColor
-import com.mypurchasedproduct.ui.theme.AccentYellowColor
-import com.mypurchasedproduct.ui.theme.AcidPurpleColor
-import com.mypurchasedproduct.ui.theme.AcidRedColor
-import com.mypurchasedproduct.ui.theme.BackgroundColor
-import com.mypurchasedproduct.ui.theme.LightGreyColor
-import com.mypurchasedproduct.ui.theme.SecondaryColor
-import com.mypurchasedproduct.ui.theme.componentShapes
+import com.mypurchasedproduct.presentation.ui.theme.AccentLightYellow
+import com.mypurchasedproduct.presentation.ui.theme.TextColor
+import com.mypurchasedproduct.presentation.ui.theme.AccentYellowColor
+import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
+import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
+import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
+import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
+import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
+import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 @Composable
 fun NormalTextComponent(value: String){

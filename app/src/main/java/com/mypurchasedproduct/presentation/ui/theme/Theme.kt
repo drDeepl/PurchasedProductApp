@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.ui.theme
+package com.mypurchasedproduct.presentation.ui.theme
 
 import android.app.Activity
 import android.os.Build

@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.navigation
+package com.mypurchasedproduct.presentation.navigation
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf

@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.ui.models
+package com.mypurchasedproduct.presentation.ui.models
 
 import androidx.annotation.Keep
 

@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.screens
+package com.mypurchasedproduct.presentation.screens
 
 
 import android.view.ViewGroup

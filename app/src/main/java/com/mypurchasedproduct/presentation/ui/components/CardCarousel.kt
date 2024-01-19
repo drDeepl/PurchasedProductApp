@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.ui.components
+package com.mypurchasedproduct.presentation.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column

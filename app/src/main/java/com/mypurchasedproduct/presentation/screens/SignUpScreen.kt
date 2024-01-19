@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.screens
+package com.mypurchasedproduct.presentation.screens
 
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
@@ -30,20 +30,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.navigation.Screen
-import com.mypurchasedproduct.ui.components.ButtonComponent
-import com.mypurchasedproduct.ui.components.CheckBoxComponent
-import com.mypurchasedproduct.ui.components.ClickableTextComponent
-import com.mypurchasedproduct.ui.components.ClickableTextLogInComponent
-import com.mypurchasedproduct.ui.components.DeviderTextComponent
-import com.mypurchasedproduct.ui.components.HeadingTextComponent
-import com.mypurchasedproduct.ui.components.MyTextField
-import com.mypurchasedproduct.ui.components.MyTextFieldPassword
-import com.mypurchasedproduct.ui.components.NormalTextComponent
-import com.mypurchasedproduct.ui.theme.BackgroundColor
-import com.mypurchasedproduct.ui.theme.SecondaryColor
-import com.mypurchasedproduct.ui.theme.componentShapes
+import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
+import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.ui.components.ButtonComponent
+import com.mypurchasedproduct.presentation.ui.components.CheckBoxComponent
+import com.mypurchasedproduct.presentation.ui.components.ClickableTextComponent
+import com.mypurchasedproduct.presentation.ui.components.ClickableTextLogInComponent
+import com.mypurchasedproduct.presentation.ui.components.DeviderTextComponent
+import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
+import com.mypurchasedproduct.presentation.ui.components.MyTextField
+import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
+import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
+import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
+import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
+import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 
 @Composable

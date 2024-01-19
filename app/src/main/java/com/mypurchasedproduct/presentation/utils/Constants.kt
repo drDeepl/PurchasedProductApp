@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.utils
+package com.mypurchasedproduct.presentation.utils
 
 class Constants {
 
