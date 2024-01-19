@@ -1,4 +1,4 @@
-package com.mypurchasedproduct
+package com.mypurchasedproduct.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
