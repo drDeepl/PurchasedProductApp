@@ -1,3 +1,13 @@
 package com.mypurchasedproduct.data.remote.model.response
 
-data class UserInfoResponse(val username: String, val password: String, val isAdmin: Boolean)
+import com.google.gson.annotations.SerializedName
+
+data class UserInfoResponse(
+    @SerializedName("username")
+    val username: String,
+    @SerializedName("password")
+    val password: String,
+    @SerializedName("isAdmin")
+    val isAdmin: Boolean
+)
+

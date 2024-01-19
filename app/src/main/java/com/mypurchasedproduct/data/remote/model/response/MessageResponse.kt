@@ -1,3 +1,9 @@
 package com.mypurchasedproduct.data.remote.model.response
 
-data class MessageResponse(val statusCode: Int, val message: String)
+import com.google.gson.annotations.SerializedName
+
+data class MessageResponse(
+    @SerializedName("statusCode")
+    val statusCode: Int,
+    @SerializedName("message")
+    val message: String)
