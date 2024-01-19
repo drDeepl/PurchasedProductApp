@@ -1,6 +1,5 @@
 package com.mypurchasedproduct.presentation.screens
 
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,9 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 
 import androidx.compose.runtime.Composable
@@ -34,14 +31,12 @@ import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.ui.components.ButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.CheckBoxComponent
-import com.mypurchasedproduct.presentation.ui.components.ClickableTextComponent
 import com.mypurchasedproduct.presentation.ui.components.ClickableTextLogInComponent
 import com.mypurchasedproduct.presentation.ui.components.DeviderTextComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
-import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 

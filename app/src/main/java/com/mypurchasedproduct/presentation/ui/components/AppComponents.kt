@@ -242,7 +242,7 @@ fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
 
     val annotedString = buildAnnotatedString {
         append(initialText)
-        withStyle(style=SpanStyle(color= AcidRedColor, fontWeight= FontWeight.Bold)){
+        withStyle(style=SpanStyle(color= AcidRedColor)){
             pushStringAnnotation(tag=logInText, annotation = logInText)
             append(logInText)
         }
@@ -255,7 +255,7 @@ fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
             .heightIn(min = 40.dp),
         style= TextStyle(
             color = TextColor,
-            fontSize=21.sp,
+            fontSize=18.sp,
             fontWeight = FontWeight.Normal,
             fontStyle= FontStyle.Normal,
             textAlign = TextAlign.Center
