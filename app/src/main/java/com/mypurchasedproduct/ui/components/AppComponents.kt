@@ -67,6 +67,8 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.ui.theme.AccentLightYellow
 import com.mypurchasedproduct.ui.theme.TextColor
 import com.mypurchasedproduct.ui.theme.AccentYellowColor
+import com.mypurchasedproduct.ui.theme.AcidPurpleColor
+import com.mypurchasedproduct.ui.theme.AcidRedColor
 import com.mypurchasedproduct.ui.theme.BackgroundColor
 import com.mypurchasedproduct.ui.theme.LightGreyColor
 import com.mypurchasedproduct.ui.theme.SecondaryColor
@@ -119,7 +121,7 @@ fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painte
         onValueChange = { it: String -> textValue.value = it },
         label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AccentYellowColor,
+            focusedBorderColor = AcidRedColor,
             focusedLabelColor = Color.Black,
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
@@ -149,7 +151,7 @@ fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String,
         onValueChange = { it: String -> passwordValue.value = it },
         label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AccentYellowColor,
+            focusedBorderColor = AcidRedColor,
             focusedLabelColor = Color.Black,
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
@@ -193,7 +195,7 @@ fun CheckBoxComponent(checkedState: MutableState<Boolean>, textValue:String, onT
             checked = checkedState.value,
             onCheckedChange = {checkedState.value = !checkedState.value},
             colors= CheckboxDefaults.colors(
-                checkedColor= AccentYellowColor
+                checkedColor= AcidRedColor
             ),
             )
         ClickableTextComponent(value = textValue, onTextSelected)
@@ -203,18 +205,18 @@ fun CheckBoxComponent(checkedState: MutableState<Boolean>, textValue:String, onT
 @Composable
 fun ClickableTextComponent(value:String, onTextSelected: (String) -> Unit){
     val initialText = "Продолжая, вы соглашаетесь с нашей "
-    val privacyPolicyText = " Политикой Приватности "
+    val privacyPolicyText = " политикой приватности "
     val andText = " и "
-    val termsAndConditionsText = " Правилами Использования приложения."
+    val termsAndConditionsText = " правилами пользования приложения."
 
     val annotedString = buildAnnotatedString {
         append(initialText)
-        withStyle(style= SpanStyle(color= AccentYellowColor)){
+        withStyle(style= SpanStyle(color= AcidRedColor)){
             pushStringAnnotation(tag = privacyPolicyText, annotation = privacyPolicyText)
             append(privacyPolicyText)
         }
         append(andText)
-        withStyle(style= SpanStyle(color= AccentYellowColor)){
+        withStyle(style= SpanStyle(color= AcidRedColor)){
             pushStringAnnotation(tag = termsAndConditionsText, annotation = termsAndConditionsText)
             append(termsAndConditionsText)
         }
@@ -236,11 +238,11 @@ fun ClickableTextComponent(value:String, onTextSelected: (String) -> Unit){
 @Composable
 fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
     val initialText = "Уже есть аккаунт?"
-    val logInText = " Войти"
+    val logInText = " войти"
 
     val annotedString = buildAnnotatedString {
         append(initialText)
-        withStyle(style=SpanStyle(color= AccentYellowColor)){
+        withStyle(style=SpanStyle(color= AcidRedColor, fontWeight= FontWeight.Bold)){
             pushStringAnnotation(tag=logInText, annotation = logInText)
             append(logInText)
         }
@@ -283,7 +285,7 @@ fun ButtonComponent(value: String, onClickButton: () -> Unit){
                 .fillMaxWidth()
                 .heightIn(48.dp)
                 .background(
-                    brush = Brush.horizontalGradient(listOf(AccentLightYellow, AccentYellowColor)),
+                    brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
                     shape = RoundedCornerShape(50.dp)
                 ),
             contentAlignment = Alignment.Center

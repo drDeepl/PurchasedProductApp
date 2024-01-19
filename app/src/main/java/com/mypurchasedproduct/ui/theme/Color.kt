@@ -18,3 +18,6 @@ val SecondaryColor = Color(0xFFE3E3E3)
 
 val LightGreyColor = Color(0XFFF7F7F7)
 val BackgroundColor = Color(0xFFFCFAF8)
+
+val AcidRedColor = Color(0xFF3FF333C)
+val AcidPurpleColor = Color(0xFF7633FF)
