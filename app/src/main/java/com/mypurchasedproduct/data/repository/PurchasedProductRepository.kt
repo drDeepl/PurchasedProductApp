@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.data.repository
 
+import android.util.Log
 import com.mypurchasedproduct.data.remote.RemoteDataSource
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
@@ -11,7 +12,9 @@ import javax.inject.Inject
 class PurchasedProductRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource
 ) : BaseApiResponse(){
+    private val TAG = this.javaClass.simpleName
     suspend fun signUp(signUpRequest: SignUpRequest): NetworkResult<MessageResponse>{
+        Log.i(TAG, "SIGN UP")
         return safeApiCall{remoteDataSource.signUp(signUpRequest)}
     }
 }

@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.ui.components.ButtonComponent
@@ -42,8 +43,8 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 
 @Composable
-fun SignUpScreen() {
-
+fun SignUpScreen(signUpViewModel: SignUpViewModel) {
+    val isLoadingState = signUpViewModel.isLoading
     val passwordValue = remember {
         mutableStateOf("")
     }
@@ -65,7 +66,7 @@ fun SignUpScreen() {
             modifier=Modifier.fillMaxSize(),
         ){
 
-            NormalTextComponent(value= stringResource(id= R.string.hello))
+            NormalTextComponent(value= signUpViewModel.isLoading.value.toString())
             HeadingTextComponent(value = stringResource(id = R.string.create_account))
 
         }
@@ -97,7 +98,7 @@ fun SignUpScreen() {
                     } )
                     Spacer(modifier=Modifier.height(20.dp))
 
-                    ButtonComponent(stringResource(R.string.signup_btn_text), {})
+                    ButtonComponent(stringResource(R.string.signup_btn_text), {signUpViewModel.toSignUp(SignUpRequest(usernameValue.value, passwordValue.value))})
 
                     Spacer(modifier=Modifier.height(20.dp))
                     DeviderTextComponent("или")
@@ -112,8 +113,8 @@ fun SignUpScreen() {
     }
 }
 
-@Preview
-@Composable
-fun DefaultPreviewOfSignUpScreen(){
-    SignUpScreen();
-}
+//@Preview
+//@Composable
+//fun DefaultPreviewOfSignUpScreen(signUpViewModel: SignUpViewModel){
+//    SignUpScreen(signUpViewModel);
+//}

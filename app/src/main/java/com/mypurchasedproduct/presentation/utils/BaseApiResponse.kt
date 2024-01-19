@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.presentation.utils
 
+import android.util.Log
 import retrofit2.Response
 
 abstract class BaseApiResponse {
@@ -8,6 +9,7 @@ abstract class BaseApiResponse {
         try {
             val response = api()
             if(response.isSuccessful){
+                Log.i("SAFE API", "CALL RESPONSE SUCCESSFUL")
                 val body = response.body()
                 body?. let{
                     return NetworkResult.Success(body)
@@ -23,6 +25,7 @@ abstract class BaseApiResponse {
     }
 
     private fun <T> errorMessage(errorMessage: String, statusCode: Int? = null): NetworkResult.Error<T>{
+        Log.e("BASE API RESPONSE", "ERROR: $errorMessage")
         return NetworkResult.Error(errorMessage, statusCode=statusCode)
     }
 }
