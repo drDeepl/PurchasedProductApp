@@ -13,46 +13,50 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.ui.components.ButtonComponent
+import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.CheckBoxComponent
 import com.mypurchasedproduct.presentation.ui.components.ClickableTextLogInComponent
 import com.mypurchasedproduct.presentation.ui.components.DeviderTextComponent
+import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
+import com.mypurchasedproduct.presentation.ui.components.SuccessButtonComponent
+import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 
 @Composable
 fun SignUpScreen(signUpViewModel: SignUpViewModel) {
-    val isLoadingState = signUpViewModel.isLoading
+
+    val signUpState = signUpViewModel.state
     val passwordValue = remember {
         mutableStateOf("")
     }
     val usernameValue = remember {
         mutableStateOf("")
     }
-
-    val isTermsAndConditionApply = remember{ mutableStateOf<Boolean>(false) }
 
     Surface(
         color = Color.White,
@@ -66,8 +70,7 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
             modifier=Modifier.fillMaxSize(),
         ){
 
-            NormalTextComponent(value= signUpViewModel.isLoading.value.toString())
-            HeadingTextComponent(value = stringResource(id = R.string.create_account))
+            HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
 
         }
         Column(
@@ -84,28 +87,95 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
                     containerColor = Color.White,
 
                 ),
-            ){
-                Column(modifier= Modifier
-                    .fillMaxWidth()
-                    .padding(15.dp),
-                    verticalArrangement= Arrangement.Center){
-                    MyTextField(usernameValue, labelValue = "Имя пользователя", painterResource(id = R.drawable.user_icon), KeyboardOptions(imeAction = ImeAction.Next))
-                    Spacer(modifier=Modifier.height(10.dp))
+            ) {
+                if (!signUpState.isSignUpSuccess) {
 
-                    MyTextFieldPassword(passwordValue=passwordValue,labelValue = "Пароль", painterResource(id = R.drawable.password_icon), KeyboardOptions(keyboardType= KeyboardType.Password, imeAction = ImeAction.Go))
-                    CheckBoxComponent(isTermsAndConditionApply, stringResource(id = R.string.term_and_conditions), onTextSelected={
-                        PurchasedProductAppRouter.navigateTo(Screen.TermsAndConditionsScreen)
-                    } )
-                    Spacer(modifier=Modifier.height(20.dp))
 
-                    ButtonComponent(stringResource(R.string.signup_btn_text), {signUpViewModel.toSignUp(SignUpRequest(usernameValue.value, passwordValue.value))})
+                    Spacer(modifier = Modifier.height(20.dp))
+                    if (signUpState.error != null) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        ErrorTextComponent(signUpState.error.toString())
+                    }
 
-                    Spacer(modifier=Modifier.height(20.dp))
-                    DeviderTextComponent("или")
-                    ClickableTextLogInComponent(
-                        onTextSelected = { PurchasedProductAppRouter.navigateTo(Screen.LogInScreen) })
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        MyTextField(
+                            usernameValue,
+                            labelValue = "Имя пользователя",
+                            painterResource(id = R.drawable.user_icon),
+                            KeyboardOptions(imeAction = ImeAction.Next),
+                            enabled = !signUpState.isLoading
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        MyTextFieldPassword(
+                            passwordValue = passwordValue,
+                            labelValue = "Пароль",
+                            painterResource(id = R.drawable.password_icon),
+                            KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Go
+                            ),
+                            enabled = !signUpState.isLoading
+                        )
+                        CheckBoxComponent(
+                            checkedState = signUpState.isApplyTermsAndConditions,
+                            textValue = stringResource(id = R.string.term_and_conditions),
+                            onTextSelected = {
+                                PurchasedProductAppRouter.navigateTo(Screen.TermsAndConditionsScreen)
+                            },
+                            onChackedChange = {
+                                signUpViewModel.setIsApplyTermsAndConditions(it)
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        PrimaryButtonComponent(
+                            value = stringResource(R.string.signup_btn_text),
+                            onClickButton = {
+                                if (signUpState.isApplyTermsAndConditions) {
+                                    signUpViewModel.setError(null)
+                                    signUpViewModel.toSignUp(
+                                        SignUpRequest(
+                                            usernameValue.value,
+                                            passwordValue.value
+                                        )
+                                    )
+                                } else {
+                                    signUpViewModel.setError("Для продолжения необходимо подтвердить правила пользования")
+                                }
+                            },
+                            isLoading = signUpState.isLoading
+                        )
+
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                        DeviderTextComponent("или")
+                        ClickableTextLogInComponent(
+                            onTextSelected = { PurchasedProductAppRouter.navigateTo(Screen.LogInScreen) })
+                    }
+
+                }else{
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ){
+
+                        Icon(painter=painterResource(id = R.drawable.check_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp), tint= AcidGreenColor)
+                        Spacer(modifier = Modifier.height(30.dp))
+                        HeadingTextComponent(value = "Регистрация прошла успешно!")
+                        Spacer(modifier = Modifier.height(15.dp))
+                        SuccessButtonComponent(value = stringResource(id = (R.string.after_success_signup)), onClickButton = { PurchasedProductAppRouter.navigateTo(Screen.MainScreen) })
+                    }
+
                 }
-
             }
 
         }

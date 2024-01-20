@@ -9,12 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -35,11 +32,10 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
-import com.mypurchasedproduct.presentation.ui.components.ButtonComponent
+import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
-import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
@@ -115,7 +111,7 @@ fun LogInScreen() {
                         )
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    ButtonComponent(stringResource(R.string.login_btn_text), {})
+                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {})
                 }
             }
 

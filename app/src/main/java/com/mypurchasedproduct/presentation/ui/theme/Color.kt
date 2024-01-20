@@ -21,3 +21,6 @@ val BackgroundColor = Color(0xFFFCFAF8)
 
 val AcidRedColor = Color(0xFF3FF333C)
 val AcidPurpleColor = Color(0xFF7633FF)
+val AcidGreenColor = Color(0xFF00F032)
+
+val DeepBlackColor = Color(0xFF101010)

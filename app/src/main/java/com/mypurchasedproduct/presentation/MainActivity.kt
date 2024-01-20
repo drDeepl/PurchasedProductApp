@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.LogInScreen
+import com.mypurchasedproduct.presentation.screens.MainScreen
 import com.mypurchasedproduct.presentation.screens.SignUpScreen
 import com.mypurchasedproduct.presentation.screens.SignUpViewModel
 import com.mypurchasedproduct.presentation.screens.TermsAndConditionScreen
@@ -22,7 +23,6 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val signUpViewModel: SignUpViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -38,6 +38,9 @@ class MainActivity : ComponentActivity() {
                             }
                             is Screen.LogInScreen ->{
                                 LogInScreen()
+                            }
+                            is Screen.MainScreen ->{
+                                MainScreen()
                             }
                         }
 

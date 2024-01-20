@@ -15,7 +15,7 @@ abstract class BaseApiResponse {
                     return NetworkResult.Success(body)
                 } ?: return errorMessage("Body is empty")
             }else{
-                return errorMessage("${response.message()}", response.code())
+                return errorMessage("пользователь с таким именем уже существует", response.code())
             }
 
         }
@@ -26,6 +26,6 @@ abstract class BaseApiResponse {
 
     private fun <T> errorMessage(errorMessage: String, statusCode: Int? = null): NetworkResult.Error<T>{
         Log.e("BASE API RESPONSE", "ERROR: $errorMessage")
-        return NetworkResult.Error(errorMessage, statusCode=statusCode)
+        return NetworkResult.Error(message=errorMessage, statusCode=statusCode)
     }
 }

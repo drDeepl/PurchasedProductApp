@@ -2,8 +2,8 @@ package com.mypurchasedproduct.presentation.ui.components
 
 
 import android.util.Log
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,14 +15,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,46 +35,37 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.presentation.ui.theme.AccentLightYellow
+import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
-import com.mypurchasedproduct.presentation.ui.theme.AccentYellowColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
-import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
+import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
-import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 @Composable
-fun NormalTextComponent(value: String){
+fun NormalTextComponent(value: String, textAlign: TextAlign = androidx.compose.ui.text.style.TextAlign.Center){
     Text(
         text = value,
         modifier = Modifier
@@ -87,11 +77,11 @@ fun NormalTextComponent(value: String){
             fontStyle= FontStyle.Normal
         ),
         color = TextColor,
-        textAlign = TextAlign.Center)
+        textAlign = textAlign)
 }
 
 @Composable
-fun HeadingTextComponent(value: String){
+fun HeadingTextComponent(value: String, textAlign: TextAlign = TextAlign.Center){
     Text(
         text = value,
         modifier = Modifier
@@ -103,6 +93,23 @@ fun HeadingTextComponent(value: String){
             fontStyle= FontStyle.Normal
         ),
         color = TextColor,
+        textAlign = textAlign)
+}
+
+@Composable
+fun ErrorTextComponent(value: String){
+    Text(
+        text = value,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(),
+        style= TextStyle(
+            fontSize=12.sp,
+            fontWeight = FontWeight.Bold,
+            fontStyle= FontStyle.Normal
+        ),
+        color = Color.Red,
         textAlign = TextAlign.Center)
 }
 
@@ -111,7 +118,7 @@ fun HeadingTextComponent(value: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
+fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
 
     OutlinedTextField(
         modifier = Modifier
@@ -128,7 +135,8 @@ fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painte
         ),
         shape = componentShapes.large,
         keyboardOptions = keyboardOptions,
-        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))}
+        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
+        enabled=enabled
 
     )
 }
@@ -136,10 +144,7 @@ fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painte
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default){
-//    val passwordValue = remember {
-//        mutableStateOf("")
-//    }
+fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
 
     val passwordVisibility = remember{ mutableStateOf(false) }
 
@@ -178,13 +183,14 @@ fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String,
 
             }
         },
-        visualTransformation = if(passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation()
+        visualTransformation = if(passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation(),
+        enabled=enabled
 
     )
 }
 
 @Composable
-fun CheckBoxComponent(checkedState: MutableState<Boolean>, textValue:String, onTextSelected: (String) -> Unit){
+fun CheckBoxComponent(checkedState: Boolean, textValue:String, onTextSelected: (String) -> Unit, onChackedChange: (Boolean) -> Unit){
     Row(modifier= Modifier
         .fillMaxWidth()
         .heightIn(56.dp)
@@ -192,8 +198,8 @@ fun CheckBoxComponent(checkedState: MutableState<Boolean>, textValue:String, onT
         verticalAlignment = Alignment.CenterVertically){
 
         Checkbox(
-            checked = checkedState.value,
-            onCheckedChange = {checkedState.value = !checkedState.value},
+            checked = checkedState,
+            onCheckedChange = { onChackedChange(!checkedState) },
             colors= CheckboxDefaults.colors(
                 checkedColor= AcidRedColor
             ),
@@ -270,7 +276,7 @@ fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
     })
 }
 @Composable
-fun ButtonComponent(value: String, onClickButton: () -> Unit){
+fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false){
     Button(
         onClick=onClickButton,
         modifier= Modifier
@@ -290,10 +296,74 @@ fun ButtonComponent(value: String, onClickButton: () -> Unit){
                 ),
             contentAlignment = Alignment.Center
         ){
-            Text(
-                text=value,
-                fontSize=18.sp,
-                fontWeight = FontWeight.Bold)
+            if(isLoading){
+                CircularProgressIndicator(
+                    color = Color.White
+
+                )
+            }
+            else{
+                Text(
+                    text=value,
+                    fontSize=18.sp,
+                    fontWeight = FontWeight.Bold)
+
+            }
+
+        }
+    }
+}
+
+@Composable
+fun SuccessButtonComponent(value: String, onClickButton: () -> Unit, icon:Painter = painterResource(
+    id =R.drawable.arrow_circle_right_fill_icon
+), isLoading: Boolean = false){
+    Button(
+        onClick=onClickButton,
+        modifier= Modifier
+            .fillMaxWidth()
+            .heightIn(48.dp),
+        contentPadding = PaddingValues(10.dp,5.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = DeepBlackColor
+        ),
+        border = null
+    ){
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(listOf(DeepBlackColor, DeepBlackColor)),
+                    shape = RoundedCornerShape(50.dp),
+                ),
+            contentAlignment = Alignment.Center
+        ){
+            if(isLoading){
+                CircularProgressIndicator(
+                    color = Color.White
+
+                )
+            }
+            else{
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(48.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+
+                ) {
+                    Text(
+                        text=value,
+                        fontSize=18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Icon(painter =icon, contentDescription = "", modifier = Modifier.height(36.dp))
+
+                }
+            }
+
         }
     }
 }
