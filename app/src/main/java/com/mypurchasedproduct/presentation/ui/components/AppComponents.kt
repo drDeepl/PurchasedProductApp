@@ -391,3 +391,5 @@ fun DeviderTextComponent(value:String){
             thickness = 1.dp)
     }
 }
+
+

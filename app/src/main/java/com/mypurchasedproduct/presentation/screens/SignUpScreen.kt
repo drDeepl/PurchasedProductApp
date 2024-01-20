@@ -32,6 +32,7 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.CheckBoxComponent
 import com.mypurchasedproduct.presentation.ui.components.ClickableTextLogInComponent
@@ -40,7 +41,6 @@ import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
-import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessButtonComponent
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
@@ -58,6 +58,7 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
         mutableStateOf("")
     }
 
+
     Surface(
         color = Color.White,
         modifier = Modifier
@@ -68,9 +69,13 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
     ) {
         Column(
             modifier=Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.Start
+
         ){
 
-            HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
+
+                HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
+
 
         }
         Column(

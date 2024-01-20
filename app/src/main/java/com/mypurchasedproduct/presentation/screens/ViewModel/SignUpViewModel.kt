@@ -1,16 +1,11 @@
-package com.mypurchasedproduct.presentation.screens
+package com.mypurchasedproduct.presentation.screens.ViewModel
 
-import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
-import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.domain.usecases.SignUpUseCase
 import com.mypurchasedproduct.presentation.state.SignUpState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
