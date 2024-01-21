@@ -2,6 +2,7 @@ package com.mypurchasedproduct.presentation.ui.components
 
 
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +42,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -284,14 +287,14 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(),
-        border = null
+        border = BorderStroke(3.dp,brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),),
     ){
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(48.dp)
                 .background(
-                    brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
+                    Color.Black,
                     shape = RoundedCornerShape(50.dp)
                 ),
             contentAlignment = Alignment.Center

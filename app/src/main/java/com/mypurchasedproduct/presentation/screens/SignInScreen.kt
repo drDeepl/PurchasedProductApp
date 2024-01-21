@@ -32,6 +32,7 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
@@ -40,14 +41,14 @@ import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 @Composable
-fun LogInScreen() {
+fun SignInScreen(signInViewModel: SignInViewModel) {
 
-
-    var usernameValue = remember {
+    val signInState = signInViewModel.state
+    val usernameValue = remember {
         mutableStateOf("")
     }
 
-    var passwordValue = remember {
+    val passwordValue = remember {
         mutableStateOf("")
     }
 
@@ -65,9 +66,6 @@ fun LogInScreen() {
         Column(
             modifier = Modifier.fillMaxSize(),
         ) {
-
-//            NormalTextComponent(value = stringResource(id = R.string.log_in_header))
-//            HeadingTextComponent(value = stringResource(id = R.string.log_in_welcome))
             HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
         }
         Column(
@@ -98,29 +96,26 @@ fun LogInScreen() {
                         usernameValue,
                         labelValue = "Имя пользователя",
                         painterResource(id = R.drawable.user_icon),
-                        KeyboardOptions(imeAction = ImeAction.Next)
+                        KeyboardOptions(imeAction = ImeAction.Next),
+                        enabled=!signInState.isLoading
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     MyTextFieldPassword(
-                        passwordValue,
+                       passwordValue = passwordValue,
                         labelValue = "Пароль",
-                        painterResource(id = R.drawable.password_icon),
-                        KeyboardOptions(
+                        icon=painterResource(id = R.drawable.password_icon),
+                        keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
                             imeAction = ImeAction.Go
-                        )
+                        ),
+                        enabled=!signInState.isLoading
                     )
                     Spacer(modifier = Modifier.height(20.dp))
-                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {})
+                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {signInViewModel.toSignIn(usernameValue.value, passwordValue.value)}, signInState.isLoading)
                 }
             }
 
         }
-    }
-}
 
-@Preview
-@Composable
-fun DefaultPreviewOfLogInScreen(){
-    LogInScreen();
+    }
 }

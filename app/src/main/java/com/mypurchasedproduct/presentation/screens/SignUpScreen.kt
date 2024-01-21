@@ -32,6 +32,7 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.CheckBoxComponent
@@ -48,7 +49,7 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 
 @Composable
-fun SignUpScreen(signUpViewModel: SignUpViewModel) {
+fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewModel) {
 
     val signUpState = signUpViewModel.state
     val passwordValue = remember {
@@ -161,7 +162,7 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
                         Spacer(modifier = Modifier.height(20.dp))
                         DeviderTextComponent("или")
                         ClickableTextLogInComponent(
-                            onTextSelected = { PurchasedProductAppRouter.navigateTo(Screen.LogInScreen) })
+                            onTextSelected = { PurchasedProductAppRouter.navigateTo(Screen.SignInScreen) })
                     }
 
                 }else{
@@ -177,7 +178,11 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel) {
                         Spacer(modifier = Modifier.height(30.dp))
                         HeadingTextComponent(value = "Регистрация прошла успешно!")
                         Spacer(modifier = Modifier.height(15.dp))
-                        SuccessButtonComponent(value = stringResource(id = (R.string.after_success_signup)), onClickButton = { PurchasedProductAppRouter.navigateTo(Screen.MainScreen) })
+                        SuccessButtonComponent(
+                            value = stringResource(id = (R.string.after_success_signup)),
+                            onClickButton = {
+                                signInViewModel.toSignIn(usernameValue.value,passwordValue.value)
+                                PurchasedProductAppRouter.navigateTo(Screen.HomeScreen) })
                     }
 
                 }

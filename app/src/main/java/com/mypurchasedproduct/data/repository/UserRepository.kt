@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.data.repository
 
 import android.util.Log
+import com.mypurchasedproduct.data.local.DataStoreManager
 import com.mypurchasedproduct.data.remote.RemoteDataSource
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 // Сюда же можно добаивть локлаьный DataSource
 class UserRepository @Inject constructor(
-    private val remoteDataSource: RemoteDataSource
+    private val remoteDataSource: RemoteDataSource,
+    private val dataStoreManager: DataStoreManager
 ) : BaseApiResponse(){
     private val TAG = this.javaClass.simpleName
     suspend fun signUp(signUpRequest: SignUpRequest): NetworkResult<MessageResponse>{
@@ -22,5 +24,9 @@ class UserRepository @Inject constructor(
 
     suspend fun signIn(signInRequest: SignInRequest): NetworkResult<TokenResponse>{
         return safeApiCall{remoteDataSource.signIn(signInRequest)}
+    }
+
+    suspend fun setAccessToken(accessToken:String){
+        dataStoreManager.saveAccessToken(accessToken)
     }
 }

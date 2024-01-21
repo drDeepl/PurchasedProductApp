@@ -8,4 +8,6 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductApi)
 
     suspend fun signUp(signUpRequest: SignUpRequest) = api.signUp(signUpRequest)
     suspend fun signIn(signInRequest: SignInRequest) = api.signIn(signInRequest)
+
+    suspend fun getAllPurchasedProductsUser(userId:Long) = api.getAllPurchasedProduct(userId)
 }

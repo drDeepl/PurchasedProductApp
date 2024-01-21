@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.domain.usecases.SignInUseCase
+import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
+import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.state.SignInState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,22 +30,29 @@ class SignInViewModel @Inject constructor(
 
     }
 
-    fun toSignIn(signInRequest: SignInRequest){
+    fun toSignIn(username: String, password:String){
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true
             )
 
-            signInUseCase.invoke(signInRequest).let{
+            signInUseCase.invoke(SignInRequest(username, password)).let{
                 when(it){
                     is NetworkResult.Success ->{
-                        state.copy(
-                            responseData = it.data,
-                            isLoading = false,
-                            isSignInSuccess = true
-                        )
-//                        signInUseCase.setTokenStore(it.data)
 
+                        it.data?. let {
+                            signInUseCase.setAccessTokenStore(it.accessToken)
+                            state.copy(
+                                responseData = it,
+                                isLoading = false,
+                                isSignInSuccess = true
+                            )
+                            PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
+                        } ?: state.copy(
+                            isLoading = false,
+                            isSignInSuccess = false,
+                            error = "токен не найден"
+                        )
                     }
                     is NetworkResult.Error ->{
                         state.copy(

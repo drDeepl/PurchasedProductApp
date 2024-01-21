@@ -6,13 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 sealed class Screen() {
     object SignUpScreen: Screen()
     object TermsAndConditionsScreen: Screen()
-    object LogInScreen: Screen()
-    object MainScreen: Screen()
+    object SignInScreen: Screen()
+    object HomeScreen: Screen()
 
 }
 
 object PurchasedProductAppRouter{
-    val currentScreen: MutableState<Screen> = mutableStateOf(Screen.SignUpScreen)
+    val currentScreen: MutableState<Screen> = mutableStateOf(Screen.HomeScreen)
 
     fun navigateTo(destination: Screen){
         currentScreen.value = destination
