@@ -345,7 +345,6 @@ fun SuccessButtonComponent(value: String, onClickButton: () -> Unit, icon:Painte
             if(isLoading){
                 CircularProgressIndicator(
                     color = Color.White
-
                 )
             }
             else{

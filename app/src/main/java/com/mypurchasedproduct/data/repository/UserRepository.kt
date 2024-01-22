@@ -11,7 +11,7 @@ import com.mypurchasedproduct.presentation.utils.BaseApiResponse
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import javax.inject.Inject
 
-// Сюда же можно добаивть локлаьный DataSource
+// Сюда же можно добаивть локальный DataSource
 class UserRepository @Inject constructor(
     private val remoteDataSource: RemoteDataSource,
     private val dataStoreManager: DataStoreManager
@@ -26,7 +26,5 @@ class UserRepository @Inject constructor(
         return safeApiCall{remoteDataSource.signIn(signInRequest)}
     }
 
-    suspend fun setAccessToken(accessToken:String){
-        dataStoreManager.saveAccessToken(accessToken)
-    }
+
 }
