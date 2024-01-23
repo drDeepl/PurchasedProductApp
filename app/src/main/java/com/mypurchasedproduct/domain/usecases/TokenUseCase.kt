@@ -1,9 +1,7 @@
 package com.mypurchasedproduct.domain.usecases
 
-import android.util.Log
-import com.google.gson.stream.JsonToken
 import com.mypurchasedproduct.data.repository.TokenRepository
-import com.mypurchasedproduct.domain.TokenItem
+import com.mypurchasedproduct.domain.model.TokenModel
 import com.mypurchasedproduct.presentation.utils.JwtTokenUtils
 import org.json.JSONObject
 import javax.inject.Inject
@@ -17,10 +15,10 @@ class TokenUseCase  @Inject constructor(
     private val TAG: String = this.javaClass.simpleName
     suspend fun getAccessToken() = tokenRepository.getAccessToken()
 
-    fun getTokenAccessData(accessToken: String): TokenItem{
+    fun getTokenAccessData(accessToken: String): TokenModel {
         val decodedAccessTokenData = jwtTokenUtils.decodeAccessToken(accessToken)
         val jsonObject = JSONObject(decodedAccessTokenData)
-        return TokenItem(
+        return TokenModel(
             jsonObject.getLong("id"),
             jsonObject.getString("sub"),
             jsonObject.getBoolean("isAdmin"),

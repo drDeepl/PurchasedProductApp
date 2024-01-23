@@ -1,6 +1,6 @@
-package com.mypurchasedproduct.domain
+package com.mypurchasedproduct.domain.model
 
-data class TokenItem(
+data class TokenModel(
     val id: Long,
     val sub: String,
     val isAdmin: Boolean,

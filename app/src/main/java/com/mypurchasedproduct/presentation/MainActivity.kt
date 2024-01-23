@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -26,14 +27,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity: ComponentActivity() {
     private val signUpViewModel: SignUpViewModel by viewModels()
     private val signInViewModel: SignInViewModel by viewModels()
     private val homeViewModel: HomeViewModel by viewModels()
 
+    private val TAG: String = this.javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
