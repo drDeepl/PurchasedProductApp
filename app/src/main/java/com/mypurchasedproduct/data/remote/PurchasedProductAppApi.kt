@@ -13,8 +13,9 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
-interface PurchasedProductApi {
+interface PurchasedProductAppApi {
 
     @GET(USER_ENDPOINT)
     suspend fun getInfoCurrentUser(): Response<UserInfoResponse>
@@ -26,5 +27,5 @@ interface PurchasedProductApi {
     suspend fun signIn(@Body signInRequest: SignInRequest): Response<TokenResponse>
 
     @GET("${PURCHASED_PRODUCT_ENDPOINT}/all/{user_id}")
-    suspend fun getAllPurchasedProduct(@Path("user_id") userId: Long): Response<List<PurchasedProductResponse>>
+    suspend fun getAllPurchasedProduct(@Path("user_id") userId: Long, @Query("offset") offset: Int): Response<List<PurchasedProductResponse>>
 }

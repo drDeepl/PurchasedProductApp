@@ -2,17 +2,15 @@ package com.mypurchasedproduct.di.modules
 
 import android.content.Context
 import com.mypurchasedproduct.data.local.DataStoreManager
-import com.mypurchasedproduct.data.remote.PurchasedProductApi
+import com.mypurchasedproduct.data.remote.PurchasedProductAppApi
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.BASE_URL
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.Response
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -61,7 +59,7 @@ object ApiModule {
 
     @Singleton
     @Provides
-    fun providesPurchasedProductApi(retrofit: Retrofit) = retrofit.create(PurchasedProductApi::class.java)
+    fun providesPurchasedProductApi(retrofit: Retrofit) = retrofit.create(PurchasedProductAppApi::class.java)
 
 
 

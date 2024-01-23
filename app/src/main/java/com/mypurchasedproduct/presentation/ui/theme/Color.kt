@@ -26,4 +26,4 @@ val AcidGreenColor = Color(0xFF00F032)
 val AcidBlueColor = Color(0xFF)
 
 val DeepBlackColor = Color(0xFF101010)
-val DeepGreyColor = Color(0xFF333335)
+val DeepGreyColor = Color(0xFF14142B)

@@ -6,8 +6,10 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -30,6 +32,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 
@@ -56,9 +59,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.domain.model.PurchasedProductModel
+import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -394,4 +400,55 @@ fun DeviderTextComponent(value:String){
     }
 }
 
+@Composable
+fun PurchasedProductItem(purchasedProduct:PurchasedProductItem){
+    Surface(
+        modifier= Modifier
+            .fillMaxWidth()
+            .padding(2.dp,7.dp)
+            .height(65.dp),
+        shadowElevation = 5.dp,
+        border = BorderStroke(
+            width = 2.dp,
+            brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
+        ),
+        shape = componentShapes.medium
+    ){
+        Column(
+            modifier = Modifier.padding(15.dp, 10.dp),
+            horizontalAlignment= Alignment.Start,
+            verticalArrangement = Arrangement.SpaceAround
+        ){
+            Text(
+                purchasedProduct.productName,
+                fontSize=18.sp,
+                fontWeight= FontWeight.Bold,
+            )
+            Row(horizontalArrangement = Arrangement.Center){
+                Text(
+                    purchasedProduct.count.toString(),
+                    fontSize=16.sp,
+                )
+                Spacer(modifier = Modifier.padding(2.dp,0.dp))
+                Text(
+                    purchasedProduct.unitMeasurement,
+                    fontSize=16.sp,
+                )
 
+            }
+        }
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "${purchasedProduct.price.toString()} ₽",
+                modifier = Modifier.padding(8.dp),
+                fontSize=17.sp,
+                fontWeight= FontWeight.Bold,
+            )
+
+        }
+
+    }
+}

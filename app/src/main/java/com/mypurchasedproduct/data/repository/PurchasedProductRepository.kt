@@ -12,9 +12,9 @@ class PurchasedProductRepository @Inject constructor(
 ): BaseApiResponse() {
     private val TAG = this.javaClass.simpleName
 
-    suspend fun getAllPurchasedProductUser(userId: Long) : NetworkResult<List<PurchasedProductResponse>>{
+    suspend fun getAllPurchasedProductUser(userId: Long, offset: Int) : NetworkResult<List<PurchasedProductResponse>>{
         Log.i(TAG, "GET ALL PURCHASED PRODUCT OF USER")
-        return safeApiCall{remoteDataSource.getAllPurchasedProductsUser(userId)}
+        return safeApiCall{remoteDataSource.getAllPurchasedProductsUser(userId, offset)}
     }
 
 }

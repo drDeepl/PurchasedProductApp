@@ -12,6 +12,7 @@ import com.mypurchasedproduct.domain.usecases.TokenUseCase
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
+import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.UserTokenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -25,6 +26,8 @@ class HomeViewModel @Inject constructor(
 
     private val TAG = this.javaClass.simpleName
 
+    var state by mutableStateOf(HomeState())
+        private set
     var userTokenState by mutableStateOf(UserTokenState())
         private set
 
@@ -36,7 +39,7 @@ class HomeViewModel @Inject constructor(
 
     init{
         viewModelScope.launch {
-            userTokenState = userTokenState.copy(
+            state = state.copy(
                 isLoading = true
             )
             tokenUseCase.getAccessToken().collect{
@@ -44,13 +47,14 @@ class HomeViewModel @Inject constructor(
                     val accessTokenData: TokenModel = tokenUseCase.getTokenAccessData(accessToken)
                     Log.i(TAG, accessToken)
                     userTokenState = userTokenState.copy(
-                        isLoading = false,
                         accessToken = accessToken,
                         accessTokenData =accessTokenData
                     )
                 } ?: PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
             }
-            userTokenState = userTokenState.copy(isLoading = false)
+            state = state.copy(
+                isLoading = true
+            )
         }
     }
 }
