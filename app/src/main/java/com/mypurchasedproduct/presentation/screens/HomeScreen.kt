@@ -2,37 +2,39 @@ package com.mypurchasedproduct.presentation.screens
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
-import com.mypurchasedproduct.domain.model.PurchasedProductModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
-import java.sql.Timestamp
-import java.time.Instant
+import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
+import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
+import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+
 
 
 val cardList = listOf(
@@ -101,6 +103,7 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 
 @Composable
 fun HomeScreenTest(){
+    TODO("added shadow to row && remove to AppComponents")
     Surface(
         modifier = Modifier
             .fillMaxSize()
@@ -113,9 +116,52 @@ fun HomeScreenTest(){
                 .padding(5.dp),
         ){
             items(cardList){purchasedProduct ->
-                Card(modifier = Modifier.fillMaxWidth().padding(5.dp)) {
-                    Text(purchasedProduct.productName, fontSize=10.sp, fontWeight= FontWeight.Companion.Bold)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(11.dp)
+                        .height(65.dp)
+                        .background(Color.White)
+                        .border(
+                            width = 2.dp,
+                            brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
+                            shape= componentShapes.medium
+                        )
+                )
+
+              {
+                    Column(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalAlignment= Alignment.Start,
+                        verticalArrangement = Arrangement.SpaceAround
+                    ){
+                        Text(
+                            purchasedProduct.productName,
+                            fontSize=18.sp,
+                            fontWeight= FontWeight.Bold,
+                        )
+                        Row(horizontalArrangement = Arrangement.Center){
+                            Text(
+                                purchasedProduct.count.toString(),
+                                fontSize=16.sp,
+                            )
+                            Spacer(modifier = Modifier.padding(2.dp,0.dp))
+                            Text(
+                                purchasedProduct.unitMeasurement,
+                                fontSize=16.sp,
+                            )
+
+                        }
+                    }
+                    Text(
+                        "${purchasedProduct.price.toString()} ₽",
+                        modifier = Modifier.padding(8.dp),
+                        fontSize=17.sp,
+                        fontWeight= FontWeight.Bold,
+                        textAlign = TextAlign.End
+                    )
                 }
+
             }
         }
     }
