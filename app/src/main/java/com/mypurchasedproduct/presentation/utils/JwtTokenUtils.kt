@@ -1,6 +1,8 @@
 package com.mypurchasedproduct.presentation.utils
 
 import android.os.Build
+import com.mypurchasedproduct.domain.model.TokenModel
+import org.json.JSONObject
 import java.util.Base64
 
 class JwtTokenUtils {
@@ -16,5 +18,16 @@ class JwtTokenUtils {
         } catch (e: Exception) {
             "Error parsing JWT: $e"
         }
+    }
+
+    fun getTokenAccessData(accessToken: String): TokenModel {
+        val decodedAccessTokenData = decodeAccessToken(accessToken)
+        val jsonObject = JSONObject(decodedAccessTokenData)
+        return TokenModel(
+            jsonObject.getLong("id"),
+            jsonObject.getString("sub"),
+            jsonObject.getBoolean("isAdmin"),
+            jsonObject.getInt("exp")
+        )
     }
 }

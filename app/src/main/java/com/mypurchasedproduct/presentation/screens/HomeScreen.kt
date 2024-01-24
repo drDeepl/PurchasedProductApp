@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.presentation.screens
 
 
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,6 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
+import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
+import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItem
@@ -53,7 +57,9 @@ val cardList: List<PurchasedProductItem> = listOf(
 )
 
 @Composable
-fun HomeScreen(homeViewModel: HomeViewModel) {
+fun HomeScreen(
+    appRouter: PurchasedProductAppRouter,
+    homeViewModel: HomeViewModel) {
     val screenState = homeViewModel.state
     val userTokenState = homeViewModel.userTokenState
     Column(
@@ -62,6 +68,9 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        if(userTokenState.accessToken == null && !screenState.isLoading){
+            PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
+        }
         if(screenState.isLoading){
             CircularProgressIndicator(
                 modifier = Modifier.height(35.dp),
@@ -69,14 +78,27 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
             )
         }
         else{
-            val userTokenData = userTokenState.accessTokenData
-            NormalTextComponent(value = userTokenData?.id.toString())
-            Spacer(modifier = Modifier.padding(10.dp))
-            NormalTextComponent(value = userTokenData?.sub.toString())
-            Spacer(modifier = Modifier.padding(10.dp))
-            NormalTextComponent(value = userTokenData?.isAdmin.toString())
-            Spacer(modifier = Modifier.padding(10.dp))
-            NormalTextComponent(value = userTokenData?.exp.toString())
+            val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
+            if(getPurchasedProductsState.isSuccessResponse){
+                val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.responseData
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp),
+
+                    ) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(5.dp),
+                    ){
+                        items(purchasedProducts){purchasedProduct ->
+                            PurchasedProductItem(purchasedProduct)
+                        }
+                    }
+                }
+            }
+
         }
 
     }
@@ -84,22 +106,6 @@ fun HomeScreen(homeViewModel: HomeViewModel) {
 
 @Composable
 fun HomeScreenTest(){
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(8.dp),
-
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-        ){
-            items(cardList){purchasedProduct ->
-                PurchasedProductItem(purchasedProduct)
-            }
-        }
-    }
 
 
 }

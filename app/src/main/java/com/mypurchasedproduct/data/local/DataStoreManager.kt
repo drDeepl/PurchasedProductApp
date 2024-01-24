@@ -33,4 +33,16 @@ class DataStoreManager(val context: Context) {
         pref[stringPreferencesKey("refresh_token")]
     }
 
+    suspend fun removeAccessToken(){
+        context.dataStore.edit {pref ->
+            pref.remove(stringPreferencesKey("access_token"))
+        }
+    }
+
+    suspend fun removeRefreshToken(){
+        context.dataStore.edit {pref ->
+            pref.remove(stringPreferencesKey("refresh_token"))
+        }
+    }
+
 }

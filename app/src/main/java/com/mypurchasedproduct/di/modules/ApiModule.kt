@@ -4,11 +4,17 @@ import android.content.Context
 import com.mypurchasedproduct.data.local.DataStoreManager
 import com.mypurchasedproduct.data.remote.PurchasedProductAppApi
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.BASE_URL
+import com.mypurchasedproduct.presentation.utils.JwtTokenUtils
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -38,7 +44,15 @@ object ApiModule {
         .addInterceptor(httpLoggingInterceptor)
         .addInterceptor(object : Interceptor {
             override fun intercept(chain: Interceptor.Chain): Response {
-                val request = chain.request().newBuilder().addHeader("Authorization", "${dataStoreManager.getAccessToken()}").build()
+                var accessToken: String? = null
+                runBlocking {
+                    GlobalScope.launch {
+                        dataStoreManager.getAccessToken().collect{
+                            accessToken = it
+                        }
+                    }
+                }
+                val request = chain.request().newBuilder().addHeader("Authorization", "${accessToken}").build()
                 return chain.proceed(request)
             }
         })

@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.data.remote
 
+import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
@@ -28,4 +29,7 @@ interface PurchasedProductAppApi {
 
     @GET("${PURCHASED_PRODUCT_ENDPOINT}/all/{user_id}")
     suspend fun getAllPurchasedProduct(@Path("user_id") userId: Long, @Query("offset") offset: Int): Response<List<PurchasedProductResponse>>
+
+    @POST("${USER_ENDPOINT}/refreshToken")
+    suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
 }

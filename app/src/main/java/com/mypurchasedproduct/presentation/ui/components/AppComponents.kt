@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.PurchasedProductModel
 import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
@@ -401,7 +402,7 @@ fun DeviderTextComponent(value:String){
 }
 
 @Composable
-fun PurchasedProductItem(purchasedProduct:PurchasedProductItem){
+fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
     Surface(
         modifier= Modifier
             .fillMaxWidth()

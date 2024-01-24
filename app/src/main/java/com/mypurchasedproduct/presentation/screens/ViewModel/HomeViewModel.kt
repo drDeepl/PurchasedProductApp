@@ -14,8 +14,12 @@ import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.UserTokenState
+import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.time.Instant
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,27 +38,65 @@ class HomeViewModel @Inject constructor(
     var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
         private set
 
-    var accessToken by mutableStateOf("")
-        private set
 
     init{
         viewModelScope.launch {
+            Log.e(TAG, "RUN VIEW MODEL SCOPE")
             state = state.copy(
                 isLoading = true
             )
-            tokenUseCase.getAccessToken().collect{
-                it?.let{accessToken ->
-                    val accessTokenData: TokenModel = tokenUseCase.getTokenAccessData(accessToken)
-                    Log.i(TAG, accessToken)
-                    userTokenState = userTokenState.copy(
-                        accessToken = accessToken,
-                        accessTokenData =accessTokenData
-                    )
-                } ?: PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
+            Log.wtf(TAG, "BEFORE REMOVE")
+            tokenUseCase.removeAccessToken()
+            Log.wtf(TAG, "AFTER REMOVE")
+            tokenUseCase.getAccessToken().collect{accessToken ->
+                Log.wtf(TAG, "RUN COLLECT GET ACCESS TOKEN")
+                accessToken?.let {
+                    Log.wtf(TAG, "ACCESS TOKEN $accessToken")
+                    val tokenAccessData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
+                    val differenceTime: Long = tokenAccessData.exp - System.currentTimeMillis()
+                    if(differenceTime  <= 0){
+                        Log.wtf(TAG, "DIFFERENCE TIME $differenceTime")
+                        tokenUseCase.getRefreshToken().collect{refreshToken ->
+//                            refreshToken?.let {
+//                                Log.wtf(TAG, "REFRESH TOKEN $refreshToken")
+//                            } : {Log.wtf(TAG, "REFRESH TOKEN NULL")}
+                        }
+                    }
+                }
+                TODO("IF ACCESS NULL -> REDIRECT SignUpScreen ELSE CHECK VALID IT")
+                Log.wtf(TAG, "ACCESS IS NULL")
             }
-            state = state.copy(
-                isLoading = true
+        }
+    }
+    fun getPurchasedProducts(userId: Long, offset: Int){
+        viewModelScope.launch {
+            getPurchasedProductsState = getPurchasedProductsState.copy(
+                isLoading =  true
             )
+
+            purchasedProductUseCase.getAllPurchasedProductsCurrentUser(userId, offset).let{
+                when(it){
+                    is NetworkResult.Success -> {
+                        it.data?.let{purchasedProducts ->
+                            getPurchasedProductsState = getPurchasedProductsState.copy(
+                                isLoading = false,
+                                isSuccessResponse = true,
+                                responseData = purchasedProducts
+                            )
+
+                        } ?: {getPurchasedProductsState = getPurchasedProductsState.copy(isLoading=false)}
+
+                    }
+                    is NetworkResult.Error ->{
+                        getPurchasedProductsState = getPurchasedProductsState.copy(
+                            isLoading = false,
+                            isSuccessResponse = false,
+                            error = it.message
+                        )
+                    }
+                }
+            }
+
         }
     }
 }

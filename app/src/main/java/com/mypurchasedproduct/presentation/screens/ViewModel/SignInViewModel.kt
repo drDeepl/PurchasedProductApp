@@ -41,21 +41,22 @@ class SignInViewModel @Inject constructor(
                     is NetworkResult.Success ->{
 
                         it.data?. let {
-                            signInUseCase.setAccessTokenStore(it.accessToken)
-                            state.copy(
+                            state = state.copy(
                                 responseData = it,
                                 isLoading = false,
                                 isSignInSuccess = true
                             )
                             PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
-                        } ?: state.copy(
-                            isLoading = false,
-                            isSignInSuccess = false,
-                            error = "токен не найден"
-                        )
+                        } ?: {
+                            state = state.copy(
+                                isLoading = false,
+                                isSignInSuccess = false,
+                                error = "токен не найден"
+                            )
+                        }
                     }
                     is NetworkResult.Error ->{
-                        state.copy(
+                        state = state.copy(
                             error = it.message,
                             isLoading = false
                         )

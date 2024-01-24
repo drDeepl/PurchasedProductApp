@@ -15,7 +15,7 @@ abstract class BaseApiResponse {
                     return NetworkResult.Success(body)
                 } ?: return errorMessage("Body is empty")
             }else{
-                return errorMessage("пользователь с таким именем уже существует", response.code())
+                return errorMessage(response.message(), response.code())
             }
 
         }

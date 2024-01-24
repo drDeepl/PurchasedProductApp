@@ -54,7 +54,7 @@ class MainActivity: ComponentActivity() {
                                 SignInScreen(signInViewModel)
                             }
                             is Screen.HomeScreen ->{
-                                HomeScreen(homeViewModel)
+                                HomeScreen(PurchasedProductAppRouter, homeViewModel)
                             }
                         }
 
