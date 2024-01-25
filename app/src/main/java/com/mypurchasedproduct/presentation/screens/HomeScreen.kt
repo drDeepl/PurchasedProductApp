@@ -62,6 +62,9 @@ fun HomeScreen(
     homeViewModel: HomeViewModel) {
     val screenState = homeViewModel.state
     val userTokenState = homeViewModel.userTokenState
+    if(!screenState.isSignIn){
+        homeViewModel.checkAccessToken()
+    }
     Column(
         modifier = Modifier
             .fillMaxSize(),
