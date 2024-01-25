@@ -23,6 +23,7 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
+import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItem
 import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
@@ -85,37 +86,36 @@ fun HomeScreen(
                 )
             }
             else{
-                    PrimaryButtonComponent(value = "Выйти", onClickButton = {
+                PrimaryButtonComponent(value = "Выйти", onClickButton = {
                         homeViewModel.signOut()
                         appRouter.navigateTo(Screen.SignUpScreen)
                     })
                     val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
+                if(getPurchasedProductsState.isLoading){
                     homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
-                    if(getPurchasedProductsState.isSuccessResponse){
-                        val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
-                        Surface(
+                }
+                if(getPurchasedProductsState.isSuccessResponse){
+                    val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(8.dp),
+                        ) {
+                        LazyColumn(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(8.dp),
-
-                            ) {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(5.dp),
+                                .fillMaxWidth()
+                                .padding(5.dp),
                             ){
-                                items(purchasedProducts){purchasedProduct ->
-                                    PurchasedProductItem(purchasedProduct)
-                                }
+                            items(purchasedProducts){purchasedProduct ->
+                                PurchasedProductItem(purchasedProduct)
                             }
                         }
                     }
+                }
             }
 
         }
     }
-
-
 }
 
 @Composable

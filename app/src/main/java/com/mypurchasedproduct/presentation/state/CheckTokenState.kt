@@ -7,6 +7,4 @@ data class CheckTokenState(
     val isComplete: Boolean = false,
     val isError: Boolean = false,
     val error: String? = null,
-    val data: TokenModel? = null,
-
-)
+    )

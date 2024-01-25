@@ -62,7 +62,10 @@ class HomeViewModel @Inject constructor(
                     checkTokenState = checkTokenState.copy(
                         isActive = false,
                         isComplete = true,
-                        data = accessTokenData
+                    )
+                    accessTokenItem = accessTokenItem.copy(
+                        accessToken = accessToken,
+                        accessTokenData = accessTokenData
                     )
                     state = state.copy(
                         isSignIn = true
@@ -97,14 +100,17 @@ class HomeViewModel @Inject constructor(
                 isLoading = false,
                 isSignIn = null
             )
+            getPurchasedProductsState = FindPurchasedProductsState()
+            accessTokenItem = AccessTokenItem()
+            checkTokenState = CheckTokenState()
             Log.e(TAG, "[END] SIGN OUT isSignIn ${state.isSignIn}")
         }
     }
 
     fun getPurchasedProductCurrentUser(offset: Int){
-        viewModelScope.launch{
+        viewModelScope.async{
             Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
-            getPurchasedProductsState = getPurchasedProductsState.copy(isLoading =  true)
+            Log.wtf(TAG, "FOR USER ${accessTokenItem.accessTokenData?.sub}")
             accessTokenItem.accessTokenData?.let{tokenModel->
                 Log.i(TAG, "TOKEN OF USER ${tokenModel.sub}")
                 val purchasedProducts = this.async { purchasedProductUseCase.getAllPurchasedProductsCurrentUser(tokenModel.id, offset) }.await()
@@ -126,7 +132,6 @@ class HomeViewModel @Inject constructor(
                     }
                 }
             }
-
         }
     }
 }
