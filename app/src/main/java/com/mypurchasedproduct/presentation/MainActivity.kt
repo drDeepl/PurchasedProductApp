@@ -34,7 +34,6 @@ import javax.inject.Inject
 class MainActivity: ComponentActivity() {
     private val signUpViewModel: SignUpViewModel by viewModels()
     private val signInViewModel: SignInViewModel by viewModels()
-    private val homeViewModel: HomeViewModel by viewModels()
 
     private val TAG: String = this.javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +53,7 @@ class MainActivity: ComponentActivity() {
                                 SignInScreen(signInViewModel)
                             }
                             is Screen.HomeScreen ->{
-                                HomeScreen(PurchasedProductAppRouter, homeViewModel)
+                                HomeScreen()
                             }
                         }
 

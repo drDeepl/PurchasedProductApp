@@ -19,6 +19,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collect
@@ -50,29 +51,17 @@ class HomeViewModel @Inject constructor(
 
 
     init {
-
-//        viewModelScope.launch {
-//            Log.e(TAG, "[START] VIEW MODEL SCOPE 1")
-//            state  = state.copy(isLoading = true)
-//            tokenUseCase.getAccessToken().take(1).collect{accessToken ->
-//                accessToken?.let{
-//                    Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
-//                }
-//                Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
-//            }
-//
-//            Log.e(TAG, "[FINISH] VIEW MODEL SCOPE 1")
-//            state  = state.copy(isLoading = false)
-//        }
+        state = state.copy(isLoading = true)
     }
 
     fun checkAccessToken(){
+        Log.wtf(TAG, "CHECK ACCESS TOKEN")
         viewModelScope.launch {
             Log.e(TAG, "[START] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
             state  = state.copy(isLoading = true)
 
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
-                accessToken?.let{
+                if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
                     val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
                     userTokenState = userTokenState.copy(
@@ -83,17 +72,32 @@ class HomeViewModel @Inject constructor(
                         isSignIn = true,
                         isLoading = false
                     )
-                } ?: Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
-            }
+                }
+                else{
+                    Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
+                    state = state.copy(
+                        isSignIn = false,
+                        isLoading = false
+                    )
 
+                }
+
+            }
             Log.e(TAG, "[FINISH] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
-            state  = state.copy(isLoading = false)
         }
     }
 
     fun removeAccessToken(){
         viewModelScope.launch {
-            tokenUseCase.removeAccessToken()
+            state = state.copy(
+                isLoading = true
+            )
+            val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
+            removedAccessToken.await()
+            state = state.copy(
+                isLoading = false
+            )
+
         }
     }
 }

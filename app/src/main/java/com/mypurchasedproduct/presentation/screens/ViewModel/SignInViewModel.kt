@@ -39,7 +39,6 @@ class SignInViewModel @Inject constructor(
             signInUseCase.invoke(SignInRequest(username, password)).let{
                 when(it){
                     is NetworkResult.Success ->{
-
                         it.data?. let {
                             state = state.copy(
                                 responseData = it,

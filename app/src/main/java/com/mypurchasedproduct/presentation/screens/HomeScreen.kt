@@ -19,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
+import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItem
 import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
 
@@ -58,29 +60,33 @@ val cardList: List<PurchasedProductItem> = listOf(
 
 @Composable
 fun HomeScreen(
-    appRouter: PurchasedProductAppRouter,
-    homeViewModel: HomeViewModel) {
+    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
+    homeViewModel: HomeViewModel = viewModel()
+) {
     val screenState = homeViewModel.state
     val userTokenState = homeViewModel.userTokenState
-    if(!screenState.isSignIn){
-        homeViewModel.checkAccessToken()
-    }
     Column(
         modifier = Modifier
             .fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        if(userTokenState.accessToken == null && !screenState.isLoading){
-            PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
-        }
         if(screenState.isLoading){
             CircularProgressIndicator(
                 modifier = Modifier.height(35.dp),
                 color = Color.Black
             )
+            if(screenState.isSignIn == null){
+                homeViewModel.checkAccessToken()
+            }
+            else{
+                if(!screenState.isSignIn){
+                    appRouter.navigateTo(Screen.SignUpScreen)
+                }
+            }
         }
         else{
+            PrimaryButtonComponent(value = "Выйти", onClickButton = {homeViewModel.removeAccessToken() })
             val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
             if(getPurchasedProductsState.isSuccessResponse){
                 val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.responseData
