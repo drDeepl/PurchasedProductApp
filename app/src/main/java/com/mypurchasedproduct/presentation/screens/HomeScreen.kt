@@ -1,10 +1,9 @@
 package com.mypurchasedproduct.presentation.screens
 
 
-import androidx.activity.viewModels
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +23,6 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
-import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItem
 import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
@@ -63,54 +61,61 @@ fun HomeScreen(
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel()
 ) {
-    val screenState = homeViewModel.state
-    val userTokenState = homeViewModel.userTokenState
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if(screenState.isLoading){
-            CircularProgressIndicator(
-                modifier = Modifier.height(35.dp),
-                color = Color.Black
-            )
-            if(screenState.isSignIn == null){
-                homeViewModel.checkAccessToken()
+    val purchasedProductPerPage: Int = 5
+    val homeState = homeViewModel.state
+    val checkTokenState = homeViewModel.checkTokenState
+    Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${homeState.isSignIn}")
+    if(homeState.isSignIn == null){
+        homeViewModel.checkAccessToken()
+    }
+    else if(!homeState.isSignIn){
+        appRouter.navigateTo(Screen.SignUpScreen)
+    }
+    else{
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if(homeState.isLoading || checkTokenState.isActive){
+                CircularProgressIndicator(
+                    modifier = Modifier.height(35.dp),
+                    color = Color.Black
+                )
             }
             else{
-                if(!screenState.isSignIn){
-                    appRouter.navigateTo(Screen.SignUpScreen)
-                }
-            }
-        }
-        else{
-            PrimaryButtonComponent(value = "Выйти", onClickButton = {homeViewModel.removeAccessToken() })
-            val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
-            if(getPurchasedProductsState.isSuccessResponse){
-                val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.responseData
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(8.dp),
+                    PrimaryButtonComponent(value = "Выйти", onClickButton = {
+                        homeViewModel.signOut()
+                        appRouter.navigateTo(Screen.SignUpScreen)
+                    })
+                    val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
+                    homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
+                    if(getPurchasedProductsState.isSuccessResponse){
+                        val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(8.dp),
 
-                    ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(5.dp),
-                    ){
-                        items(purchasedProducts){purchasedProduct ->
-                            PurchasedProductItem(purchasedProduct)
+                            ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp),
+                            ){
+                                items(purchasedProducts){purchasedProduct ->
+                                    PurchasedProductItem(purchasedProduct)
+                                }
+                            }
                         }
                     }
-                }
             }
 
         }
-
     }
+
+
 }
 
 @Composable

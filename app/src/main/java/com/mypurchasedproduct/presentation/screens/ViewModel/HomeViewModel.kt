@@ -9,27 +9,16 @@ import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.domain.model.TokenModel
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.domain.usecases.TokenUseCase
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.state.HomeState
-import com.mypurchasedproduct.presentation.state.UserTokenState
+import com.mypurchasedproduct.presentation.state.AccessTokenItem
+import com.mypurchasedproduct.presentation.state.CheckTokenState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.yield
-import java.time.Instant
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -43,7 +32,12 @@ class HomeViewModel @Inject constructor(
 
     var state by mutableStateOf(HomeState())
         private set
-    var userTokenState by mutableStateOf(UserTokenState())
+
+    var checkTokenState by mutableStateOf(CheckTokenState())
+        private set
+
+
+    var accessTokenItem by mutableStateOf(AccessTokenItem())
         private set
 
     var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
@@ -51,33 +45,37 @@ class HomeViewModel @Inject constructor(
 
 
     init {
-        state = state.copy(isLoading = true)
+        Log.e(TAG, "INIT VIEW MODEL")
     }
 
     fun checkAccessToken(){
         Log.wtf(TAG, "CHECK ACCESS TOKEN")
         viewModelScope.launch {
             Log.e(TAG, "[START] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
-            state  = state.copy(isLoading = true)
-
+            checkTokenState = checkTokenState.copy(
+                isActive = true
+            )
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
                     val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
-                    userTokenState = userTokenState.copy(
-                        accessToken = accessToken,
-                        accessTokenData = accessTokenData
+                    checkTokenState = checkTokenState.copy(
+                        isActive = false,
+                        isComplete = true,
+                        data = accessTokenData
                     )
                     state = state.copy(
-                        isSignIn = true,
-                        isLoading = false
+                        isSignIn = true
                     )
                 }
                 else{
                     Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
+                    checkTokenState = checkTokenState.copy(
+                        isActive = false,
+                        isComplete = true,
+                    )
                     state = state.copy(
-                        isSignIn = false,
-                        isLoading = false
+                        isSignIn = false
                     )
 
                 }
@@ -87,7 +85,8 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun removeAccessToken(){
+    fun signOut(){
+        Log.e(TAG, "[START] SIGN OUT")
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true
@@ -95,8 +94,38 @@ class HomeViewModel @Inject constructor(
             val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
             removedAccessToken.await()
             state = state.copy(
-                isLoading = false
+                isLoading = false,
+                isSignIn = null
             )
+            Log.e(TAG, "[END] SIGN OUT isSignIn ${state.isSignIn}")
+        }
+    }
+
+    fun getPurchasedProductCurrentUser(offset: Int){
+        viewModelScope.launch{
+            Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
+            getPurchasedProductsState = getPurchasedProductsState.copy(isLoading =  true)
+            accessTokenItem.accessTokenData?.let{tokenModel->
+                Log.i(TAG, "TOKEN OF USER ${tokenModel.sub}")
+                val purchasedProducts = this.async { purchasedProductUseCase.getAllPurchasedProductsCurrentUser(tokenModel.id, offset) }.await()
+                when(purchasedProducts){
+                    is NetworkResult.Success -> {
+                        purchasedProducts.data?.let{
+                            getPurchasedProductsState = getPurchasedProductsState.copy(
+                                isLoading = false,
+                                purchasedProducts = it,
+                                isSuccessResponse = true
+                            )
+                        }
+                    }
+                    is NetworkResult.Error ->{
+                        getPurchasedProductsState = getPurchasedProductsState.copy(
+                            isLoading = false,
+                            error = purchasedProducts.message
+                        )
+                    }
+                }
+            }
 
         }
     }
