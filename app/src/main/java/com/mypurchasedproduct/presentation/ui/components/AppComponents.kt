@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,12 +28,11 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonElevation
+import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,7 +40,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -54,9 +51,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -69,15 +64,12 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
-import com.mypurchasedproduct.domain.model.PurchasedProductModel
-import com.mypurchasedproduct.presentation.ui.item.PurchasedProductItem
-import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
@@ -470,10 +462,11 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
 fun PurchasedProductViewComponent(
     purchasedProducts: List<PurchasedProductResponse>,
     modifier: Modifier = Modifier
-        .fillMaxSize()
-        .padding(8.dp)){
+        .fillMaxSize(),
+    paddingValues: PaddingValues)
+{
     Box(
-        modifier =modifier,
+        modifier =modifier.padding(paddingValues),
     ) {
         LazyColumn(
             modifier = Modifier
@@ -524,4 +517,52 @@ fun LoadScreen(modifier: Modifier = Modifier, isActive: Boolean = false){
             )
         }
     }
+}
+
+@Composable
+fun PrimaryFloatingActionButton(
+    onClick: () -> Unit,
+    painter: Painter = painterResource(id = R.drawable.ic_plus),
+    modifier: Modifier = Modifier
+        .height(65.dp)
+        .width(65.dp)
+    )
+{
+    IconButton(
+        modifier = modifier
+            .background(
+                brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
+                shape = RoundedCornerShape(percent = 100)
+            )
+            .padding(8.dp),
+        onClick = onClick)
+    {
+        Icon(
+            modifier = modifier,
+            painter=painter, contentDescription = "ic_plus", tint=Color.White)
+    }
+}
+
+@Composable
+fun CustomDeialog(
+    onDismiss:() -> Unit,
+    onConfirm:() -> Unit
+) {
+
+    Dialog(
+        onDismissRequest = {onDismiss},
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false)
+
+    ){
+        Card(
+            shape= componentShapes.medium,
+            modifier = Modifier.fillMaxWidth(0.8f)
+
+        ) {
+            HeadingTextComponent(value = "Добавить купленный продукт")
+            PrimaryButtonComponent(value = "добавить", onClickButton = onConfirm)
+            PrimaryButtonComponent(value = "отмена", onClickButton = onDismiss)
+        }
+    }
+
 }

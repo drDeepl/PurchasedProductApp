@@ -12,6 +12,7 @@ import com.mypurchasedproduct.domain.usecases.TokenUseCase
 import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
+import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +42,9 @@ class HomeViewModel @Inject constructor(
         private set
 
     var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
+        private set
+
+    var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
         private set
 
 
@@ -134,5 +138,17 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onAddPurchasedProductClick(){
+        addPurchasedProductState = addPurchasedProductState.copy(
+            isActive = true
+        )
+    }
+
+    fun onCloseAddPurchasedproduct(){
+        addPurchasedProductState = addPurchasedProductState.copy(
+            isActive = false
+        )
     }
 }
