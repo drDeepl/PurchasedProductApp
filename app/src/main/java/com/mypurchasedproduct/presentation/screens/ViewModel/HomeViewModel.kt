@@ -60,6 +60,7 @@ class HomeViewModel @Inject constructor(
             checkTokenState = checkTokenState.copy(
                 isActive = true
             )
+
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")

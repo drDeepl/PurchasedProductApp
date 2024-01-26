@@ -46,7 +46,9 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun SignInScreen(signInViewModel: SignInViewModel) {
+fun SignInScreen(
+    signInViewModel: SignInViewModel,
+    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter) {
 
     val signInState = signInViewModel.state
     val usernameValue = remember {
@@ -58,7 +60,7 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
     }
 
     SystemBackButtonHandler {
-        PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
+        appRouter.navigateTo(Screen.SignUpScreen)
     }
     Surface(
         color = Color.White,
@@ -68,6 +70,10 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
             .padding(28.dp)
 
     ) {
+        if(signInState.isSignInSuccess){
+            appRouter.navigateTo(Screen.HomeScreen)
+            signInViewModel.defaultState()
+        }
         WithAnimation(animation = scaleIn() + fadeIn()) {
             Column(
                 modifier = Modifier.fillMaxSize(),

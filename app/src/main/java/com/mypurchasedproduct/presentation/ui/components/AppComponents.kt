@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonElevation
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -298,14 +299,13 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(),
-        border = BorderStroke(3.dp,brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),),
     ){
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(48.dp)
                 .background(
-                    Color.Black,
+                    brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
                     shape = RoundedCornerShape(50.dp)
                 ),
             contentAlignment = Alignment.Center

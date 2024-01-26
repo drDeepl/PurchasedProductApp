@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
@@ -40,6 +41,7 @@ import com.mypurchasedproduct.presentation.ui.components.ClickableTextLogInCompo
 import com.mypurchasedproduct.presentation.ui.components.DeviderTextComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
+import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
 import com.mypurchasedproduct.presentation.ui.components.SuccessButtonComponent
@@ -49,9 +51,14 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
 
 @Composable
-fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewModel) {
+fun SignUpScreen(
+    signUpViewModel: SignUpViewModel = viewModel(),
+    signInViewModel: SignInViewModel = viewModel(),
+    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
+) {
 
     val signUpState = signUpViewModel.state
+    val signInState = signInViewModel.state
     val passwordValue = remember {
         mutableStateOf("")
     }
@@ -68,16 +75,15 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewMo
             .padding(28.dp)
 
     ) {
+        if(signUpState.isLoading){
+            LoadScreen(isActive = signUpState.isLoading)
+        }
         Column(
             modifier=Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.Start
 
         ){
-
-
-                HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
-
-
+            HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
         }
         Column(
             modifier=Modifier.fillMaxSize(),
@@ -94,13 +100,20 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewMo
 
                 ),
             ) {
-                if (!signUpState.isSignUpSuccess) {
+                if(signUpState.isSignUpSuccess){
+                    signInViewModel.toSignIn(usernameValue.value, passwordValue.value)
+                    signUpViewModel.defaultState()
+                }
+                if(signInState.isSignInSuccess){
+                    appRouter.navigateTo(Screen.HomeScreen)
+                    signInViewModel.defaultState()
 
-
+                }
+                else{
                     Spacer(modifier = Modifier.height(20.dp))
                     if (signUpState.error != null) {
                         Spacer(modifier = Modifier.height(20.dp))
-                        ErrorTextComponent(signUpState.error.toString())
+                        ErrorTextComponent(signUpState.error)
                     }
 
                     Column(
@@ -132,7 +145,7 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewMo
                             checkedState = signUpState.isApplyTermsAndConditions,
                             textValue = stringResource(id = R.string.term_and_conditions),
                             onTextSelected = {
-                                PurchasedProductAppRouter.navigateTo(Screen.TermsAndConditionsScreen)
+                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
                             },
                             onChackedChange = {
                                 signUpViewModel.setIsApplyTermsAndConditions(it)
@@ -162,27 +175,7 @@ fun SignUpScreen(signUpViewModel: SignUpViewModel, signInViewModel: SignInViewMo
                         Spacer(modifier = Modifier.height(20.dp))
                         DeviderTextComponent("или")
                         ClickableTextLogInComponent(
-                            onTextSelected = { PurchasedProductAppRouter.navigateTo(Screen.SignInScreen) })
-                    }
-
-                }else{
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ){
-
-                        Icon(painter=painterResource(id = R.drawable.check_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp), tint= AcidGreenColor)
-                        Spacer(modifier = Modifier.height(30.dp))
-                        HeadingTextComponent(value = "Регистрация прошла успешно!")
-                        Spacer(modifier = Modifier.height(15.dp))
-                        SuccessButtonComponent(
-                            value = stringResource(id = (R.string.after_success_signup)),
-                            onClickButton = {
-                                signInViewModel.toSignIn(usernameValue.value,passwordValue.value)
-                                PurchasedProductAppRouter.navigateTo(Screen.HomeScreen) })
+                            onTextSelected = { appRouter.navigateTo(Screen.SignInScreen) })
                     }
 
                 }

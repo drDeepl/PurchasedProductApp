@@ -27,7 +27,7 @@ class SignUpViewModel @Inject constructor(
 
     }
 
-    fun toSignUp(signUpRequest: SignUpRequest): Boolean{
+    fun toSignUp(signUpRequest: SignUpRequest){
 
         viewModelScope.launch {
             state = state.copy(
@@ -52,7 +52,6 @@ class SignUpViewModel @Inject constructor(
                 }
             }
         }
-        return state.isSignUpSuccess
     }
 
     fun setIsApplyTermsAndConditions(value: Boolean) {
@@ -65,7 +64,10 @@ class SignUpViewModel @Inject constructor(
         state = state.copy(
             error = msg
         )
+    }
 
+    fun defaultState(){
+        state = SignUpState()
     }
 
 }

@@ -94,7 +94,7 @@ fun HomeScreen(
                     }
                 )
                 if(addPurchasedProductState.isActive){
-                    TODO("ADD REQEUST TO ADD PURCHASED PRODUCT")
+//                    TODO("ADD REQEUST TO ADD PURCHASED PRODUCT")
                     CustomDeialog(onConfirm = { homeViewModel.onAddPurchasedProductClick() }, onDismiss = {homeViewModel.onCloseAddPurchasedproduct()})
                 }
 

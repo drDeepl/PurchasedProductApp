@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.presentation.screens.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,11 +32,11 @@ class SignInViewModel @Inject constructor(
     }
 
     fun toSignIn(username: String, password:String){
+        Log.wtf(TAG, "TO SIGN IN")
         viewModelScope.launch {
             state = state.copy(
                 isLoading = true
             )
-
             signInUseCase.invoke(SignInRequest(username, password)).let{
                 when(it){
                     is NetworkResult.Success ->{
@@ -45,7 +46,6 @@ class SignInViewModel @Inject constructor(
                                 isLoading = false,
                                 isSignInSuccess = true
                             )
-                            PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
                         } ?: {
                             state = state.copy(
                                 isLoading = false,
@@ -63,5 +63,9 @@ class SignInViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun defaultState(){
+        state = SignInState()
     }
 }

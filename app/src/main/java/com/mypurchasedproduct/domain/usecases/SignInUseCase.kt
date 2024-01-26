@@ -19,7 +19,9 @@ class SignInUseCase @Inject constructor(
         val result: NetworkResult<TokenResponse> = userRepository.signIn(signInRequest = signInRequest)
         if(result is NetworkResult.Success){
             result.data?.let{tokenResponse ->
-                Log.i(TAG, "SET REFRESH TOKEN")
+                Log.wtf(TAG, "SET TOKENS")
+                Log.d(TAG, "ACCESS TOKEN ${tokenResponse.accessToken}")
+                Log.d(TAG, "REFRESH TOKEN ${tokenResponse.refreshToken}")
                 tokenRepository.setRefreshToken(tokenResponse.refreshToken)
                 tokenRepository.setAccessToken(tokenResponse.accessToken)
             }
