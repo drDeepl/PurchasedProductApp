@@ -6,6 +6,7 @@ data class FindPurchasedProductsState (
     val purchasedProducts: List<PurchasedProductResponse> = listOf(),
     val isSuccessResponse: Boolean = false,
     val isLoading: Boolean = true,
+    val isActive: Boolean = true,
     val error: String? = null
     )
 

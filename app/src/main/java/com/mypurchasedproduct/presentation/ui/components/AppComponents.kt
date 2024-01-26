@@ -2,18 +2,25 @@ package com.mypurchasedproduct.presentation.ui.components
 
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,16 +44,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -59,6 +69,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,6 +84,7 @@ import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import kotlinx.coroutines.delay
 
 @Composable
 fun NormalTextComponent(value: String, textAlign: TextAlign = androidx.compose.ui.text.style.TextAlign.Center){
@@ -406,7 +418,7 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
     Surface(
         modifier= Modifier
             .fillMaxWidth()
-            .padding(2.dp,7.dp)
+            .padding(2.dp, 7.dp)
             .height(65.dp),
         shadowElevation = 5.dp,
         border = BorderStroke(
@@ -451,5 +463,65 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
 
         }
 
+    }
+}
+
+@Composable
+fun PurchasedProductViewComponent(
+    purchasedProducts: List<PurchasedProductResponse>,
+    modifier: Modifier = Modifier
+        .fillMaxSize()
+        .padding(8.dp)){
+    Box(
+        modifier =modifier,
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(5.dp),
+        ){
+            items(purchasedProducts){purchasedProduct ->
+                PurchasedProductItem(purchasedProduct)
+            }
+        }
+    }
+}
+
+@Composable
+fun WithAnimation(modifier: Modifier = Modifier, delay: Long = 1, animation: EnterTransition, content: @Composable ()->Unit){
+    val visible = remember {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(Unit){
+        delay(delay)
+        visible.value = true
+    }
+    Box(modifier = modifier){
+        if(!visible.value){
+            Box(modifier = Modifier.alpha(0f)){
+                content()
+            }
+        }
+        AnimatedVisibility(visible = visible.value, enter=animation, modifier = modifier) {
+            content()
+        }
+    }
+
+}
+
+@Composable
+fun LoadScreen(modifier: Modifier = Modifier, isActive: Boolean = false){
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center){
+        if(isActive){
+            CircularProgressIndicator(
+                modifier = Modifier.height(45.dp),
+                color = Color.Black
+            )
+        }
     }
 }

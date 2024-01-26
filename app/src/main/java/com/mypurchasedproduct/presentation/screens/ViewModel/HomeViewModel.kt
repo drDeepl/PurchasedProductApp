@@ -49,6 +49,7 @@ class HomeViewModel @Inject constructor(
     }
 
     fun checkAccessToken(){
+        state = state.copy(isLoading=true)
         Log.wtf(TAG, "CHECK ACCESS TOKEN")
         viewModelScope.launch {
             Log.e(TAG, "[START] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
@@ -68,7 +69,8 @@ class HomeViewModel @Inject constructor(
                         accessTokenData = accessTokenData
                     )
                     state = state.copy(
-                        isSignIn = true
+                        isSignIn = true,
+                        isLoading=false
                     )
                 }
                 else{
@@ -78,7 +80,8 @@ class HomeViewModel @Inject constructor(
                         isComplete = true,
                     )
                     state = state.copy(
-                        isSignIn = false
+                        isSignIn = false,
+                        isLoading = false
                     )
 
                 }
@@ -89,11 +92,11 @@ class HomeViewModel @Inject constructor(
     }
 
     fun signOut(){
+        state = state.copy(
+            isLoading = true
+        )
         Log.e(TAG, "[START] SIGN OUT")
         viewModelScope.launch {
-            state = state.copy(
-                isLoading = true
-            )
             val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
             removedAccessToken.await()
             state = state.copy(
@@ -110,15 +113,13 @@ class HomeViewModel @Inject constructor(
     fun getPurchasedProductCurrentUser(offset: Int){
         viewModelScope.async{
             Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
-            Log.wtf(TAG, "FOR USER ${accessTokenItem.accessTokenData?.sub}")
             accessTokenItem.accessTokenData?.let{tokenModel->
-                Log.i(TAG, "TOKEN OF USER ${tokenModel.sub}")
                 val purchasedProducts = this.async { purchasedProductUseCase.getAllPurchasedProductsCurrentUser(tokenModel.id, offset) }.await()
                 when(purchasedProducts){
                     is NetworkResult.Success -> {
                         purchasedProducts.data?.let{
                             getPurchasedProductsState = getPurchasedProductsState.copy(
-                                isLoading = false,
+                                isActive = false,
                                 purchasedProducts = it,
                                 isSuccessResponse = true
                             )
@@ -126,7 +127,7 @@ class HomeViewModel @Inject constructor(
                     }
                     is NetworkResult.Error ->{
                         getPurchasedProductsState = getPurchasedProductsState.copy(
-                            isLoading = false,
+                            isActive = false,
                             error = purchasedProducts.message
                         )
                     }

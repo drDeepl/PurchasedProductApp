@@ -1,5 +1,8 @@
 package com.mypurchasedproduct.presentation.screens
 
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,9 +40,11 @@ import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
+import com.mypurchasedproduct.presentation.ui.components.WithAnimation
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SignInScreen(signInViewModel: SignInViewModel) {
 
@@ -63,59 +68,63 @@ fun SignInScreen(signInViewModel: SignInViewModel) {
             .padding(28.dp)
 
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
-        }
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center
-        ) {
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                border = BorderStroke(1.dp, SecondaryColor),
-                shape = componentShapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-
-                    ),
+        WithAnimation(animation = scaleIn() + fadeIn()) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
             ) {
-                Column(
+                HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
+            }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center
+            ) {
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(15.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
-                    MyTextField(
-                        usernameValue,
-                        labelValue = "Имя пользователя",
-                        painterResource(id = R.drawable.user_icon),
-                        KeyboardOptions(imeAction = ImeAction.Next),
-                        enabled=!signInState.isLoading
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    MyTextFieldPassword(
-                       passwordValue = passwordValue,
-                        labelValue = "Пароль",
-                        icon=painterResource(id = R.drawable.password_icon),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Go
+                        .wrapContentHeight(),
+                    border = BorderStroke(1.dp, SecondaryColor),
+                    shape = componentShapes.large,
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color.White,
+
                         ),
-                        enabled=!signInState.isLoading
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {signInViewModel.toSignIn(usernameValue.value, passwordValue.value)}, signInState.isLoading)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(15.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
+                        MyTextField(
+                            usernameValue,
+                            labelValue = "Имя пользователя",
+                            painterResource(id = R.drawable.user_icon),
+                            KeyboardOptions(imeAction = ImeAction.Next),
+                            enabled=!signInState.isLoading
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        MyTextFieldPassword(
+                            passwordValue = passwordValue,
+                            labelValue = "Пароль",
+                            icon=painterResource(id = R.drawable.password_icon),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Go
+                            ),
+                            enabled=!signInState.isLoading
+                        )
+                        Spacer(modifier = Modifier.height(20.dp))
+                        PrimaryButtonComponent(stringResource(R.string.login_btn_text), {signInViewModel.toSignIn(usernameValue.value, passwordValue.value)}, signInState.isLoading)
+                    }
                 }
+
             }
 
         }
+
 
     }
 }
