@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.di.modules
 
 import android.content.Context
+import android.util.Log
 import com.mypurchasedproduct.data.local.DataStoreManager
 import com.mypurchasedproduct.data.remote.PurchasedProductAppApi
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.BASE_URL
@@ -12,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -42,19 +44,13 @@ object ApiModule {
     fun providesOkttpClient(httpLoggingInterceptor: HttpLoggingInterceptor, dataStoreManager: DataStoreManager ) = OkHttpClient
         .Builder()
         .addInterceptor(httpLoggingInterceptor)
-        .addInterceptor(object : Interceptor {
-            override fun intercept(chain: Interceptor.Chain): Response {
-                var accessToken: String? = null
-                runBlocking {
-                    GlobalScope.launch {
-                        dataStoreManager.getAccessToken().collect{
-                            accessToken = it
-                        }
-                    }
-                }
-                val request = chain.request().newBuilder().addHeader("Authorization", "${accessToken}").build()
-                return chain.proceed(request)
+        .addNetworkInterceptor(Interceptor {chain: Interceptor.Chain ->
+            val token: String? = runBlocking {
+                dataStoreManager.getAccessToken().first()
             }
+            Log.wtf("NETWORK INTERCEPTOR", "TOKEN $token")
+            val request = chain.request().newBuilder().addHeader("Authorization", "Bearer ${token}").build()
+            chain.proceed(request)
         })
         .build()
 
