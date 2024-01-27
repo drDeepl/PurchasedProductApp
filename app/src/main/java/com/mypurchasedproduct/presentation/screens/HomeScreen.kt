@@ -85,8 +85,8 @@ fun HomeScreen(
                             homeViewModel.getProducts()
                         }
                         else if(products != null){
-                            TODO("ADD REQEUST TO ADD PURCHASED PRODUCT && GET SELECTED PRODUCT")
-                            TODO("REDESIGN DROP DOWN MENU")
+                            // TODO("ADD REQEUST TO ADD PURCHASED PRODUCT && GET SELECTED PRODUCT")
+                            // TODO("REDESIGN DROP DOWN MENU")
                             DropDownMenuComponent(products)
                         }
 

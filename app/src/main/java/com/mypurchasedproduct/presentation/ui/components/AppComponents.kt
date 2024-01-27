@@ -43,11 +43,14 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -738,11 +741,11 @@ fun DialogCardComponent(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .padding(8.dp)
+                .background(Color.White)
 
         ) {
             CardHeaderComponent(value = "Добавить продукт")
-
-                content()
+            content()
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -757,51 +760,29 @@ fun DialogCardComponent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DropDownMenuComponent(products: List<ProductResponse>){
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-
-    var textFilledSize by remember {
-        mutableStateOf(Size.Zero)
-    }
-
-    var selectedItem by remember {
-        mutableStateOf("")
-    }
-
-    val icon = if(expanded){
-        Icons.Filled.KeyboardArrowUp
-    }
-    else{
-        Icons.Filled.KeyboardArrowDown
-    }
-
-    Column(
-        modifier = Modifier.padding(20.dp)
-    ){
-        OutlinedTextField(
-            value = selectedItem,
-            onValueChange = { selectedItem = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .onGloballyPositioned { coordinates -> textFilledSize = coordinates.size.toSize() },
-            label = {Text(text="Selected item")},
-            trailingIcon = {Icon(icon, contentDescription = null, Modifier.clickable{expanded = !expanded})}
+    val options = listOf("Item1", "Item2", "Item3", "item4")
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf(options[0]) }
+    
+    ExposedDropdownMenuBox(expanded = isExpanded, onExpandedChange = { isExpanded = it}) {
+        TextField(
+            value=selectedOption,
+            onValueChange={selectedOption = it},
+            trailingIcon= {ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)},
+            modifier = Modifier.clickable{isExpanded = !isExpanded},
+            readOnly = true
         )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = {expanded = false },
-            modifier = Modifier.width(with(LocalDensity.current){textFilledSize.width.toDp()})
-        )
+
+        ExposedDropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = {isExpanded = false})
         {
-         products.forEach { product ->
-             DropdownMenuItem(
-                 text = { Text(text=product.name) },
-                 onClick = {
-                     selectedItem = product.id.toString()
-                     expanded = false
-                 })
-         }
+            options.forEach { option ->
+                DropdownMenuItem(text = {Text(text=option) }, onClick = {selectedOption = option })
+            }
+            
         }
+        
     }
+
 }
