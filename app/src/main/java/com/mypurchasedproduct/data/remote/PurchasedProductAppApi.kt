@@ -4,9 +4,11 @@ import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
+import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.data.remote.model.response.TokenResponse
 import com.mypurchasedproduct.data.remote.model.response.UserInfoResponse
+import com.mypurchasedproduct.presentation.utils.Constants.Companion.PRODUCT_ENDPOINT
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.PURCHASED_PRODUCT_ENDPOINT
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.USER_ENDPOINT
 import retrofit2.Response
@@ -32,4 +34,7 @@ interface PurchasedProductAppApi {
 
     @POST("${USER_ENDPOINT}/refreshToken")
     suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
+
+    @GET("${PRODUCT_ENDPOINT}/all")
+    suspend fun getProducts(): Response<List<ProductResponse>>
 }

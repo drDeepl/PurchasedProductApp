@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.domain.model.TokenModel
+import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.domain.usecases.TokenUseCase
 import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
@@ -14,6 +15,7 @@ import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
+import com.mypurchasedproduct.presentation.state.FindProductsState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -26,6 +28,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val purchasedProductUseCase: PurchasedProductUseCase,
+    private val productUseCase: ProductUseCase,
     private val tokenUseCase: TokenUseCase
 ): ViewModel(){
 
@@ -45,6 +48,9 @@ class HomeViewModel @Inject constructor(
         private set
 
     var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
+        private set
+
+    var getProductsState by mutableStateOf(FindProductsState())
         private set
 
 
@@ -136,6 +142,34 @@ class HomeViewModel @Inject constructor(
                             error = purchasedProducts.message
                         )
                     }
+                }
+            }
+        }
+    }
+
+    fun getProducts(){
+        viewModelScope.launch {
+            Log.wtf(TAG, "GET PRODUCTS")
+            getProductsState = getProductsState.copy(
+                isLoading = true
+            )
+            val productsResponse = this.async{productUseCase.getProducts()}.await()
+            when(productsResponse){
+                is NetworkResult.Success ->{
+                    getProductsState = getProductsState.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        isUpdating = false,
+                        products = productsResponse.data
+                    )
+                }
+                is NetworkResult.Error -> {
+                    getProductsState = getProductsState.copy(
+                        isLoading = false,
+                        isError = true,
+                        isUpdating = false,
+                        error = productsResponse.message
+                    )
                 }
             }
         }
