@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +35,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,8 +43,6 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -64,15 +62,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.modifier.modifierLocalConsumer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -80,28 +74,25 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
-import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
-import com.mypurchasedproduct.presentation.ui.theme.AcidBlueColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
+import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
@@ -160,7 +151,7 @@ fun ErrorTextComponent(value: String){
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
+fun MyOutlinedTextField(textValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,7 +176,30 @@ fun MyTextField(textValue: MutableState<String>,labelValue: String, icon: Painte
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
+fun MyTextField(textValue: MutableState<String>, labelValue: String, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
+    TextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(componentShapes.small),
+        value = textValue.value ,
+        onValueChange = { it: String -> textValue.value = it },
+        label = { Text(text = labelValue) },
+        colors = TextFieldDefaults.textFieldColors(
+            focusedLabelColor = Color.Black,
+            containerColor = LightGreyColor,
+        ),
+        shape = componentShapes.large,
+        keyboardOptions = keyboardOptions,
+        enabled=enabled
+
+    )
+}
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MyOutlinedTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
 
     val passwordVisibility = remember{ mutableStateOf(false) }
 
@@ -716,7 +730,7 @@ fun CardHeaderComponent(value: String, textAlign: TextAlign = TextAlign.Center){
             .fillMaxWidth()
             .heightIn(min = 40.dp),
         style= TextStyle(
-            fontSize=16.sp,
+            fontSize=24.sp,
             fontWeight = FontWeight.SemiBold,
             fontStyle= FontStyle.Normal
         ),
@@ -728,61 +742,112 @@ fun CardHeaderComponent(value: String, textAlign: TextAlign = TextAlign.Center){
 fun DialogCardComponent(
     onDismiss:() -> Unit,
     onConfirm:() -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit?
 ) {
 
     Dialog(
         onDismissRequest = {onDismiss},
-        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false)
-
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false),
     ){
         Card(
-            shape= componentShapes.medium,
-            modifier = Modifier
-                .fillMaxWidth(0.8f)
-                .padding(8.dp)
-                .background(Color.White)
-
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
         ) {
             CardHeaderComponent(value = "Добавить продукт")
             content()
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.Bottom
             ){
                 SuccessButtonIcon(onClick=onConfirm)
                 DismissButtonIcon(onClick=onDismiss)
-            }
+                }
+
+
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDownMenuComponent(products: List<ProductResponse>){
-    val options = listOf("Item1", "Item2", "Item3", "item4")
+fun DropDownMenuComponent(products: List<ProductResponse>, labelValue: String = ""){
     var isExpanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(options[0]) }
-    
-    ExposedDropdownMenuBox(expanded = isExpanded, onExpandedChange = { isExpanded = it}) {
-        TextField(
-            value=selectedOption,
-            onValueChange={selectedOption = it},
-            trailingIcon= {ExposedDropdownMenuDefaults.TrailingIcon(expanded = isExpanded)},
-            modifier = Modifier.clickable{isExpanded = !isExpanded},
-            readOnly = true
-        )
+    var selectedOption by remember { mutableStateOf(products[0].name) }
 
-        ExposedDropdownMenu(
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center){
+        TextField(
+            value = selectedOption,
+            label = {Text(text=labelValue)},
+            onValueChange = {selectedOption = it},
+            trailingIcon = {
+                IconButton(onClick = { isExpanded = !isExpanded})
+                {
+                    if(isExpanded){
+                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
+                    }
+                    else{
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                    }
+                }
+                           },
+            readOnly = true,
+            colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor= DeepGreyColor),
+        )
+        DropdownMenu(
             expanded = isExpanded,
-            onDismissRequest = {isExpanded = false})
+            onDismissRequest = { isExpanded = false },
+            modifier = Modifier.fillMaxWidth(0.78f)
+        )
         {
-            options.forEach { option ->
-                DropdownMenuItem(text = {Text(text=option) }, onClick = {selectedOption = option })
+            products.forEach{product ->
+                DropdownMenuItem(text = {Text(text=product.name) }, onClick = { selectedOption = product.name; isExpanded = false })
             }
             
         }
-        
     }
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitResponse>,  labelValue: String = ""){
+    var isExpanded by remember { mutableStateOf(false) }
+    var selectedOption by remember { mutableStateOf(measurementUnits[0].name) }
 
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center){
+        TextField(
+            value = selectedOption,
+            label = {Text(text=labelValue)},
+            onValueChange = {selectedOption = it},
+            trailingIcon = {
+                IconButton(onClick = { isExpanded = !isExpanded})
+                {
+                    if(isExpanded){
+                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
+                    }
+                    else{
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                    }
+                }
+            },
+            readOnly = true,
+            colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor= DeepGreyColor),
+        )
+        DropdownMenu(
+            expanded = isExpanded,
+            onDismissRequest = { isExpanded = false },
+            modifier = Modifier.fillMaxWidth(0.78f)
+        )
+        {
+            measurementUnits.forEach{product ->
+                DropdownMenuItem(text = {Text(text=product.name) }, onClick = { selectedOption = product.name; isExpanded = false })
+            }
+
+        }
+    }
 }

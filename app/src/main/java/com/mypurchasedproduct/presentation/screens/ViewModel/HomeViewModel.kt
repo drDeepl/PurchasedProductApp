@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.domain.model.TokenModel
+import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.domain.usecases.TokenUseCase
@@ -15,21 +16,21 @@ import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
+import com.mypurchasedproduct.presentation.state.FindMeasurementUnitsState
 import com.mypurchasedproduct.presentation.state.FindProductsState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val purchasedProductUseCase: PurchasedProductUseCase,
     private val productUseCase: ProductUseCase,
-    private val tokenUseCase: TokenUseCase
+    private val tokenUseCase: TokenUseCase,
+    private val measurementUnitUseCase: MeasurementUnitUseCase
 ): ViewModel(){
 
     private val TAG = this.javaClass.simpleName
@@ -51,6 +52,9 @@ class HomeViewModel @Inject constructor(
         private set
 
     var getProductsState by mutableStateOf(FindProductsState())
+        private set
+
+    var findMeasurementUnits by mutableStateOf(FindMeasurementUnitsState())
         private set
 
 
@@ -112,7 +116,8 @@ class HomeViewModel @Inject constructor(
             removedAccessToken.await()
             state = state.copy(
                 isLoading = false,
-                isSignIn = null
+                isSignIn = null,
+                error = null
             )
             getPurchasedProductsState = FindPurchasedProductsState()
             accessTokenItem = AccessTokenItem()
@@ -173,6 +178,40 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun getMeasurementUnits(){
+        viewModelScope.launch {
+            Log.wtf(TAG, "GET MEASUREMENT UNITS")
+            findMeasurementUnits = findMeasurementUnits.copy(
+                isLoading = true
+            )
+            val measurementUnitsResponse = this.async{measurementUnitUseCase.getMeasurementUnits()}.await()
+            when(measurementUnitsResponse){
+                is NetworkResult.Success ->{
+                    findMeasurementUnits = findMeasurementUnits.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        isUpdating = false,
+                        measurementUnits = measurementUnitsResponse.data
+                    )
+                }
+                is NetworkResult.Error -> {
+                    findMeasurementUnits = findMeasurementUnits.copy(
+                        isLoading = false,
+                        isError = true,
+                        isUpdating = false,
+                        error = measurementUnitsResponse.message
+                    )
+                }
+            }
+        }
+    }
+
+
+
+    fun defaultHomeState(){
+        state = HomeState()
     }
 
     fun onAddPurchasedProductClick(){

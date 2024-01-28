@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 
 import androidx.compose.runtime.Composable
@@ -42,10 +41,8 @@ import com.mypurchasedproduct.presentation.ui.components.DeviderTextComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
-import com.mypurchasedproduct.presentation.ui.components.MyTextField
-import com.mypurchasedproduct.presentation.ui.components.MyTextFieldPassword
-import com.mypurchasedproduct.presentation.ui.components.SuccessButtonComponent
-import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
+import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextField
+import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextFieldPassword
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
@@ -122,7 +119,7 @@ fun SignUpScreen(
                             .padding(15.dp),
                         verticalArrangement = Arrangement.Center
                     ) {
-                        MyTextField(
+                        MyOutlinedTextField(
                             usernameValue,
                             labelValue = "Имя пользователя",
                             painterResource(id = R.drawable.user_icon),
@@ -131,7 +128,7 @@ fun SignUpScreen(
                         )
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        MyTextFieldPassword(
+                        MyOutlinedTextFieldPassword(
                             passwordValue = passwordValue,
                             labelValue = "Пароль",
                             painterResource(id = R.drawable.password_icon),
