@@ -5,15 +5,12 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,9 +27,10 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
-import com.mypurchasedproduct.presentation.ui.components.DropDownMenuComponent
+import com.mypurchasedproduct.presentation.ui.components.ProductDropDownMenuComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitDropDownMenuComponent
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
@@ -46,7 +44,8 @@ import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewCom
 @Composable
 fun HomeScreen(
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
-    homeViewModel: HomeViewModel = viewModel()
+    homeViewModel: HomeViewModel = viewModel(),
+    addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel()
 ) {
     val purchasedProductPerPage: Int = 5
     val homeState = homeViewModel.state
@@ -78,14 +77,14 @@ fun HomeScreen(
                 LoadScreen(isActive=getPurchasedProductsState.isActive)
             }
             else if(getPurchasedProductsState.isSuccessResponse){
-                val addPurchasedProductState = homeViewModel.addPurchasedProductState
+                val addPurchasedProductState = addPurchasedProductViewModel.addPurchasedProductState
                 val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
                 Scaffold(
                     content = {paddingValues: PaddingValues -> PurchasedProductViewComponent(purchasedProducts, paddingValues=paddingValues)  },
                     floatingActionButton = {
                         PrimaryFloatingActionButton(
                             painter = painterResource(id = R.drawable.ic_plus),
-                            onClick={homeViewModel.onAddPurchasedProductClick()})
+                            onClick={addPurchasedProductViewModel.onAddPurchasedProductClick()})
                     }
                 )
                 if(addPurchasedProductState.isActive){
@@ -94,6 +93,7 @@ fun HomeScreen(
 
                     val products = findProductsState.products
                     val measurementUnits = findMeasurementUnitsState.measurementUnits
+
 
                     var productId by remember {mutableStateOf(0)}
                     var count by remember {mutableStateOf("")}
@@ -106,20 +106,21 @@ fun HomeScreen(
                         homeViewModel.getMeasurementUnits()
                     }
                     else if(products != null && measurementUnits != null){
-                        DialogCardComponent(onConfirm = { homeViewModel.onAddPurchasedProductClick() }, onDismiss = {homeViewModel.onCloseAddPurchasedproduct()}){
+                        DialogCardComponent(
+                            onConfirm = { addPurchasedProductViewModel.onAddPurchasedProductClick() },
+                            onDismiss = {addPurchasedProductViewModel.onCloseAddPurchasedproduct()})
+                        {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(0.dp, 10.dp),
+                                    .fillMaxWidth().padding(10.dp),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
                                 // TODO("ADD REQEUST TO ADD PURCHASED PRODUCT && GET SELECTED PRODUCT")
-                                DropDownMenuComponent(products)
-//                                TextField(value = count, label={Text("количество")}, onValueChange = {count = it }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                                MyTextField(textValue = count, labelValue="количество", keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), )
+                                ProductDropDownMenuComponent(products, onClickSelect = {})
+                                MyTextField(textValue = count, labelValue="количество", onValueChange = {count = it},  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), )
                                 MeasurementUnitDropDownMenuComponent(measurementUnits)
-                                TextField(value = price, label={Text("цена")}, onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                                MyTextField(textValue = price, labelValue="цена", onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                             }
                         }
                     }

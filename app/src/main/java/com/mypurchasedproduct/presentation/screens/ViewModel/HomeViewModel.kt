@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.domain.model.TokenModel
 import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
@@ -18,6 +19,7 @@ import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
 import com.mypurchasedproduct.presentation.state.FindMeasurementUnitsState
 import com.mypurchasedproduct.presentation.state.FindProductsState
+import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -46,9 +48,6 @@ class HomeViewModel @Inject constructor(
         private set
 
     var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
-        private set
-
-    var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
         private set
 
     var getProductsState by mutableStateOf(FindProductsState())
@@ -212,17 +211,5 @@ class HomeViewModel @Inject constructor(
 
     fun defaultHomeState(){
         state = HomeState()
-    }
-
-    fun onAddPurchasedProductClick(){
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = true
-        )
-    }
-
-    fun onCloseAddPurchasedproduct(){
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = false
-        )
     }
 }

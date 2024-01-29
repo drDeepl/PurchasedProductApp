@@ -92,7 +92,6 @@ import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
-import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
@@ -176,22 +175,21 @@ fun MyOutlinedTextField(textValue: MutableState<String>, labelValue: String, ico
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextField(textValue: MutableState<String>, labelValue: String, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
+fun MyTextField(textValue: String, labelValue: String,  onValueChange: (String) -> Unit, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
     TextField(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(componentShapes.small),
-        value = textValue.value ,
-        onValueChange = { it: String -> textValue.value = it },
+            .padding(0.dp, 10.dp),
+        value = textValue ,
+        onValueChange = onValueChange,
         label = { Text(text = labelValue) },
+        keyboardOptions = keyboardOptions,
+        enabled=enabled,
         colors = TextFieldDefaults.textFieldColors(
             focusedLabelColor = Color.Black,
+            focusedIndicatorColor = Color.Black,
             containerColor = LightGreyColor,
-        ),
-        shape = componentShapes.large,
-        keyboardOptions = keyboardOptions,
-        enabled=enabled
-
+        )
     )
 }
 
@@ -773,14 +771,19 @@ fun DialogCardComponent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DropDownMenuComponent(products: List<ProductResponse>, labelValue: String = ""){
+fun ProductDropDownMenuComponent(products: List<ProductResponse>, onClickSelect: () -> Unit, labelValue: String = "",){
     var isExpanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(products[0].name) }
+    val firstOption = if(products.isNotEmpty()) products[0].name else "список продуктов пуст"
+    var selectedOption by remember { mutableStateOf(firstOption) }
+
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 10.dp),
         horizontalArrangement = Arrangement.Center){
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             value = selectedOption,
             label = {Text(text=labelValue)},
             onValueChange = {selectedOption = it},
@@ -796,7 +799,11 @@ fun DropDownMenuComponent(products: List<ProductResponse>, labelValue: String = 
                 }
                            },
             readOnly = true,
-            colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor= DeepGreyColor),
+            colors = TextFieldDefaults.textFieldColors(
+                focusedLabelColor = Color.Black,
+                focusedIndicatorColor = Color.Black,
+                containerColor = LightGreyColor,
+            ),
         )
         DropdownMenu(
             expanded = isExpanded,
@@ -804,8 +811,12 @@ fun DropDownMenuComponent(products: List<ProductResponse>, labelValue: String = 
             modifier = Modifier.fillMaxWidth(0.78f)
         )
         {
-            products.forEach{product ->
-                DropdownMenuItem(text = {Text(text=product.name) }, onClick = { selectedOption = product.name; isExpanded = false })
+            if(products.isNotEmpty()) {
+                products.forEach { product ->
+                    DropdownMenuItem(
+                        text = { Text(text = product.name) },
+                        onClick = { selectedOption = product.name; isExpanded = false })
+                }
             }
             
         }
@@ -815,12 +826,16 @@ fun DropDownMenuComponent(products: List<ProductResponse>, labelValue: String = 
 @Composable
 fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitResponse>,  labelValue: String = ""){
     var isExpanded by remember { mutableStateOf(false) }
-    var selectedOption by remember { mutableStateOf(measurementUnits[0].name) }
+    val firstOption = if(measurementUnits.isNotEmpty()) measurementUnits[0].name else "еденицы измерения ещё не добавлены"
+    var selectedOption by remember { mutableStateOf(firstOption) }
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(0.dp, 10.dp),
         horizontalArrangement = Arrangement.Center){
         TextField(
+            modifier = Modifier.fillMaxWidth(),
             value = selectedOption,
             label = {Text(text=labelValue)},
             onValueChange = {selectedOption = it},
@@ -836,16 +851,21 @@ fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitR
                 }
             },
             readOnly = true,
-            colors = TextFieldDefaults.textFieldColors(focusedIndicatorColor= DeepGreyColor),
-        )
+            colors = TextFieldDefaults.textFieldColors(
+                focusedLabelColor = Color.Black,
+                focusedIndicatorColor = Color.Black,
+                containerColor = LightGreyColor,
+        ))
         DropdownMenu(
             expanded = isExpanded,
             onDismissRequest = { isExpanded = false },
-            modifier = Modifier.fillMaxWidth(0.78f)
+            modifier = Modifier.fillMaxWidth(0.78f),
         )
         {
             measurementUnits.forEach{product ->
-                DropdownMenuItem(text = {Text(text=product.name) }, onClick = { selectedOption = product.name; isExpanded = false })
+                DropdownMenuItem(
+                    text = {Text(text=product.name) },
+                    onClick = { selectedOption = product.name; isExpanded = false })
             }
 
         }
