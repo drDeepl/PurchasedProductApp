@@ -33,6 +33,7 @@ import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.ProductDropDownMenuComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitDropDownMenuComponent
+import com.mypurchasedproduct.presentation.ui.components.ModalBottomSheetSample
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
@@ -85,7 +86,8 @@ fun HomeScreen(
                         PrimaryFloatingActionButton(
                             painter = painterResource(id = R.drawable.ic_plus),
                             onClick={addPurchasedProductViewModel.onAddPurchasedProductClick()})
-                    }
+                    },
+                    bottomBar = {ModalBottomSheetSample()}
                 )
                 if(addPurchasedProductState.isActive){
                     val findProductsState = homeViewModel.getProductsState
