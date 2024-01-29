@@ -6,6 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.forEachGesture
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +51,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,8 +68,10 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -94,6 +99,7 @@ import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 
 @Composable
@@ -870,4 +876,58 @@ fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitR
 
         }
     }
+}
+
+
+val listProducts = listOf<ProductResponse>(
+    ProductResponse(
+        1,
+        "хлеб",
+        1
+    ),
+    ProductResponse(
+        2,
+        "кофе",
+        1
+    ),
+    ProductResponse(
+        3,
+        "яблоко",
+        1
+    )
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProductTextField(
+    label: String = "",
+    isError: Boolean = false,
+    modifier: Modifier,
+    shape: Shape = componentShapes.medium,
+    expanded: Boolean = false,
+    selectProduct: ProductResponse? = null,
+    colors: TextFieldColors = TextFieldDefaults.textFieldColors(
+        focusedLabelColor = Color.Black,
+        focusedIndicatorColor = Color.Black,
+        containerColor = LightGreyColor,
+    ),
+    onExpandedChange: () -> Unit
+){
+    
+    OutlinedTextField(
+        value = if(selectProduct == null) "" else selectProduct.name, onValueChange = {}, modifier = modifier)
+}
+
+
+@Composable
+fun Modifier.expandable(
+    onExpandedChange: () -> Unit,
+    menuLabel: String
+){
+    TODO("Modifier.expandable | 11:03")
+}
+
+@Composable
+fun ProductSpinner(products: List<ProductResponse>){
+
 }
