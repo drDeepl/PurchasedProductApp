@@ -5,12 +5,14 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,10 +20,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
@@ -40,6 +44,7 @@ import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.ProductsModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
+import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -110,7 +115,7 @@ fun HomeScreen(
                         homeViewModel.getMeasurementUnits()
                     }
                     else if(products != null && measurementUnits != null){
-                        val isActiveAddProduct = addProductViewModel.addProductState.isActive
+                        val isActiveAddProduct = addProductViewModel.addProductFormState.isActive
                         val isActiveSelectProduct = addPurchasedProductViewModel.productsBottomSheetState.isActive
                         DialogCardComponent(
                             onConfirm = { addPurchasedProductViewModel.onAddPurchasedProductClick() },
@@ -137,11 +142,45 @@ fun HomeScreen(
                                 MeasurementUnitDropDownMenuComponent(measurementUnits)
                                 MyTextField(textValue = price, labelValue="цена", onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
                                 if(isActiveAddProduct){
-
+                                    val getCategoriesState = addProductViewModel.getCategoriesState
+                                    val categories = getCategoriesState.categories
+                                    if(categories == null){
+                                        addProductViewModel.getCategories()
+                                    }
+                                    val productItem = addProductViewModel.productItem
+                                    val addProductState = addProductViewModel.addProductState
                                     DialogCardComponent(
                                         onDismiss = { addProductViewModel.onClickCloseAddProduct()},
-                                        onConfirm = { /*TODO*/ }) {
-                                        MyTextField(textValue = price, labelValue="цена", onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text))
+                                        onConfirm = { addProductViewModel.toAddProduct() }) {
+
+                                        if(addProductViewModel.addProductState.isError){
+                                            Text(text=addProductViewModel.addProductState.error.toString(), fontSize = 16.sp, color = Color.Red)
+                                        }
+                                        if(getCategoriesState.isLoading){
+                                            LoadScreen(isActive = true)
+                                        }
+                                        else if(addProductState.isSuccess){
+                                            Text(text=addProductState.msg.toString(), fontSize = 16.sp, color = Color.Red)
+                                            addProductViewModel.getProducts()
+                                            addProductViewModel.setDefaultStateAddProduct()
+                                        }
+                                        else{
+                                            Row(){
+                                                categories?.let {listCategories ->
+                                                    listCategories.forEach{categoryResponse ->
+                                                        SelectCategoryButton(
+                                                            categoryResponse = categoryResponse,
+                                                            onClick = {
+                                                                addProductViewModel.setProductCategoryId(categoryResponse.id)
+                                                            }
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                            MyTextField(textValue = productItem.productName, labelValue="продукт", onValueChange = {addProductViewModel.setProductName(it)}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text))
+                                        }
+
+
                                     }
                                 }
                             }

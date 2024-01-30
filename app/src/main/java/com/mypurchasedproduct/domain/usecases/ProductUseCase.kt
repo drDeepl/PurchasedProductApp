@@ -1,7 +1,9 @@
 package com.mypurchasedproduct.domain.usecases
 
 import android.net.Network
+import android.util.Log
 import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
+import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.repository.ProductRepository
 import com.mypurchasedproduct.presentation.ui.item.ProductItem
@@ -16,6 +18,7 @@ class ProductUseCase @Inject constructor(
     suspend fun getProducts(): NetworkResult<List<ProductResponse>> = productRepository.getProducts()
 
     suspend fun addProduct(productItem: ProductItem): NetworkResult<ProductResponse>{
+        Log.wtf(TAG, "ADD PRODUCT\n ${productItem.categoryId}\t${productItem.productName}")
         if(productItem.categoryId != null && productItem.productName.isNotEmpty()) {
             return productRepository.addProduct(
                 AddProductRequest(
@@ -28,4 +31,6 @@ class ProductUseCase @Inject constructor(
             return NetworkResult.Error<ProductResponse>("есть пустые поля или категория не выбрана")
         }
     }
+
+    suspend fun getCategories(): NetworkResult<List<CategoryResponse>> = productRepository.getCategories()
 }

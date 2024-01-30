@@ -51,6 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -98,6 +99,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
@@ -915,5 +917,13 @@ fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: B
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SelectCategoryButton(categoryResponse: CategoryResponse, onClick: (id:Long) -> Unit){
+    OutlinedButton(onClick = { onClick(categoryResponse.id) }) {
+        Text(text = categoryResponse.name)
+
     }
 }

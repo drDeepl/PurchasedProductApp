@@ -20,4 +20,6 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
     suspend fun getMeasurementUnits() = api.getMeasurementUnits()
 
     suspend fun addProduct(addProductRequest: AddProductRequest) = api.addProduct(addProductRequest)
+
+    suspend fun getCategories() = api.getCategories()
 }
