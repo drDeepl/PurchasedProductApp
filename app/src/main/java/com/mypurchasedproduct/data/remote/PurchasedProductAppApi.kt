@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.data.remote
 
+import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
 import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
@@ -39,6 +40,9 @@ interface PurchasedProductAppApi {
 
     @GET("${PRODUCT_ENDPOINT}/all")
     suspend fun getProducts(): Response<List<ProductResponse>>
+
+    @POST("${PRODUCT_ENDPOINT}/add")
+    suspend fun addProduct(addProductRequest: AddProductRequest): Response<ProductResponse>
 
     @GET("${MEASUREMENT_ENDPOINT}/all")
     suspend fun getMeasurementUnits(): Response<List<MeasurementUnitResponse>>

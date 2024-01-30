@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.presentation.state.AddProductState
 import com.mypurchasedproduct.presentation.state.FindProductsState
+import com.mypurchasedproduct.presentation.ui.item.ProductItem
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -26,6 +27,9 @@ class AddProductViewModel @Inject constructor(
         private set
 
     var addProductState by mutableStateOf(AddProductState())
+        private set
+
+    var productItem by mutableStateOf(ProductItem())
         private set
 
 
@@ -56,6 +60,14 @@ class AddProductViewModel @Inject constructor(
             }
         }
     }
+
+    fun addProductRequest(){
+        Log.i(TAG,"ADD PRODUCT REQUEST")
+        TODO("ADD REQEUST TO ADD PRODUCT")
+//        productUseCase.addProduct(productItem)
+    }
+
+
     fun onClickAddProduct(){
         Log.i(TAG, "ON CLICK ADD PRODUCT")
         addProductState = addProductState.copy(

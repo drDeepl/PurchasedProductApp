@@ -2,6 +2,7 @@ package com.mypurchasedproduct.data.repository
 
 import android.util.Log
 import com.mypurchasedproduct.data.remote.RemoteDataSource
+import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.presentation.utils.BaseApiResponse
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -16,6 +17,11 @@ class ProductRepository  @Inject constructor(
     suspend fun getProducts(): NetworkResult<List<ProductResponse>> {
         Log.i(TAG, "GET PRODUCTS")
         return safeApiCall { remoteDataSource.getProducts() }
+    }
+
+    suspend fun addProduct(addProductRequest: AddProductRequest): NetworkResult<ProductResponse> {
+        Log.i(TAG, "ADD PRODUCT")
+        return safeApiCall { remoteDataSource.addProduct(addProductRequest) }
     }
 
 
