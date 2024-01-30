@@ -27,17 +27,18 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
-import com.mypurchasedproduct.presentation.ui.components.ProductDropDownMenuComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitDropDownMenuComponent
-import com.mypurchasedproduct.presentation.ui.components.ModalBottomSheetSample
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
+import com.mypurchasedproduct.presentation.ui.components.MyTextFieldClickable
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
+import com.mypurchasedproduct.presentation.ui.components.ProductsModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 
 
@@ -46,7 +47,8 @@ import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewCom
 fun HomeScreen(
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel(),
-    addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel()
+    addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel(),
+    addProductViewModel: AddProductViewModel = viewModel()
 ) {
     val purchasedProductPerPage: Int = 5
     val homeState = homeViewModel.state
@@ -87,10 +89,10 @@ fun HomeScreen(
                             painter = painterResource(id = R.drawable.ic_plus),
                             onClick={addPurchasedProductViewModel.onAddPurchasedProductClick()})
                     },
-                    bottomBar = {ModalBottomSheetSample()}
+                    bottomBar = {}
                 )
                 if(addPurchasedProductState.isActive){
-                    val findProductsState = homeViewModel.getProductsState
+                    val findProductsState = addProductViewModel.getProductsState
                     val findMeasurementUnitsState = homeViewModel.findMeasurementUnits
 
                     val products = findProductsState.products
@@ -102,27 +104,46 @@ fun HomeScreen(
                     var unitMeasurement by remember {mutableStateOf(1)}
                     var price by remember {mutableStateOf("0.0")}
 
-                    if(findProductsState.isUpdating && findMeasurementUnitsState.isUpdating){
+                    if(findProductsState.isUpdating || findMeasurementUnitsState.isUpdating){
                         LoadScreen(isActive = findProductsState.isUpdating)
-                        homeViewModel.getProducts()
+                        addProductViewModel.getProducts()
                         homeViewModel.getMeasurementUnits()
                     }
                     else if(products != null && measurementUnits != null){
+                        val isActiveAddProduct = addProductViewModel.addProductState.isActive
+                        val isActiveSelectProduct = addPurchasedProductViewModel.productsBottomSheetState.isActive
                         DialogCardComponent(
                             onConfirm = { addPurchasedProductViewModel.onAddPurchasedProductClick() },
                             onDismiss = {addPurchasedProductViewModel.onCloseAddPurchasedproduct()})
                         {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth().padding(10.dp),
+                                    .fillMaxWidth()
+                                    .padding(10.dp),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ){
                                 // TODO("ADD REQEUST TO ADD PURCHASED PRODUCT && GET SELECTED PRODUCT")
-                                ProductDropDownMenuComponent(products, onClickSelect = {})
+                                MyTextFieldClickable(
+                                    selectedValue="выбери продукт",
+                                    isExpanded = isActiveSelectProduct,
+                                    onClick = { addPurchasedProductViewModel.setOpenProductsBottomSheet(it) })
+                                ProductsModalBottomSheet(
+                                    products,
+                                    isActiveSelectProduct,
+                                    {addPurchasedProductViewModel.setOpenProductsBottomSheet(it)},
+                                    {addProductViewModel.onClickAddProduct()})
                                 MyTextField(textValue = count, labelValue="количество", onValueChange = {count = it},  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), )
                                 MeasurementUnitDropDownMenuComponent(measurementUnits)
                                 MyTextField(textValue = price, labelValue="цена", onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+                                if(isActiveAddProduct){
+
+                                    DialogCardComponent(
+                                        onDismiss = { addProductViewModel.onClickCloseAddProduct()},
+                                        onConfirm = { /*TODO*/ }) {
+                                        MyTextField(textValue = price, labelValue="цена", onValueChange = {price = it}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text))
+                                    }
+                                }
                             }
                         }
                     }

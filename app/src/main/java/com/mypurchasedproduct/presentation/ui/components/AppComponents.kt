@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -36,6 +35,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -54,8 +54,10 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -76,6 +78,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -757,7 +760,7 @@ fun DialogCardComponent(
 
     Dialog(
         onDismissRequest = {onDismiss},
-        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false),
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
     ){
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -766,6 +769,7 @@ fun DialogCardComponent(
             )
         ) {
             CardHeaderComponent(value = "Добавить продукт")
+            Divider(modifier = Modifier.padding(vertical = 20.dp))
             content()
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -783,33 +787,28 @@ fun DialogCardComponent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductDropDownMenuComponent(products: List<ProductResponse>, onClickSelect: () -> Unit, labelValue: String = "",){
-    var isExpanded by remember { mutableStateOf(false) }
-    val firstOption = if(products.isNotEmpty()) products[0].name else "список продуктов пуст"
-    var selectedOption by remember { mutableStateOf(firstOption) }
-
-
+fun MyTextFieldClickable(selectedValue: String, isExpanded: Boolean, onClick: (Boolean) -> Unit, labelValue: String = "",){
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(0.dp, 10.dp),
-        horizontalArrangement = Arrangement.Center){
+        horizontalArrangement = Arrangement.Center)
+    {
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            value = selectedOption,
-            label = {Text(text=labelValue)},
-            onValueChange = {selectedOption = it},
+            value = selectedValue,
+            label = { Text(text = labelValue) },
+            onValueChange = { },
             trailingIcon = {
-                IconButton(onClick = { isExpanded = !isExpanded})
+                IconButton(onClick = { onClick(!isExpanded) })
                 {
-                    if(isExpanded){
+                    if (isExpanded) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
-                    }
-                    else{
+                    } else {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
                     }
                 }
-                           },
+            },
             readOnly = true,
             colors = TextFieldDefaults.textFieldColors(
                 focusedLabelColor = Color.Black,
@@ -817,21 +816,6 @@ fun ProductDropDownMenuComponent(products: List<ProductResponse>, onClickSelect:
                 containerColor = LightGreyColor,
             ),
         )
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false },
-            modifier = Modifier.fillMaxWidth(0.78f)
-        )
-        {
-            if(products.isNotEmpty()) {
-                products.forEach { product ->
-                    DropdownMenuItem(
-                        text = { Text(text = product.name) },
-                        onClick = { selectedOption = product.name; isExpanded = false })
-                }
-            }
-            
-        }
     }
 }
 @OptIn(ExperimentalMaterial3Api::class)
@@ -885,28 +869,10 @@ fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitR
 }
 
 
-val listProducts = listOf<ProductResponse>(
-    ProductResponse(
-        1,
-        "хлеб",
-        1
-    ),
-    ProductResponse(
-        2,
-        "кофе",
-        1
-    ),
-    ProductResponse(
-        3,
-        "яблоко",
-        1
-    )
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModalBottomSheetSample() {
-    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: Boolean, setStateButtomSheet: (Boolean) -> Unit, onClickAddProduct: () -> Unit) {
+//    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     var skipPartiallyExpanded by remember { mutableStateOf(false) }
     var edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -914,54 +880,38 @@ fun ModalBottomSheetSample() {
         skipPartiallyExpanded = skipPartiallyExpanded
     )
 
-    var test by remember {mutableStateOf("is test")}
-    Column {
-        Text(text=test)
-
-        Button(onClick = { openBottomSheet = !openBottomSheet }) {
-            Text(text = "Show Bottom Sheet")
-        }
-
-    }
-
-
-
     // Sheet content
     if (openBottomSheet) {
         val windowInsets = if (edgeToEdgeEnabled)
             WindowInsets(0) else BottomSheetDefaults.windowInsets
 
         ModalBottomSheet(
-            onDismissRequest = { openBottomSheet = false; test="close" },
+            onDismissRequest = { setStateButtomSheet(false)},
             sheetState = bottomSheetState,
             windowInsets = windowInsets
+
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                Button(
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Text(text="Нет нужного продукта?")
+                TextButton(
                     // Note: If you provide logic outside of onDismissRequest to remove the sheet,
                     // you must additionally handle intended state cleanup, if any.
                     onClick = {
                         scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                             if (!bottomSheetState.isVisible) {
-                                openBottomSheet = false
+                                setStateButtomSheet(false)
+                                onClickAddProduct()
                             }
                         }
                     }
                 ) {
-                    Text("Hide Bottom Sheet")
+                    Text("добавить", fontSize=16.sp)
                 }
             }
+            Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness=2.dp)
             LazyColumn {
-                items(50) {
-                    ListItem(
-                        headlineContent = { Text("Item $it") },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Favorite,
-                                contentDescription = "Localized description"
-                            )
-                        }
-                    )
+                items(products){product ->
+                    ListItem(headlineContent = { Text(product.name) })
                 }
             }
         }

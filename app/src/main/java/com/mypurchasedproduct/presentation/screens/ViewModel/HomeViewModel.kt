@@ -30,7 +30,6 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val purchasedProductUseCase: PurchasedProductUseCase,
-    private val productUseCase: ProductUseCase,
     private val tokenUseCase: TokenUseCase,
     private val measurementUnitUseCase: MeasurementUnitUseCase
 ): ViewModel(){
@@ -50,8 +49,7 @@ class HomeViewModel @Inject constructor(
     var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
         private set
 
-    var getProductsState by mutableStateOf(FindProductsState())
-        private set
+
 
     var findMeasurementUnits by mutableStateOf(FindMeasurementUnitsState())
         private set
@@ -146,34 +144,6 @@ class HomeViewModel @Inject constructor(
                             error = purchasedProducts.message
                         )
                     }
-                }
-            }
-        }
-    }
-
-    fun getProducts(){
-        viewModelScope.launch {
-            Log.wtf(TAG, "GET PRODUCTS")
-            getProductsState = getProductsState.copy(
-                isLoading = true
-            )
-            val productsResponse = this.async{productUseCase.getProducts()}.await()
-            when(productsResponse){
-                is NetworkResult.Success ->{
-                    getProductsState = getProductsState.copy(
-                        isLoading = false,
-                        isSuccess = true,
-                        isUpdating = false,
-                        products = productsResponse.data
-                    )
-                }
-                is NetworkResult.Error -> {
-                    getProductsState = getProductsState.copy(
-                        isLoading = false,
-                        isError = true,
-                        isUpdating = false,
-                        error = productsResponse.message
-                    )
                 }
             }
         }

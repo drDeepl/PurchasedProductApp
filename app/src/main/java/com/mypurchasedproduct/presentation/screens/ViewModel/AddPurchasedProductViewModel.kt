@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
+import com.mypurchasedproduct.presentation.state.ProductBottomSheetState
 import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
 import javax.inject.Inject
 
@@ -20,6 +21,9 @@ class AddPurchasedProductViewModel @Inject constructor() : ViewModel(){
     var addPurchasedProductFormData by mutableStateOf( AddPurchasedProductItem())
         private set
 
+    var productsBottomSheetState by mutableStateOf(ProductBottomSheetState())
+    var measurementUnitBottomSheetState by mutableStateOf(false)
+
     init {}
 
     fun onAddPurchasedProductClick(){
@@ -28,14 +32,23 @@ class AddPurchasedProductViewModel @Inject constructor() : ViewModel(){
         )
     }
 
+    fun setOpenProductsBottomSheet(isActive: Boolean){
+        productsBottomSheetState = productsBottomSheetState.copy(
+            isActive = isActive
+        )
+    }
+
+    fun setSelectedProductProductsBottomSheet(product: ProductResponse){
+        productsBottomSheetState = productsBottomSheetState.copy(
+            selectedProduct = product
+        )
+    }
+
     fun setProductIdAndCategoryIdByProductObj(product: ProductResponse){
         // TODO("SET PRODUCT ID AND CATEGORY")
         addPurchasedProductFormData = addPurchasedProductFormData.copy(
-
         )
-
     }
-
     fun OnClickSavePurchasedProduct(){
         Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
 
