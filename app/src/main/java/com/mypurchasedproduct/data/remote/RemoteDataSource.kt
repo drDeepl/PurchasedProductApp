@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.data.remote
 
 import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
+import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
 import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
@@ -22,4 +23,6 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
     suspend fun addProduct(addProductRequest: AddProductRequest) = api.addProduct(addProductRequest)
 
     suspend fun getCategories() = api.getCategories()
+
+    suspend fun addPurchasedProduct(addPurchasedProductRequest: AddPurchasedProductRequest) = api.addPurchasedProduct(addPurchasedProductRequest)
 }

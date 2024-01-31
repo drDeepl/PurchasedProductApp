@@ -1,7 +1,9 @@
 package com.mypurchasedproduct.presentation.screens
 
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +49,7 @@ import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -96,34 +99,38 @@ fun HomeScreen(
                     },
                     bottomBar = {}
                 )
-                if(addPurchasedProductState.isActive){
+                if(addPurchasedProductState.isActive) {
+                    if (addPurchasedProductState.isLoading) {
+                        LoadScreen(isActive = true)
+                    }
                     val findProductsState = addProductViewModel.getProductsState
                     val findMeasurementUnitsState = homeViewModel.findMeasurementUnits
-
                     val products = findProductsState.products
                     val measurementUnits = findMeasurementUnitsState.measurementUnits
 
-                    val addPurchasedProductData = addPurchasedProductViewModel.addPurchasedProductFormData
+                    val addPurchasedProductData =
+                        addPurchasedProductViewModel.addPurchasedProductFormData
 
-                    val productName = if(addPurchasedProductData.product != null) addPurchasedProductData.product.name else "выбери продукт"
-                    val currentMeasurementUnitId =addPurchasedProductData.unitMeasurement
+                    val productName =
+                        if (addPurchasedProductData.product != null) addPurchasedProductData.product.name else "выбери продукт"
+                    val currentMeasurementUnitId = addPurchasedProductData.unitMeasurement
                     val count = addPurchasedProductData.count
                     val price = addPurchasedProductData.price
-                    if(findProductsState.isUpdating || findMeasurementUnitsState.isUpdating){
+                    if (findProductsState.isUpdating || findMeasurementUnitsState.isUpdating) {
                         LoadScreen(isActive = findProductsState.isUpdating)
-                        if(findProductsState.isUpdating){
+                        if (findProductsState.isUpdating) {
                             addProductViewModel.getProducts()
                         }
-                        if(findMeasurementUnitsState.isUpdating){
+                        if (findMeasurementUnitsState.isUpdating) {
                             homeViewModel.getMeasurementUnits()
                         }
-                    }
-                    else if(products != null && measurementUnits != null){
+                    } else if (products != null && measurementUnits != null) {
                         val isActiveAddProduct = addProductViewModel.addProductFormState.isActive
-                        val isActiveSelectProduct = addPurchasedProductViewModel.productsBottomSheetState.isActive
+                        val isActiveSelectProduct =
+                            addPurchasedProductViewModel.productsBottomSheetState.isActive
                         DialogCardComponent(
                             onConfirm = { addPurchasedProductViewModel.onClickSavePurchasedProduct() },
-                            onDismiss = {addPurchasedProductViewModel.onCloseAddPurchasedproduct()})
+                            onDismiss = { addPurchasedProductViewModel.onCloseAddPurchasedproduct() })
                         {
                             Column(
                                 modifier = Modifier
@@ -131,74 +138,111 @@ fun HomeScreen(
                                     .padding(10.dp),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
-                            ){
+                            ) {
                                 MyTextFieldClickable(
-                                    selectedValue= productName,
+                                    selectedValue = productName,
                                     isExpanded = isActiveSelectProduct,
-                                    onClick = { addPurchasedProductViewModel.setOpenProductsBottomSheet(it) })
+                                    onClick = {
+                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(
+                                            it
+                                        )
+                                    })
                                 ProductsModalBottomSheet(
-                                    products=products,
-                                    openBottomSheet=isActiveSelectProduct,
-                                    setStateButtomSheet={addPurchasedProductViewModel.setOpenProductsBottomSheet(it)},
-                                    onClickAddProduct={addProductViewModel.onClickAddProduct()},
-                                    onClickProductItem={
+                                    products = products,
+                                    openBottomSheet = isActiveSelectProduct,
+                                    setStateButtomSheet = {
+                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(
+                                            it
+                                        )
+                                    },
+                                    onClickAddProduct = { addProductViewModel.onClickAddProduct() },
+                                    onClickProductItem = {
                                         addPurchasedProductViewModel.setProductFormData(it)
-                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(false)
+                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(
+                                            false
+                                        )
                                     }
                                 )
-                                MyTextField(textValue = count, labelValue="количество", onValueChange = {addPurchasedProductViewModel.setCountFormData(it)},  keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), )
+                                MyTextField(
+                                    textValue = count,
+                                    labelValue = "количество",
+                                    onValueChange = {
+                                        addPurchasedProductViewModel.setCountFormData(it)
+                                    },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                )
 //                                TODO("ADD SELECT UNIT MEASUREMENT")
                                 MeasurementUnitsScrollableRow(
-                                    measurementUnits=measurementUnits,
-                                    onClickButton = {addPurchasedProductViewModel.setMeasurementUnitId(it)},
-                                    selectedUnitId =currentMeasurementUnitId
+                                    measurementUnits = measurementUnits,
+                                    onClickButton = {
+                                        addPurchasedProductViewModel.setMeasurementUnitId(
+                                            it
+                                        )
+                                    },
+                                    selectedUnitId = currentMeasurementUnitId
                                 )
-                                MyTextField(textValue = price, labelValue="цена", onValueChange = {addPurchasedProductViewModel.setPriceFormData(it)}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-                                if(isActiveAddProduct){
+                                MyTextField(
+                                    textValue = price,
+                                    labelValue = "цена",
+                                    onValueChange = {
+                                        addPurchasedProductViewModel.setPriceFormData(it)
+                                    },
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                )
+                                if (isActiveAddProduct) {
                                     val getCategoriesState = addProductViewModel.getCategoriesState
                                     val categories = getCategoriesState.categories
-                                    if(categories == null){
+                                    if (categories == null) {
                                         addProductViewModel.getCategories()
                                     }
                                     val productItem = addProductViewModel.productItem
                                     val addProductState = addProductViewModel.addProductState
                                     DialogCardComponent(
-                                        onDismiss = { addProductViewModel.onClickCloseAddProduct()},
+                                        onDismiss = { addProductViewModel.onClickCloseAddProduct() },
                                         onConfirm = { addProductViewModel.toAddProduct() }) {
 
-                                        if(addProductViewModel.addProductState.isError){
-                                            Text(text=addProductViewModel.addProductState.error.toString(), fontSize = 16.sp, color = Color.Red)
+                                        if (addProductViewModel.addProductState.isError) {
+                                            Text(
+                                                text = addProductViewModel.addProductState.error.toString(),
+                                                fontSize = 16.sp,
+                                                color = Color.Red
+                                            )
                                         }
-                                        if(getCategoriesState.isLoading){
+                                        if (getCategoriesState.isLoading) {
                                             LoadScreen(isActive = true)
-                                        }
-                                        else if(addProductState.isSuccess){
+                                        } else if (addProductState.isSuccess) {
                                             SuccessMessageDialog(
-                                                text="Продукт добавлен!",
+                                                text = "Продукт добавлен!",
                                                 onDismiss = {
                                                     addProductViewModel.setDefaultProductItem()
                                                     addProductViewModel.setDefaultAddProductState()
                                                     addProductViewModel.getProducts()
                                                 }
                                             )
-                                        }
-                                        else{
-                                            Row(){
-                                                categories?.let {listCategories ->
-                                                    listCategories.forEach{categoryResponse ->
+                                        } else {
+                                            Row() {
+                                                categories?.let { listCategories ->
+                                                    listCategories.forEach { categoryResponse ->
                                                         SelectCategoryButton(
                                                             categoryResponse = categoryResponse,
                                                             onClick = {
-                                                                addProductViewModel.setProductCategoryId(categoryResponse.id)
+                                                                addProductViewModel.setProductCategoryId(
+                                                                    categoryResponse.id
+                                                                )
                                                             }
                                                         )
                                                     }
                                                 }
                                             }
-                                            MyTextField(textValue = productItem.productName, labelValue="продукт", onValueChange = {addProductViewModel.setProductName(it)}, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text))
+                                            MyTextField(
+                                                textValue = productItem.productName,
+                                                labelValue = "продукт",
+                                                onValueChange = {
+                                                    addProductViewModel.setProductName(it)
+                                                },
+                                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                                            )
                                         }
-
-
                                     }
                                 }
                             }
