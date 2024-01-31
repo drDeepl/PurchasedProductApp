@@ -880,8 +880,14 @@ fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitR
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: Boolean, setStateButtomSheet: (Boolean) -> Unit, onClickAddProduct: () -> Unit) {
-//    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+fun ProductsModalBottomSheet(
+    products: List<ProductResponse>,
+    openBottomSheet: Boolean,
+    setStateButtomSheet: (Boolean) -> Unit,
+    onClickAddProduct: () -> Unit,
+    onClickProductItem: (product: ProductResponse) -> Unit
+) {
+
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
@@ -895,6 +901,7 @@ fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: B
             WindowInsets(0) else BottomSheetDefaults.windowInsets
 
         ModalBottomSheet(
+            containerColor=Color.White,
             onDismissRequest = { setStateButtomSheet(false)},
             sheetState = bottomSheetState,
             windowInsets = windowInsets
@@ -916,9 +923,14 @@ fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: B
                 }
             }
             Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness=2.dp)
-            LazyColumn {
+            LazyColumn(
+                userScrollEnabled = true,
+            ) {
                 items(products){product ->
-                    ListItem(headlineContent = { Text(product.name) })
+//                    ListItem(
+//                        headlineContent = { Text(product.name) })
+                    TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name) }
+                    Divider(thickness = 2.dp)
                 }
             }
         }
@@ -943,7 +955,7 @@ fun SelectCategoryButton(categoryResponse: CategoryResponse, onClick: (id:Long) 
 }
 
 @Composable
-fun SuccessMessageDialog(onDismiss: () -> Unit){
+fun SuccessMessageDialog(text: String, onDismiss: () -> Unit){
     Dialog(
         onDismissRequest = {onDismiss},
         properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
@@ -977,7 +989,7 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
                     painter = painterResource(id = R.drawable.check_circle_icon),
                     contentDescription = null
                 )
-                HeadingTextComponent("Продукт добавлен!")
+                HeadingTextComponent(text)
                 Spacer(modifier=Modifier.height(15.dp))
                 SecondaryButtonComponent(value="супер", onClickButton = onDismiss )
             }
@@ -986,32 +998,27 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
 }
 
 @Composable
-fun MeasurementUnitsScrollableRow(measurementUnits: List<MeasurementUnitResponse>, onClickButton: (id:Long) -> Unit){
-    val scrollState = rememberScrollState()
-//    Row(modifier = Modifier.horizontalScroll(scrollState))
-//    {
+fun MeasurementUnitsScrollableRow(
+    measurementUnits: List<MeasurementUnitResponse>,
+    onClickButton: (id:Long) -> Unit,
+    selectedUnitId: Long? = null ){
         LazyRow(
             userScrollEnabled = true,
             horizontalArrangement = Arrangement.SpaceAround
         ){
 
             items(items = measurementUnits){measurementUnit->
-                var isSelected by remember {mutableStateOf(false)}
+//                var isSelected by remember {mutableStateOf(false)}
                 OutlinedButton(onClick = {
-                    isSelected = !isSelected
-                    if(isSelected) {
-                        onClickButton(measurementUnit.id)
-                    }
+                    onClickButton(measurementUnit.id)
                 }
                 ) {
                     Text(text = measurementUnit.name)
-                    if(isSelected){
+                    if(selectedUnitId === measurementUnit.id){
                         Icon(imageVector = Icons.Filled.Check, contentDescription = null)
                     }
                 }
 
             }
         }
-
-//    }
 }

@@ -157,6 +157,7 @@ class AddProductViewModel @Inject constructor(
         )
     }
 
+
     fun onClickCloseAddProduct(){
         Log.i(TAG, "ON CLICK CLOSE ADD PRODUCT")
         addProductFormState = addProductFormState.copy(

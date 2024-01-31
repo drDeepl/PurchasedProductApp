@@ -1,9 +1,10 @@
 package com.mypurchasedproduct.presentation.ui.item
 
+import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+
 data class AddPurchasedProductItem(
-    val categoryId: Long = 1,
-    val productId: Long = 1,
-    val count: String? = "1",
+    val product: ProductResponse? = null,
+    val count: String = "1",
     val unitMeasurement: Long = 1,
-    val price: String? = "0.0",
+    val price: String = "0.0",
 )

@@ -5,16 +5,19 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.ProductBottomSheetState
 import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class AddPurchasedProductViewModel @Inject constructor() : ViewModel(){
+class AddPurchasedProductViewModel @Inject constructor(
+    private val purchasedProductUseCase: PurchasedProductUseCase
+) : ViewModel(){
     private val TAG = this.javaClass.simpleName
-
-
     var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
         private set
 
@@ -38,19 +41,51 @@ class AddPurchasedProductViewModel @Inject constructor() : ViewModel(){
         )
     }
 
-    fun setSelectedProductProductsBottomSheet(product: ProductResponse){
-        productsBottomSheetState = productsBottomSheetState.copy(
-            selectedProduct = product
+    fun setCountFormData(count: String){
+        addPurchasedProductFormData = addPurchasedProductFormData.copy(
+            count = count
+        )
+    }
+    fun setPriceFormData(price: String){
+        addPurchasedProductFormData = addPurchasedProductFormData.copy(
+            price = price
         )
     }
 
-    fun setProductIdAndCategoryIdByProductObj(product: ProductResponse){
-        // TODO("SET PRODUCT ID AND CATEGORY")
+    fun setProductFormData(product: ProductResponse){
         addPurchasedProductFormData = addPurchasedProductFormData.copy(
+            product = product
         )
+
     }
-    fun OnClickSavePurchasedProduct(){
+
+    fun setMeasurementUnitId(id: Long){
+        addPurchasedProductFormData = addPurchasedProductFormData.copy(
+            unitMeasurement = id
+        )
+
+    }
+
+
+
+
+
+    fun onClickSavePurchasedProduct(){
         Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
+        Log.i(TAG, "Product: id: \n\t${addPurchasedProductFormData.product?.id}\n" +
+                "\t${addPurchasedProductFormData.product?.name}\n" +
+                "count: ${addPurchasedProductFormData.count}\n" +
+                "unit measurement: ${addPurchasedProductFormData.unitMeasurement}\n" +
+                "price: ${addPurchasedProductFormData.price}")
+        if(addPurchasedProductFormData.product != null){
+            viewModelScope.launch {
+                addPurchasedProductState = addPurchasedProductState.copy(
+                    isLoading = true
+                )
+                purchasedProductUseCase.addPurchasedProduct(addPurchasedProductFormData)
+            }
+        }
+
 
     }
 
