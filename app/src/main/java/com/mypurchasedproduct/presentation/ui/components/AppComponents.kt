@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
@@ -391,7 +393,9 @@ fun SecondaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading
             .fillMaxWidth()
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
-        colors = ButtonDefaults.buttonColors(),
+        colors = ButtonDefaults.buttonColors(
+            contentColor = DeepBlackColor
+        ),
         border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),)
     ){
         Box(
@@ -875,8 +879,8 @@ fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitR
 @Composable
 fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: Boolean, setStateButtomSheet: (Boolean) -> Unit, onClickAddProduct: () -> Unit) {
 //    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
-    var skipPartiallyExpanded by remember { mutableStateOf(false) }
-    var edgeToEdgeEnabled by remember { mutableStateOf(false) }
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
@@ -896,8 +900,6 @@ fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: B
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Text(text="Нет нужного продукта?")
                 TextButton(
-                    // Note: If you provide logic outside of onDismissRequest to remove the sheet,
-                    // you must additionally handle intended state cleanup, if any.
                     onClick = {
                         scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                             if (!bottomSheetState.isVisible) {
@@ -922,8 +924,55 @@ fun ProductsModalBottomSheet(products: List<ProductResponse>, openBottomSheet: B
 
 @Composable
 fun SelectCategoryButton(categoryResponse: CategoryResponse, onClick: (id:Long) -> Unit){
-    OutlinedButton(onClick = { onClick(categoryResponse.id) }) {
-        Text(text = categoryResponse.name)
-
+    var isSelected by remember {mutableStateOf(false)}
+    OutlinedButton(onClick = {
+        isSelected = !isSelected
+        if(isSelected) {
+            onClick(categoryResponse.id)
+        }
     }
+    ) {
+        Text(text = categoryResponse.name)
+        if(isSelected){
+            Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+        }
+    }
+}
+
+@Composable
+fun SuccessMessageDialog(onDismiss: () -> Unit){
+    Dialog(
+        onDismissRequest = {onDismiss},
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
+    ){
+        Column(
+            modifier=Modifier.fillMaxWidth(0.8f).background(Color.White).padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceAround
+        )
+        {
+            Icon(
+                modifier = Modifier
+                    .size(128.dp)
+                    .graphicsLayer(alpha = 0.9f)
+                    .drawWithCache {
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(
+                                brush = Brush.horizontalGradient(
+                                    listOf(
+                                        AcidRedColor,
+                                        AcidPurpleColor
+                                    )
+                                ), blendMode = BlendMode.SrcAtop
+                            )
+                        }
+                    },
+                painter = painterResource(id = R.drawable.check_circle_icon),
+                contentDescription = null)
+            HeadingTextComponent("Продукт добавлен!")
+            SecondaryButtonComponent(value="супер", onClickButton = onDismiss )
+        }
+    }
+
 }

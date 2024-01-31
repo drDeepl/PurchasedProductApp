@@ -98,7 +98,6 @@ class AddProductViewModel @Inject constructor(
     }
 
     fun toAddProduct(){
-//        TODO("FIXED API ERROR")
         Log.i(TAG,"ADD PRODUCT REQUEST")
         viewModelScope.launch {
             addProductState = addProductState.copy(
@@ -126,8 +125,17 @@ class AddProductViewModel @Inject constructor(
         }
     }
 
-    fun setDefaultStateAddProduct(){
+    fun setDefaultAddProductState(){
+        Log.wtf(TAG, "SET DEFAULT ADD PRODUCT STATE")
         addProductState = AddProductState()
+    }
+
+    fun setDefaultAddProductFormState(){
+        addProductFormState = AddProductFormState()
+    }
+
+    fun setDefaultProductItem(){
+        productItem = ProductItem()
     }
 
     fun setProductName(name: String){

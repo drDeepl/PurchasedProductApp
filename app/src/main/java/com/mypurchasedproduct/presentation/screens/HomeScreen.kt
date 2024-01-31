@@ -45,6 +45,7 @@ import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionBu
 import com.mypurchasedproduct.presentation.ui.components.ProductsModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
+import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -160,9 +161,13 @@ fun HomeScreen(
                                             LoadScreen(isActive = true)
                                         }
                                         else if(addProductState.isSuccess){
-                                            Text(text=addProductState.msg.toString(), fontSize = 16.sp, color = Color.Red)
-                                            addProductViewModel.getProducts()
-                                            addProductViewModel.setDefaultStateAddProduct()
+                                            SuccessMessageDialog(
+                                                onDismiss = {
+                                                    addProductViewModel.setDefaultProductItem()
+                                                    addProductViewModel.setDefaultAddProductState()
+                                                    addProductViewModel.getProducts()
+                                                }
+                                            )
                                         }
                                         else{
                                             Row(){
