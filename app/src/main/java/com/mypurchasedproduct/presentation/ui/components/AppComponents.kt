@@ -945,34 +945,36 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
         onDismissRequest = {onDismiss},
         properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
     ){
-        Column(
-            modifier=Modifier.fillMaxWidth(0.8f).background(Color.White).padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceAround
-        )
+        Surface(shape= componentShapes.medium)
         {
-            Icon(
-                modifier = Modifier
-                    .size(128.dp)
-                    .graphicsLayer(alpha = 0.9f)
-                    .drawWithCache {
-                        onDrawWithContent {
-                            drawContent()
-                            drawRect(
-                                brush = Brush.horizontalGradient(
-                                    listOf(
-                                        AcidRedColor,
-                                        AcidPurpleColor
-                                    )
-                                ), blendMode = BlendMode.SrcAtop
-                            )
-                        }
-                    },
-                painter = painterResource(id = R.drawable.check_circle_icon),
-                contentDescription = null)
-            HeadingTextComponent("Продукт добавлен!")
-            SecondaryButtonComponent(value="супер", onClickButton = onDismiss )
+            Column(
+                modifier=Modifier.fillMaxWidth(0.8f).background(Color.White).padding(10.dp, 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
+            )
+            {
+                Icon(
+                    modifier = Modifier
+                        .size(128.dp)
+                        .graphicsLayer(alpha = 0.9f)
+                        .drawWithCache {
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(AcidRedColor,AcidPurpleColor)
+                                    ),
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            }
+                        },
+                    painter = painterResource(id = R.drawable.check_circle_icon),
+                    contentDescription = null
+                )
+                HeadingTextComponent("Продукт добавлен!")
+                Spacer(modifier=Modifier.height(15.dp))
+                SecondaryButtonComponent(value="супер", onClickButton = onDismiss )
+            }
         }
     }
-
 }
