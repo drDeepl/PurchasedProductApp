@@ -7,6 +7,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -948,7 +951,10 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
         Surface(shape= componentShapes.medium)
         {
             Column(
-                modifier=Modifier.fillMaxWidth(0.8f).background(Color.White).padding(10.dp, 20.dp),
+                modifier= Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(Color.White)
+                    .padding(10.dp, 20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceAround
             )
@@ -962,7 +968,7 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
                                 drawContent()
                                 drawRect(
                                     brush = Brush.horizontalGradient(
-                                        listOf(AcidRedColor,AcidPurpleColor)
+                                        listOf(AcidRedColor, AcidPurpleColor)
                                     ),
                                     blendMode = BlendMode.SrcAtop
                                 )
@@ -977,4 +983,35 @@ fun SuccessMessageDialog(onDismiss: () -> Unit){
             }
         }
     }
+}
+
+@Composable
+fun MeasurementUnitsScrollableRow(measurementUnits: List<MeasurementUnitResponse>, onClickButton: (id:Long) -> Unit){
+    val scrollState = rememberScrollState()
+//    Row(modifier = Modifier.horizontalScroll(scrollState))
+//    {
+        LazyRow(
+            userScrollEnabled = true,
+            horizontalArrangement = Arrangement.SpaceAround
+        ){
+
+            items(items = measurementUnits){measurementUnit->
+                var isSelected by remember {mutableStateOf(false)}
+                OutlinedButton(onClick = {
+                    isSelected = !isSelected
+                    if(isSelected) {
+                        onClickButton(measurementUnit.id)
+                    }
+                }
+                ) {
+                    Text(text = measurementUnit.name)
+                    if(isSelected){
+                        Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+                    }
+                }
+
+            }
+        }
+
+//    }
 }
