@@ -5,7 +5,7 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 data class FindPurchasedProductsState (
     val purchasedProducts: List<PurchasedProductResponse> = listOf(),
     val isSuccessResponse: Boolean = false,
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val isActive: Boolean = true,
     val error: String? = null
     )

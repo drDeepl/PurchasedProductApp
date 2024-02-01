@@ -18,6 +18,7 @@ import com.mypurchasedproduct.presentation.utils.Constants.Companion.PURCHASED_P
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.USER_ENDPOINT
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -39,6 +40,9 @@ interface PurchasedProductAppApi {
 
     @POST("${PURCHASED_PRODUCT_ENDPOINT}/add")
     suspend fun addPurchasedProduct(@Body addPurchasedProductRequest: AddPurchasedProductRequest): Response<PurchasedProductResponse>
+
+    @DELETE("${PURCHASED_PRODUCT_ENDPOINT}/delete/{purchased_product_id}")
+    suspend fun deletePurchasedProduct(@Path("purchased_product_id") purchasedProductId: Long): Response<MessageResponse>
 
     @POST("${USER_ENDPOINT}/refreshToken")
     suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>

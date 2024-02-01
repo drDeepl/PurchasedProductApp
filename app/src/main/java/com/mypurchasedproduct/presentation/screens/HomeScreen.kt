@@ -90,28 +90,42 @@ fun HomeScreen(
 
             if(getPurchasedProductsState.isActive){
                 homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
-                LoadScreen(isActive=getPurchasedProductsState.isActive)
+                LoadScreen(isActive=true)
             }
             else if(getPurchasedProductsState.isSuccessResponse){
                 val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
                 val addPurchasedProductState = addPurchasedProductViewModel.addPurchasedProductState
                 val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
+                val totalCosts = homeViewModel.totalCosts
+                HeadingTextComponent(value = "Потрачено сегодня: ${totalCosts} ₽")
+                TODO("FIX: WHY UPDATE TOTAL COSTS??")
                 if(deletePurchasedProductState.isActive){
                     AlertDialogComponent(
-                        headerText="Уверен, что хочешь удалить?",
+                        headerText="Удалить купленный продукт?",
                         onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
                         onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
                     )
                     {
                         NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.productName}")
                     }
+                    if(deletePurchasedProductState.isSuccess){
+                        SuccessMessageDialog(text = "Купленный продукт удален!", onDismiss = {purchasedProductListVM.setDefaultDeletePurchasedProductState(); homeViewModel.setGetPurchasedProduct()})
+                    }
+                    if(deletePurchasedProductState.isError){
+                        ErrorMessageDialog(headerText = "Что-то пошло не так", description =deletePurchasedProductState.error.toString(), onDismiss = {purchasedProductListVM.setDefaultDeletePurchasedProductState()})
+                    }
                 }
                 Scaffold(
                     content = {paddingValues: PaddingValues ->
-                        PurchasedProductViewComponent(purchasedProducts,
-                            paddingValues=paddingValues,
-                            onSwipeDeletePurchasedProduct={purchasedProductListVM.onSwipeDelete(it)}
-                        )
+                        if(getPurchasedProductsState.isLoading){
+                            LoadScreen(isActive = true)
+                        }
+                        else{
+                            PurchasedProductViewComponent(purchasedProducts,
+                                paddingValues=paddingValues,
+                                onSwipeDeletePurchasedProduct={purchasedProductListVM.onSwipeDelete(it)}
+                            )
+                        }
                               },
                     floatingActionButton = {
                         PrimaryFloatingActionButton(
@@ -129,6 +143,8 @@ fun HomeScreen(
                         onDismiss = {
                             addPurchasedProductViewModel.setDefaultAddPurchasedProductState()
                             homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
+                            addPurchasedProductViewModel.setDefaultFormDataAddPurchasedProduct()
+
                         }
 
                     )
@@ -193,12 +209,10 @@ fun HomeScreen(
                                             it
                                         )
                                     },
-                                    onClickAddProduct = { addProductViewModel.onClickAddProduct() },
+                                    onClickAddProduct = { addProductViewModel.onClickAddProduct(); },
                                     onClickProductItem = {
                                         addPurchasedProductViewModel.setProductFormData(it)
-                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(
-                                            false
-                                        )
+                                        addPurchasedProductViewModel.setOpenProductsBottomSheet(false)
                                     }
                                 )
                                 MyTextField(
@@ -234,20 +248,22 @@ fun HomeScreen(
                                     }
                                     val productItem = addProductViewModel.productItem
                                     val addProductState = addProductViewModel.addProductState
+                                    if (getCategoriesState.isLoading) {
+//                                        TODO("LOAD BAR IF IS LOADING")
+                                        LoadScreen(isActive = true)
+                                    }
                                     DialogCardComponent(
                                         onDismiss = { addProductViewModel.onClickCloseAddProduct() },
-                                        onConfirm = { addProductViewModel.toAddProduct() }) {
+                                        onConfirm = { addProductViewModel.toAddProduct() }
+                                    ) {
 
                                         if (addProductViewModel.addProductState.isError) {
-                                            Text(
-                                                text = addProductViewModel.addProductState.error.toString(),
-                                                fontSize = 16.sp,
-                                                color = Color.Red
+                                            ErrorMessageDialog(
+                                                headerText = "Что-то пошло не так",
+                                                description = addProductViewModel.addProductState.error.toString(),
+                                                onDismiss = {addProductViewModel.setDefaultAddProductState()}
                                             )
-                                        }
-                                        if (getCategoriesState.isLoading) {
-                                            LoadScreen(isActive = true)
-                                        } else if (addProductState.isSuccess) {
+                                        }else if (addProductState.isSuccess) {
                                             SuccessMessageDialog(
                                                 text = "Продукт добавлен!",
                                                 onDismiss = {

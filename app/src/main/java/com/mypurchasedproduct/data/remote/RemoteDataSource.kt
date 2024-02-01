@@ -25,4 +25,6 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
     suspend fun getCategories() = api.getCategories()
 
     suspend fun addPurchasedProduct(addPurchasedProductRequest: AddPurchasedProductRequest) = api.addPurchasedProduct(addPurchasedProductRequest)
+
+    suspend fun deletePurchasedProduct(id:Long) = api.deletePurchasedProduct(id)
 }

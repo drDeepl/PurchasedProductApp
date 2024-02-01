@@ -3,6 +3,7 @@ package com.mypurchasedproduct.data.repository
 import android.util.Log
 import com.mypurchasedproduct.data.remote.RemoteDataSource
 import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
+import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.utils.BaseApiResponse
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -21,6 +22,11 @@ class PurchasedProductRepository @Inject constructor(
     suspend fun addPurchasedProduct(addPurchasedProductRequest: AddPurchasedProductRequest): NetworkResult<PurchasedProductResponse>{
         Log.w(TAG,"ADD PURCHASED PRODUCT")
         return safeApiCall { remoteDataSource.addPurchasedProduct(addPurchasedProductRequest) }
+    }
+
+    suspend fun deletePurchasedProduct(id: Long): NetworkResult<MessageResponse>{
+        Log.w(TAG, "DELETE PURCHASED PRODUCT")
+        return safeApiCall { remoteDataSource.deletePurchasedProduct(id) }
     }
 
 }

@@ -40,6 +40,14 @@ class AddPurchasedProductViewModel @Inject constructor(
         )
     }
 
+    fun setActiveAddPurchasedProductForm(isActive: Boolean){
+        Log.wtf(TAG, "SET ACTIVE ADD PURCHASED PRODUCT")
+        addPurchasedProductState = addPurchasedProductState.copy(
+            isActive = isActive
+        )
+
+    }
+
     fun setOpenProductsBottomSheet(isActive: Boolean){
         productsBottomSheetState = productsBottomSheetState.copy(
             isActive = isActive

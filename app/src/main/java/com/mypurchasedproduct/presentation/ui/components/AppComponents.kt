@@ -685,6 +685,7 @@ fun PurchasedProductViewComponent(
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
+
         LazyColumn(
             state = rememberLazyListState(),
             modifier = Modifier
@@ -692,7 +693,6 @@ fun PurchasedProductViewComponent(
                 .padding(5.dp),
         ){
             items(purchasedProducts){purchasedProduct ->
-
                 val state = rememberDismissState(
                     confirmValueChange = {
                         if(it == DismissValue.DismissedToStart){
@@ -1126,14 +1126,13 @@ fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: (
             Row(
                 horizontalArrangement= Arrangement.SpaceAround,
             ){
-                Button(onClick = onConfirm) {
+                OutlinedButton(onClick = onConfirm) {
                     Text(text = "да")
                 }
                 Button(onClick = onDismiss) {
                     Text(text = "нет")
                 }
             }
-
         }
     }
 }

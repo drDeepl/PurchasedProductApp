@@ -1,6 +1,8 @@
 package com.mypurchasedproduct.presentation.screens.ViewModel
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -25,6 +27,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,6 +43,9 @@ class HomeViewModel @Inject constructor(
         private set
 
     var checkTokenState by mutableStateOf(CheckTokenState())
+        private set
+
+    var totalCosts by mutableStateOf(AtomicInteger(0))
         private set
 
 
@@ -123,25 +129,36 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     fun getPurchasedProductCurrentUser(offset: Int){
-        viewModelScope.async{
+        getPurchasedProductsState = getPurchasedProductsState.copy(
+            isLoading = true
+        )
+        viewModelScope.launch{
             Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
             accessTokenItem.accessTokenData?.let{tokenModel->
                 val purchasedProducts = this.async { purchasedProductUseCase.getAllPurchasedProductsCurrentUser(tokenModel.id, offset) }.await()
                 when(purchasedProducts){
                     is NetworkResult.Success -> {
                         purchasedProducts.data?.let{
+                            this.launch {
+                                it.stream().forEach{
+                                    totalCosts.addAndGet(it.price.toInt())
+                                }
+                            }
                             getPurchasedProductsState = getPurchasedProductsState.copy(
                                 isActive = false,
                                 purchasedProducts = it,
-                                isSuccessResponse = true
+                                isSuccessResponse = true,
+                                isLoading = false,
                             )
                         }
                     }
                     is NetworkResult.Error ->{
                         getPurchasedProductsState = getPurchasedProductsState.copy(
                             isActive = false,
-                            error = purchasedProducts.message
+                            error = purchasedProducts.message,
+                            isLoading = false
                         )
                     }
                 }
@@ -175,6 +192,13 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun setGetPurchasedProduct(){
+        Log.wtf(TAG, "SET GET PURCHASED PRODUCTS")
+        getPurchasedProductsState = getPurchasedProductsState.copy(
+            isActive = true
+        )
     }
 
 
