@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,7 +36,11 @@ import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
+import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
+import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
+import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitsScrollableRow
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
@@ -56,13 +61,12 @@ fun HomeScreen(
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel(),
     addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel(),
-    addProductViewModel: AddProductViewModel = viewModel()
+    addProductViewModel: AddProductViewModel = viewModel(),
+    purchasedProductListVM: PurchasedProductListViewModel = viewModel()
 ) {
-    val purchasedProductPerPage: Int = 5
+    val purchasedProductPerPage: Int = 10
     val homeState = homeViewModel.state
-    val checkTokenState = homeViewModel.checkTokenState
     Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${homeState.isSignIn}")
-
     LoadScreen(isActive=homeState.isLoading)
     if(homeState.isSignIn == null){
         homeViewModel.checkAccessToken()
@@ -83,15 +87,32 @@ fun HomeScreen(
                 appRouter.navigateTo(Screen.SignUpScreen)
             })
             val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
+
             if(getPurchasedProductsState.isActive){
                 homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
                 LoadScreen(isActive=getPurchasedProductsState.isActive)
             }
             else if(getPurchasedProductsState.isSuccessResponse){
+                val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
                 val addPurchasedProductState = addPurchasedProductViewModel.addPurchasedProductState
                 val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
+                if(deletePurchasedProductState.isActive){
+                    AlertDialogComponent(
+                        headerText="Уверен, что хочешь удалить?",
+                        onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
+                        onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
+                    )
+                    {
+                        NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.productName}")
+                    }
+                }
                 Scaffold(
-                    content = {paddingValues: PaddingValues -> PurchasedProductViewComponent(purchasedProducts, paddingValues=paddingValues)  },
+                    content = {paddingValues: PaddingValues ->
+                        PurchasedProductViewComponent(purchasedProducts,
+                            paddingValues=paddingValues,
+                            onSwipeDeletePurchasedProduct={purchasedProductListVM.onSwipeDelete(it)}
+                        )
+                              },
                     floatingActionButton = {
                         PrimaryFloatingActionButton(
                             painter = painterResource(id = R.drawable.ic_plus),
@@ -99,10 +120,27 @@ fun HomeScreen(
                     },
                     bottomBar = {}
                 )
-                if(addPurchasedProductState.isActive) {
-                    if (addPurchasedProductState.isLoading) {
-                        LoadScreen(isActive = true)
-                    }
+                if (addPurchasedProductState.isLoading) {
+                    LoadScreen(isActive = true)
+                }
+                if(addPurchasedProductState.isSuccess){
+                    SuccessMessageDialog(
+                        text="Купленный продукт добавлен!",
+                        onDismiss = {
+                            addPurchasedProductViewModel.setDefaultAddPurchasedProductState()
+                            homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
+                        }
+
+                    )
+                }
+                else if(addPurchasedProductState.isError){
+                    val msg = addPurchasedProductState.error.toString()
+                    ErrorMessageDialog(headerText="Что-то пошло не так", description=msg, onDismiss= {
+                        addPurchasedProductViewModel.setDefaultAddPurchasedProductState()
+                        addPurchasedProductViewModel.setDefaultFormDataAddPurchasedProduct()
+                    })
+                }
+                else if(addPurchasedProductState.isActive) {
                     val findProductsState = addProductViewModel.getProductsState
                     val findMeasurementUnitsState = homeViewModel.findMeasurementUnits
                     val products = findProductsState.products
@@ -171,7 +209,6 @@ fun HomeScreen(
                                     },
                                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                 )
-//                                TODO("ADD SELECT UNIT MEASUREMENT")
                                 MeasurementUnitsScrollableRow(
                                     measurementUnits = measurementUnits,
                                     onClickButton = {

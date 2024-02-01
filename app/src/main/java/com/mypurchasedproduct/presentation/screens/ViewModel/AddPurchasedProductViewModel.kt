@@ -71,13 +71,16 @@ class AddPurchasedProductViewModel @Inject constructor(
 
     }
 
+    fun setDefaultAddPurchasedProductState(){
+        addPurchasedProductState = AddPurchasedProductState(isActive = true)
+    }
 
-
-
+    fun setDefaultFormDataAddPurchasedProduct(){
+        addPurchasedProductFormData = AddPurchasedProductItem()
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun onClickSavePurchasedProduct(){
-        TODO("ADD SUCCESS DIALOG AFTER ADDED PURCHASED PRODUCT")
         Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
         Log.i(TAG, "Product: id: \n\t${addPurchasedProductFormData.product?.id}\n" +
                 "\t${addPurchasedProductFormData.product?.name}\n" +

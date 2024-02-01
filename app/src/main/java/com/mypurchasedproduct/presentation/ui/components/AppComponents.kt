@@ -7,6 +7,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,11 +35,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.BottomSheetScaffold
@@ -48,6 +54,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DismissDirection
+import androidx.compose.material3.DismissValue
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -59,11 +67,13 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
+import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -84,6 +94,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -103,6 +114,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.graphics.alpha
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
@@ -113,6 +125,7 @@ import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
+import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
@@ -659,23 +672,97 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PurchasedProductViewComponent(
     purchasedProducts: List<PurchasedProductResponse>,
     modifier: Modifier = Modifier
         .fillMaxSize(),
-    paddingValues: PaddingValues)
+    paddingValues: PaddingValues,
+    onSwipeDeletePurchasedProduct: (product:PurchasedProductResponse) -> Unit
+)
 {
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
         LazyColumn(
+            state = rememberLazyListState(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(5.dp),
         ){
             items(purchasedProducts){purchasedProduct ->
-                PurchasedProductItem(purchasedProduct)
+
+                val state = rememberDismissState(
+                    confirmValueChange = {
+                        if(it == DismissValue.DismissedToStart){
+                            onSwipeDeletePurchasedProduct(purchasedProduct)
+                        }
+                        false
+                    }
+                )
+                SwipeToDismiss(
+                    state = state,
+                    background = {
+                                 val color = when(state.dismissDirection){
+                                     DismissDirection.EndToStart -> Color.Transparent
+                                     DismissDirection.StartToEnd -> Color.Transparent
+                                     null -> Color.Transparent
+                                 }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(2.dp, 7.dp)
+                                .height(65.dp)
+                                .background(color = color, shape = componentShapes.medium),
+                        ){
+                            Spacer(modifier = modifier.padding(horizontal=10.dp))
+                            Icon(
+                                imageVector = Icons.Outlined.Delete,
+                                contentDescription=null,
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .align(Alignment.CenterEnd)
+                                    .graphicsLayer(alpha = 0.9f)
+                                    .drawWithCache {
+                                        onDrawWithContent {
+                                            drawContent()
+                                            drawRect(
+                                                brush = Brush.horizontalGradient(
+                                                    listOf(AcidRedColor, AcidPurpleColor)
+                                                ),
+                                                blendMode = BlendMode.SrcAtop
+                                            )
+                                        }
+                                    }
+                            )
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
+                                contentDescription=null,
+                                modifier = Modifier
+                                    .size(42.dp)
+                                    .align(Alignment.CenterStart)
+                                    .graphicsLayer(alpha = 0.9f)
+                                    .drawWithCache {
+                                        onDrawWithContent {
+                                            drawContent()
+                                            drawRect(
+                                                brush = Brush.horizontalGradient(
+                                                    listOf(AcidRedColor, AcidPurpleColor)
+                                                ),
+                                                blendMode = BlendMode.SrcAtop
+                                            )
+                                        }
+                                    }
+                            )
+                            Spacer(modifier = modifier.padding(horizontal=10.dp))
+                        }
+                    },
+                    dismissContent = {
+                        PurchasedProductItem(purchasedProduct)
+                    }
+                )
+
             }
         }
     }
@@ -827,56 +914,6 @@ fun MyTextFieldClickable(selectedValue: String, isExpanded: Boolean, onClick: (B
         )
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MeasurementUnitDropDownMenuComponent(measurementUnits: List<MeasurementUnitResponse>,  labelValue: String = ""){
-    var isExpanded by remember { mutableStateOf(false) }
-    val firstOption = if(measurementUnits.isNotEmpty()) measurementUnits[0].name else "еденицы измерения ещё не добавлены"
-    var selectedOption by remember { mutableStateOf(firstOption) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(0.dp, 10.dp),
-        horizontalArrangement = Arrangement.Center){
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = selectedOption,
-            label = {Text(text=labelValue)},
-            onValueChange = {selectedOption = it},
-            trailingIcon = {
-                IconButton(onClick = { isExpanded = !isExpanded})
-                {
-                    if(isExpanded){
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
-                    }
-                    else{
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                    }
-                }
-            },
-            readOnly = true,
-            colors = TextFieldDefaults.textFieldColors(
-                focusedLabelColor = Color.Black,
-                focusedIndicatorColor = Color.Black,
-                containerColor = LightGreyColor,
-        ))
-        DropdownMenu(
-            expanded = isExpanded,
-            onDismissRequest = { isExpanded = false },
-            modifier = Modifier.fillMaxWidth(0.78f),
-        )
-        {
-            measurementUnits.forEach{product ->
-                DropdownMenuItem(
-                    text = {Text(text=product.name) },
-                    onClick = { selectedOption = product.name; isExpanded = false })
-            }
-
-        }
-    }
-}
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -998,6 +1035,51 @@ fun SuccessMessageDialog(text: String, onDismiss: () -> Unit){
 }
 
 @Composable
+fun ErrorMessageDialog(headerText: String, description: String, onDismiss: () -> Unit){
+    Dialog(
+        onDismissRequest = {onDismiss},
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
+    ){
+        Surface(shape= componentShapes.medium)
+        {
+            Column(
+                modifier= Modifier
+                    .fillMaxWidth(0.8f)
+                    .background(Color.White)
+                    .padding(10.dp, 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceAround
+            )
+            {
+                Icon(
+                    modifier = Modifier
+                        .size(128.dp)
+                        .graphicsLayer(alpha = 0.9f)
+                        .drawWithCache {
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(AcidRedColor, AcidPurpleColor)
+                                    ),
+                                    blendMode = BlendMode.SrcAtop
+                                )
+                            }
+                        },
+                    painter = painterResource(id = R.drawable.ic_x_circle),
+                    contentDescription = null
+                )
+                HeadingTextComponent(headerText)
+                Spacer(modifier = Modifier.padding(10.dp))
+                NormalTextComponent(value = description)
+                Spacer(modifier=Modifier.height(15.dp))
+                SecondaryButtonComponent(value="окей", onClickButton = onDismiss )
+            }
+        }
+    }
+}
+
+@Composable
 fun MeasurementUnitsScrollableRow(
     measurementUnits: List<MeasurementUnitResponse>,
     onClickButton: (id:Long) -> Unit,
@@ -1008,7 +1090,6 @@ fun MeasurementUnitsScrollableRow(
         ){
 
             items(items = measurementUnits){measurementUnit->
-//                var isSelected by remember {mutableStateOf(false)}
                 OutlinedButton(onClick = {
                     onClickButton(measurementUnit.id)
                 }
@@ -1021,4 +1102,38 @@ fun MeasurementUnitsScrollableRow(
 
             }
         }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: () -> Unit, content: @Composable () -> Unit){
+    AlertDialog(
+        modifier= Modifier.padding(horizontal = 20.dp),
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows=true)
+    ){
+        Card {
+            Spacer(modifier = Modifier.padding(vertical = 10.dp))
+            HeadingTextComponent(value=headerText)
+            Spacer(modifier = Modifier.padding(vertical = 10.dp))
+            Divider(thickness=2.dp)
+            content()
+            Spacer(modifier = Modifier.padding(vertical = 15.dp))
+            Row(
+                horizontalArrangement= Arrangement.SpaceAround,
+            ){
+                Button(onClick = onConfirm) {
+                    Text(text = "да")
+                }
+                Button(onClick = onDismiss) {
+                    Text(text = "нет")
+                }
+            }
+
+        }
+    }
 }

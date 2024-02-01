@@ -7,5 +7,5 @@ data class AddPurchasedProductRequest(
     private val count: Int,
     private val unitMeasurement: Long,
     private val price:Double,
-    private val purchasedDateTime: Timestamp,
+    private val purchasedDatetime: String,
 )

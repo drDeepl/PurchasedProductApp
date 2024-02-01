@@ -14,7 +14,6 @@ import javax.inject.Inject
 
 class PurchasedProductUseCase @Inject constructor(
     private val purchasedProductRepository: PurchasedProductRepository,
-    private val tokenUseCase: TokenUseCase,
 ) {
 
     private val TAG: String = this.javaClass.simpleName
@@ -22,21 +21,32 @@ class PurchasedProductUseCase @Inject constructor(
     suspend fun getAllPurchasedProductsCurrentUser(userId: Long, offset: Int) = purchasedProductRepository.getAllPurchasedProductUser(userId, offset)
     @RequiresApi(Build.VERSION_CODES.O)
     suspend fun addPurchasedProduct(addPurchasedProductItem: AddPurchasedProductItem): NetworkResult<PurchasedProductResponse>{
-
         Log.wtf(TAG, "ADD PURCHASED PRODUCT")
         if(addPurchasedProductItem.product != null){
-            val productId: Long = addPurchasedProductItem.product.id
-            val count: Int = addPurchasedProductItem.count.toInt()
-            val unitMeasurement: Long = addPurchasedProductItem.unitMeasurement
-            val price: Double = addPurchasedProductItem.price.toDouble()
-            val purchasedDateTime: Timestamp = Timestamp(Instant.now().epochSecond)
-            return purchasedProductRepository.addPurchasedProduct(AddPurchasedProductRequest(
-                productId = productId,
-                count = count,
-                unitMeasurement = unitMeasurement,
-                price = price,
-                purchasedDateTime = purchasedDateTime)
-            )
+            if(addPurchasedProductItem.unitMeasurement > 0){
+                try{
+                    val productId: Long = addPurchasedProductItem.product.id
+                    val count: Int = addPurchasedProductItem.count.toInt()
+                    val unitMeasurement: Long = addPurchasedProductItem.unitMeasurement
+                    val price: Double = addPurchasedProductItem.price.toDouble()
+                    val purchasedDateTime: String = Instant.now().toString()
+                    return purchasedProductRepository.addPurchasedProduct(AddPurchasedProductRequest(
+                        productId = productId,
+                        count = count,
+                        unitMeasurement = unitMeasurement,
+                        price = price,
+                        purchasedDatetime = purchasedDateTime)
+                    )
+                }
+                catch (nfe: NumberFormatException){
+                    return NetworkResult.Error("есть пустые поля")
+
+                }
+            }
+            else{
+                return NetworkResult.Error("не выбрана еденица измерения")
+            }
+
         }
         else{
             return NetworkResult.Error("продукт не выбран")
