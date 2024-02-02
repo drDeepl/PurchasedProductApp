@@ -73,7 +73,7 @@ fun SignUpScreen(
 
     ) {
         if(signUpState.isLoading){
-            LoadScreen(isActive = signUpState.isLoading)
+            LoadScreen()
         }
         Column(
             modifier=Modifier.fillMaxSize(),
@@ -182,9 +182,3 @@ fun SignUpScreen(
 
     }
 }
-
-//@Preview
-//@Composable
-//fun DefaultPreviewOfSignUpScreen(signUpViewModel: SignUpViewModel){
-//    SignUpScreen(signUpViewModel);
-//}

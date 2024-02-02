@@ -4,6 +4,7 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
+import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.data.repository.PurchasedProductRepository
 import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
@@ -20,15 +21,15 @@ class PurchasedProductUseCase @Inject constructor(
 
     suspend fun getAllPurchasedProductsCurrentUser(userId: Long, offset: Int) = purchasedProductRepository.getAllPurchasedProductUser(userId, offset)
     @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun addPurchasedProduct(addPurchasedProductItem: AddPurchasedProductItem): NetworkResult<PurchasedProductResponse>{
+    suspend fun addPurchasedProduct(product: ProductResponse, count: String, measurementUnitId: Int, price: String): NetworkResult<PurchasedProductResponse>{
         Log.wtf(TAG, "ADD PURCHASED PRODUCT")
-        if(addPurchasedProductItem.product != null){
-            if(addPurchasedProductItem.unitMeasurement > 0){
+        if(product != null){
+            if(measurementUnitId > 0){
                 try{
-                    val productId: Long = addPurchasedProductItem.product.id
-                    val count: Int = addPurchasedProductItem.count.toInt()
-                    val unitMeasurement: Long = addPurchasedProductItem.unitMeasurement
-                    val price: Double = addPurchasedProductItem.price.toDouble()
+                    val productId: Long = product.id
+                    val count: Int = count.toInt()
+                    val unitMeasurement: Long = measurementUnitId.toLong()
+                    val price: Double = price.toDouble()
                     val purchasedDateTime: String = Instant.now().toString()
                     return purchasedProductRepository.addPurchasedProduct(AddPurchasedProductRequest(
                         productId = productId,

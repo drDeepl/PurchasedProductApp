@@ -39,7 +39,6 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val purchasedProductUseCase: PurchasedProductUseCase,
     private val tokenUseCase: TokenUseCase,
-    private val measurementUnitUseCase: MeasurementUnitUseCase
 ): ViewModel(){
 
     private val TAG = this.javaClass.simpleName
@@ -61,8 +60,7 @@ class HomeViewModel @Inject constructor(
 
 
 
-    var findMeasurementUnits by mutableStateOf(FindMeasurementUnitsState())
-        private set
+
 
 
     init {
@@ -207,35 +205,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
-
-    fun getMeasurementUnits(){
-        viewModelScope.launch {
-            Log.wtf(TAG, "GET MEASUREMENT UNITS")
-            findMeasurementUnits = findMeasurementUnits.copy(
-                isLoading = true
-            )
-            val measurementUnitsResponse = this.async{measurementUnitUseCase.getMeasurementUnits()}.await()
-            when(measurementUnitsResponse){
-                is NetworkResult.Success ->{
-                    findMeasurementUnits = findMeasurementUnits.copy(
-                        isLoading = false,
-                        isSuccess = true,
-                        isUpdating = false,
-                        measurementUnits = measurementUnitsResponse.data
-                    )
-                }
-                is NetworkResult.Error -> {
-                    findMeasurementUnits = findMeasurementUnits.copy(
-                        isLoading = false,
-                        isError = true,
-                        isUpdating = false,
-                        error = measurementUnitsResponse.message
-                    )
-                }
-            }
-        }
-    }
 
     fun setGetPurchasedProduct(){
         Log.wtf(TAG, "SET GET PURCHASED PRODUCTS")
