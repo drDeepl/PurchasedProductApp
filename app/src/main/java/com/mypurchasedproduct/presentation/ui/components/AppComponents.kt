@@ -791,20 +791,30 @@ fun WithAnimation(modifier: Modifier = Modifier, delay: Long = 1, animation: Ent
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadScreen(modifier: Modifier = Modifier, isActive: Boolean = false){
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center){
-        if(isActive){
-            CircularProgressIndicator(
-                modifier = Modifier.height(45.dp),
-                color = Color.Black
-            )
-        }
+fun LoadScreen(modifier: Modifier = Modifier,){
+    AlertDialog(
+        onDismissRequest = { /*TODO*/ },
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true)
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.height(45.dp),
+            color = Color.White
+        )
     }
+//    Box(
+//        modifier = modifier
+//            .fillMaxSize()
+//            .background(Color.White),
+//        contentAlignment = Alignment.Center){
+//        if(isActive){
+//            CircularProgressIndicator(
+//                modifier = Modifier.height(45.dp),
+//                color = Color.Black
+//            )
+//        }
+//    }
 }
 
 @Composable

@@ -64,10 +64,12 @@ fun HomeScreen(
     addProductViewModel: AddProductViewModel = viewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = viewModel()
 ) {
-    val purchasedProductPerPage: Int = 25
     val homeState = homeViewModel.state
     Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${homeState.isSignIn}")
-    LoadScreen(isActive=homeState.isLoading)
+    if(homeState.isLoading){
+        LoadScreen()
+    }
+
     if(homeState.isSignIn == null){
         homeViewModel.checkAccessToken()
     }
@@ -82,21 +84,22 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            PrimaryButtonComponent(value = "Выйти", onClickButton = {
+            PrimaryButtonComponent(
+                value = "Выйти", onClickButton = {
                 homeViewModel.signOut()
                 appRouter.navigateTo(Screen.SignUpScreen)
             })
-            val getPurchasedProductsState = homeViewModel.getPurchasedProductsState
+            val getPurchasedProductsByDateState = purchasedProductListVM.getPurchasedProductsByDateState
 
-            if(getPurchasedProductsState.isActive){
-                homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
-                LoadScreen(isActive=true)
+            if(getPurchasedProductsByDateState.isActive){
+                purchasedProductListVM.getPurchasedProductCurrentUserByDate()
+                LoadScreen()
             }
-            else if(getPurchasedProductsState.isSuccessResponse){
+            else if(getPurchasedProductsByDateState.isSuccessResponse){
                 val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
                 val addPurchasedProductState = addPurchasedProductViewModel.addPurchasedProductState
-                val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
-                val totalCosts = homeViewModel.totalCosts
+                val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsByDateState.purchasedProducts
+                val totalCosts = purchasedProductListVM.totalCosts
                 HeadingTextComponent(value = "Потрачено сегодня: ${totalCosts} ₽")
 
                 if(deletePurchasedProductState.isActive){
@@ -109,7 +112,12 @@ fun HomeScreen(
                         NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.productName}")
                     }
                     if(deletePurchasedProductState.isSuccess){
-                        SuccessMessageDialog(text = "Купленный продукт удален!", onDismiss = {purchasedProductListVM.setDefaultDeletePurchasedProductState(); homeViewModel.setGetPurchasedProduct()})
+                        SuccessMessageDialog(
+                            text = "Купленный продукт удален!",
+                            onDismiss = {purchasedProductListVM.setDefaultDeletePurchasedProductState()
+                            purchasedProductListVM.setUpdatePurchasedProductByDate(true)
+                            }
+                        )
                     }
                     if(deletePurchasedProductState.isError){
                         ErrorMessageDialog(headerText = "Что-то пошло не так", description =deletePurchasedProductState.error.toString(), onDismiss = {purchasedProductListVM.setDefaultDeletePurchasedProductState()})
@@ -117,8 +125,8 @@ fun HomeScreen(
                 }
                 Scaffold(
                     content = {paddingValues: PaddingValues ->
-                        if(getPurchasedProductsState.isLoading){
-                            LoadScreen(isActive = true)
+                        if(getPurchasedProductsByDateState.isLoading){
+                            LoadScreen()
                         }
                         else{
                             PurchasedProductViewComponent(purchasedProducts,
@@ -135,14 +143,14 @@ fun HomeScreen(
                     bottomBar = {}
                 )
                 if (addPurchasedProductState.isLoading) {
-                    LoadScreen(isActive = true)
+                    LoadScreen()
                 }
                 if(addPurchasedProductState.isSuccess){
                     SuccessMessageDialog(
                         text="Купленный продукт добавлен!",
                         onDismiss = {
                             addPurchasedProductViewModel.setDefaultAddPurchasedProductState()
-                            homeViewModel.getPurchasedProductCurrentUser(purchasedProductPerPage)
+                            purchasedProductListVM.getPurchasedProductCurrentUserByDate()
                             addPurchasedProductViewModel.setDefaultFormDataAddPurchasedProduct()
 
                         }
@@ -171,7 +179,7 @@ fun HomeScreen(
                     val count = addPurchasedProductData.count
                     val price = addPurchasedProductData.price
                     if (findProductsState.isUpdating || findMeasurementUnitsState.isUpdating) {
-                        LoadScreen(isActive = findProductsState.isUpdating)
+                        LoadScreen()
                         if (findProductsState.isUpdating) {
                             addProductViewModel.getProducts()
                         }
@@ -250,7 +258,7 @@ fun HomeScreen(
                                     val addProductState = addProductViewModel.addProductState
                                     if (getCategoriesState.isLoading) {
 //                                        TODO("LOAD BAR IF IS LOADING")
-                                        LoadScreen(isActive = true)
+                                        LoadScreen()
                                     }
                                     DialogCardComponent(
                                         onDismiss = { addProductViewModel.onClickCloseAddProduct() },

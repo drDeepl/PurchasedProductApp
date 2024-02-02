@@ -50,8 +50,7 @@ class HomeViewModel @Inject constructor(
     var checkTokenState by mutableStateOf(CheckTokenState())
         private set
 
-    var totalCosts by mutableStateOf(AtomicInteger(0))
-        private set
+
 
 
     var accessTokenItem by mutableStateOf(AccessTokenItem())
@@ -71,10 +70,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun checkAccessToken(){
-        state = state.copy(isLoading=true)
         Log.wtf(TAG, "CHECK ACCESS TOKEN")
         viewModelScope.launch {
             Log.e(TAG, "[START] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
+            state = state.copy(isLoading=true)
             checkTokenState = checkTokenState.copy(
                 isActive = true
             )
@@ -82,7 +81,11 @@ class HomeViewModel @Inject constructor(
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
                     val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
-                    if(System.currentTimeMillis().minus(accessTokenData.exp) > 0){
+                    val difference: Long =System.currentTimeMillis() - accessTokenData.exp
+                    Log.wtf(TAG, "DIFFERENCE TIME TOKEN: ${difference}")
+                    Log.w(TAG, "Current timestamp ${System.currentTimeMillis()}")
+                    Log.w(TAG, "Timestamp from token ${accessTokenData.exp}")
+                    if( difference> 0){
                         val refreshToken: String? = tokenUseCase.getRefreshToken().first()
                         if(refreshToken != null){
                             val networkResult = this.async { tokenUseCase.updateAccessToken(refreshToken)}.await()
@@ -189,7 +192,6 @@ class HomeViewModel @Inject constructor(
                                 isSuccessResponse = true,
                                 isLoading = false,
                             )
-                            calculateTotalCosts(it)
                         }
 
                     }
@@ -205,16 +207,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
-        totalCosts = AtomicInteger(0)
-        viewModelScope.launch {
-            purchasedProducts.forEach{
-                totalCosts.addAndGet(it.price.toInt())
-            }
 
-        }
-
-    }
 
     fun getMeasurementUnits(){
         viewModelScope.launch {
