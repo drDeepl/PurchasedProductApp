@@ -7,6 +7,7 @@ import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.utils.BaseApiResponse
 import com.mypurchasedproduct.presentation.utils.NetworkResult
+import java.sql.Timestamp
 import javax.inject.Inject
 
 class PurchasedProductRepository @Inject constructor(
@@ -27,6 +28,11 @@ class PurchasedProductRepository @Inject constructor(
     suspend fun deletePurchasedProduct(id: Long): NetworkResult<MessageResponse>{
         Log.w(TAG, "DELETE PURCHASED PRODUCT")
         return safeApiCall { remoteDataSource.deletePurchasedProduct(id) }
+    }
+
+    suspend fun getPurchasedProductsByDate(timestamp: Long): NetworkResult<List<PurchasedProductResponse>>{
+        Log.w(TAG, "GET PURCHASED PRODUCTS BY DATE")
+        return safeApiCall { remoteDataSource.getPurchasedProductsByDate(timestamp) }
     }
 
 }

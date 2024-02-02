@@ -23,6 +23,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.sql.Timestamp
 
 interface PurchasedProductAppApi {
 
@@ -44,8 +45,8 @@ interface PurchasedProductAppApi {
     @DELETE("${PURCHASED_PRODUCT_ENDPOINT}/delete/{purchased_product_id}")
     suspend fun deletePurchasedProduct(@Path("purchased_product_id") purchasedProductId: Long): Response<MessageResponse>
 
-    @POST("${USER_ENDPOINT}/refreshToken")
-    suspend fun refreshToken(refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
+    @POST("${USER_ENDPOINT}/refreshtoken")
+    suspend fun refreshToken(@Body refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
 
     @GET("${PRODUCT_ENDPOINT}/all")
     suspend fun getProducts(): Response<List<ProductResponse>>
@@ -58,4 +59,8 @@ interface PurchasedProductAppApi {
 
     @GET("${PRODUCT_ENDPOINT}/category/all")
     suspend fun getCategories(): Response<List<CategoryResponse>>
+
+    @GET("${PURCHASED_PRODUCT_ENDPOINT}/all/datetime")
+    suspend fun getPurchasedProductsByDate(@Query("timestamp") timestamp: Long): Response<List<PurchasedProductResponse>>
+
 }

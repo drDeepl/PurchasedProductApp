@@ -64,7 +64,7 @@ fun HomeScreen(
     addProductViewModel: AddProductViewModel = viewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = viewModel()
 ) {
-    val purchasedProductPerPage: Int = 10
+    val purchasedProductPerPage: Int = 25
     val homeState = homeViewModel.state
     Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${homeState.isSignIn}")
     LoadScreen(isActive=homeState.isLoading)
@@ -98,7 +98,7 @@ fun HomeScreen(
                 val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsState.purchasedProducts
                 val totalCosts = homeViewModel.totalCosts
                 HeadingTextComponent(value = "Потрачено сегодня: ${totalCosts} ₽")
-                TODO("FIX: WHY UPDATE TOTAL COSTS??")
+
                 if(deletePurchasedProductState.isActive){
                     AlertDialogComponent(
                         headerText="Удалить купленный продукт?",

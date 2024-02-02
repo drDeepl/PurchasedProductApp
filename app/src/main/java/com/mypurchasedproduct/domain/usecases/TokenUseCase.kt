@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.domain.usecases
 
+import android.util.Log
 import com.mypurchasedproduct.data.remote.model.response.TokenResponse
 import com.mypurchasedproduct.data.repository.TokenRepository
 import com.mypurchasedproduct.domain.model.TokenModel
@@ -23,14 +24,13 @@ class TokenUseCase  @Inject constructor(
     suspend fun getRefreshToken() = tokenRepository.getRefreshToken()
 
     suspend fun updateAccessToken(refreshToken: String) : NetworkResult<TokenResponse>{
+        Log.wtf(TAG, "UPDATE ACCESS  TOKEN")
         val networkResult: NetworkResult<TokenResponse> = tokenRepository.updateAccessToken(refreshToken)
         if(networkResult is NetworkResult.Success){
             networkResult.data?.let{
                 tokenRepository.setAccessToken(it.accessToken)
                 tokenRepository.setRefreshToken(it.refreshToken)
-
             }
-
         }
         return networkResult
     }

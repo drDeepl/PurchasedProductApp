@@ -6,9 +6,11 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.TokenModel
 import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
@@ -25,8 +27,11 @@ import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import java.sql.Timestamp
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
@@ -73,23 +78,62 @@ class HomeViewModel @Inject constructor(
             checkTokenState = checkTokenState.copy(
                 isActive = true
             )
-
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
                     val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
-                    checkTokenState = checkTokenState.copy(
-                        isActive = false,
-                        isComplete = true,
-                    )
-                    accessTokenItem = accessTokenItem.copy(
-                        accessToken = accessToken,
-                        accessTokenData = accessTokenData
-                    )
-                    state = state.copy(
-                        isSignIn = true,
-                        isLoading=false
-                    )
+                    if(System.currentTimeMillis().minus(accessTokenData.exp) > 0){
+                        val refreshToken: String? = tokenUseCase.getRefreshToken().first()
+                        if(refreshToken != null){
+                            val networkResult = this.async { tokenUseCase.updateAccessToken(refreshToken)}.await()
+                            when(networkResult){
+                                is NetworkResult.Success ->{
+                                    val newAccessToken: String? = networkResult.data?.accessToken
+                                    val newAccessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
+                                    checkTokenState = checkTokenState.copy(
+                                        isActive = false,
+                                        isComplete = true,
+                                    )
+                                    accessTokenItem = accessTokenItem.copy(
+                                        accessToken = newAccessToken,
+                                        accessTokenData = newAccessTokenData
+                                    )
+                                    state = state.copy(
+                                        isSignIn = true,
+                                        isLoading=false
+                                    )
+                                }
+                                is NetworkResult.Error ->{
+                                    Log.wtf(TAG, "NETWORK ERROR TOKEN IS NOT EXISTS")
+                                    checkTokenState = checkTokenState.copy(
+                                        isActive = false,
+                                        isError = true,
+                                        error =  networkResult.message
+                                    )
+                                    state = state.copy(
+                                        isSignIn = false,
+                                        isLoading = false
+                                    )
+
+                                }
+                            }
+                        }
+
+                    }
+                    else{
+                        checkTokenState = checkTokenState.copy(
+                            isActive = false,
+                            isComplete = true,
+                        )
+                        accessTokenItem = accessTokenItem.copy(
+                            accessToken = accessToken,
+                            accessTokenData = accessTokenData
+                        )
+                        state = state.copy(
+                            isSignIn = true,
+                            isLoading = false
+                        )
+                    }
                 }
                 else{
                     Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
@@ -113,7 +157,6 @@ class HomeViewModel @Inject constructor(
         state = state.copy(
             isLoading = true
         )
-        Log.e(TAG, "[START] SIGN OUT")
         viewModelScope.launch {
             val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
             removedAccessToken.await()
@@ -125,7 +168,6 @@ class HomeViewModel @Inject constructor(
             getPurchasedProductsState = FindPurchasedProductsState()
             accessTokenItem = AccessTokenItem()
             checkTokenState = CheckTokenState()
-            Log.e(TAG, "[END] SIGN OUT isSignIn ${state.isSignIn}")
         }
     }
 
@@ -141,18 +183,15 @@ class HomeViewModel @Inject constructor(
                 when(purchasedProducts){
                     is NetworkResult.Success -> {
                         purchasedProducts.data?.let{
-                            this.launch {
-                                it.stream().forEach{
-                                    totalCosts.addAndGet(it.price.toInt())
-                                }
-                            }
                             getPurchasedProductsState = getPurchasedProductsState.copy(
                                 isActive = false,
                                 purchasedProducts = it,
                                 isSuccessResponse = true,
                                 isLoading = false,
                             )
+                            calculateTotalCosts(it)
                         }
+
                     }
                     is NetworkResult.Error ->{
                         getPurchasedProductsState = getPurchasedProductsState.copy(
@@ -164,6 +203,17 @@ class HomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
+        totalCosts = AtomicInteger(0)
+        viewModelScope.launch {
+            purchasedProducts.forEach{
+                totalCosts.addAndGet(it.price.toInt())
+            }
+
+        }
+
     }
 
     fun getMeasurementUnits(){

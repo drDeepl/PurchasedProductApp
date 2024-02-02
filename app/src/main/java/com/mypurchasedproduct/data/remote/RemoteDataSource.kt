@@ -5,6 +5,7 @@ import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductReque
 import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
+import java.sql.Timestamp
 import javax.inject.Inject
 
 class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppApi){
@@ -13,6 +14,8 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
     suspend fun signIn(signInRequest: SignInRequest) = api.signIn(signInRequest)
 
     suspend fun getAllPurchasedProductsUser(userId:Long, offset: Int) = api.getAllPurchasedProduct(userId, offset)
+
+    suspend fun getPurchasedProductsByDate(timestamp: Long) = api.getPurchasedProductsByDate(timestamp)
 
     suspend fun updateAccessToken(refreshToken: RefreshTokenRequest) = api.refreshToken(refreshToken)
 

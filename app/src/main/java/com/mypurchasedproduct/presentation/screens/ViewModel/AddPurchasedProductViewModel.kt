@@ -90,11 +90,7 @@ class AddPurchasedProductViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun onClickSavePurchasedProduct(){
         Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
-        Log.i(TAG, "Product: id: \n\t${addPurchasedProductFormData.product?.id}\n" +
-                "\t${addPurchasedProductFormData.product?.name}\n" +
-                "count: ${addPurchasedProductFormData.count}\n" +
-                "unit measurement: ${addPurchasedProductFormData.unitMeasurement}\n" +
-                "price: ${addPurchasedProductFormData.price}")
+
         viewModelScope.launch {
             addPurchasedProductState = addPurchasedProductState.copy(
                 isLoading = true
