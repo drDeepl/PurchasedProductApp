@@ -3,10 +3,9 @@ package com.mypurchasedproduct.data.remote.model.response
 data class PurchasedProductResponse(
     val id: Long,
     val userId: Long,
-    val categoryId: Long,
-    val productName: String,
+    val product: ProductResponse,
     val count: Int,
-    val unitMeasurement: String,
+    val unitMeasurement: MeasurementUnitResponse,
     val price: Double,
-    val purchasedDate: String
+    val purchaseDate: String
 )

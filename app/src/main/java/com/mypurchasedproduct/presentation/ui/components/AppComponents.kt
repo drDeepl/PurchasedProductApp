@@ -639,7 +639,7 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
             verticalArrangement = Arrangement.SpaceAround
         ){
             Text(
-                purchasedProduct.productName,
+                purchasedProduct.product.name,
                 fontSize=18.sp,
                 fontWeight= FontWeight.Bold,
             )
@@ -650,7 +650,7 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
                 )
                 Spacer(modifier = Modifier.padding(2.dp,0.dp))
                 Text(
-                    purchasedProduct.unitMeasurement,
+                    purchasedProduct.unitMeasurement.name,
                     fontSize=16.sp,
                 )
 

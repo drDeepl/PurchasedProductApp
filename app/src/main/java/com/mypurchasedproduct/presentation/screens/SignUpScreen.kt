@@ -73,7 +73,7 @@ fun SignUpScreen(
 
     ) {
         if(signUpState.isLoading){
-            LoadScreen(isActive = signUpState.isLoading)
+            LoadScreen()
         }
         Column(
             modifier=Modifier.fillMaxSize(),

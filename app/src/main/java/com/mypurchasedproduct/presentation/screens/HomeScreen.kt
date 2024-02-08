@@ -109,7 +109,7 @@ fun HomeScreen(
                         onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
                     )
                     {
-                        NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.productName}")
+                        NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.product?.name}")
                     }
                     if(deletePurchasedProductState.isSuccess){
                         SuccessMessageDialog(

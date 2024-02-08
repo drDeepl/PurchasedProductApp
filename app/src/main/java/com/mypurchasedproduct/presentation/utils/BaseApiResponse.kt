@@ -1,10 +1,10 @@
 package com.mypurchasedproduct.presentation.utils
 
 import android.util.Log
+import org.json.JSONObject
 import retrofit2.Response
 
 abstract class BaseApiResponse {
-
     suspend fun<T> safeApiCall(api: suspend () -> Response<T>): NetworkResult<T>{
         try {
             val response = api()
@@ -15,7 +15,8 @@ abstract class BaseApiResponse {
                     return NetworkResult.Success(body)
                 } ?: return errorMessage("Body is empty")
             }else{
-                return errorMessage(response.message(), response.code())
+                val msg: String =ApiResponseUtils.parseMessageFromErrorBody(response.errorBody())
+                return errorMessage(msg, response.code())
             }
 
         }

@@ -15,7 +15,7 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
 
     suspend fun getAllPurchasedProductsUser(userId:Long, offset: Int) = api.getAllPurchasedProduct(userId, offset)
 
-    suspend fun getPurchasedProductsByDate(timestamp: Long) = api.getPurchasedProductsByDate(timestamp)
+    suspend fun getPurchasedProductsByDate(timestamp: Long) = api.getPurchasedProductsByDate(timestamp,)
 
     suspend fun updateAccessToken(refreshToken: RefreshTokenRequest) = api.refreshToken(refreshToken)
 
