@@ -30,11 +30,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
+import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextField
@@ -48,19 +50,7 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 fun SignInScreen(
     signInViewModel: SignInViewModel,
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter) {
-
-    val signInState = signInViewModel.state
-    val usernameValue = remember {
-        mutableStateOf("")
-    }
-
-    val passwordValue = remember {
-        mutableStateOf("")
-    }
-
-    SystemBackButtonHandler {
-        appRouter.navigateTo(Screen.SignUpScreen)
-    }
+    WithAnimation(animation = scaleIn() + fadeIn()) {
     Surface(
         color = Color.White,
         modifier = Modifier
@@ -69,21 +59,31 @@ fun SignInScreen(
             .padding(28.dp)
 
     ) {
+        val signInState = signInViewModel.state
+        val usernameValue = remember {
+            mutableStateOf("")
+        }
+
+        val passwordValue = remember {
+            mutableStateOf("")
+        }
+
+        SystemBackButtonHandler {
+            appRouter.navigateTo(Screen.SignUpScreen)
+        }
         if(signInState.isSignInSuccess){
             appRouter.navigateTo(Screen.HomeScreen)
             signInViewModel.defaultState()
         }
-        WithAnimation(animation = scaleIn() + fadeIn()) {
-            Column(
+        Column(
                 modifier = Modifier.fillMaxSize(),
             ) {
                 HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
             }
-            Column(
+        Column(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Center
             ) {
-
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -103,6 +103,9 @@ fun SignInScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
+                        if(signInState.error != null){
+                            ErrorTextComponent(value = signInState.error, fontSize = 16.sp)
+                        }
                         MyOutlinedTextField(
                             usernameValue,
                             labelValue = "Имя пользователя",

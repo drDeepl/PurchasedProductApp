@@ -25,8 +25,8 @@ class TokenRepository  @Inject constructor(
     suspend fun getRefreshToken() = dataStoreManager.getRefreshToken()
 
     suspend fun updateAccessToken(refreshToken: String): NetworkResult<TokenResponse>{
-        val refreshTokenRequest = RefreshTokenRequest(refreshToken)
-        return  safeApiCall { remoteDataSource.updateAccessToken(refreshTokenRequest)}
+//        val refreshTokenRequest = RefreshTokenRequest(refreshToken)
+        return  safeApiCall { remoteDataSource.updatesTokens(refreshToken)}
     }
 
     suspend fun removeAccessToken() = dataStoreManager.removeAccessToken()

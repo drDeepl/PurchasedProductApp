@@ -46,7 +46,7 @@ class SignUpViewModel @Inject constructor(
                     is NetworkResult.Error ->{
                         state = state.copy(
                             isLoading = false,
-                            responseMessage = it.message
+                            error = it.message
                         )
                     }
                 }

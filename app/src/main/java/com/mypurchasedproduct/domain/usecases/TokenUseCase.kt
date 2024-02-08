@@ -25,7 +25,8 @@ class TokenUseCase  @Inject constructor(
 
     suspend fun updateAccessToken(refreshToken: String) : NetworkResult<TokenResponse>{
         Log.wtf(TAG, "UPDATE ACCESS  TOKEN")
-        val networkResult: NetworkResult<TokenResponse> = tokenRepository.updateAccessToken(refreshToken)
+        val authorization:String  = "Bearer $refreshToken"
+        val networkResult: NetworkResult<TokenResponse> = tokenRepository.updateAccessToken(authorization)
         if(networkResult is NetworkResult.Success){
             networkResult.data?.let{
                 tokenRepository.setAccessToken(it.accessToken)

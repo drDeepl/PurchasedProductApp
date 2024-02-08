@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.mypurchasedproduct.data.local.DataStoreManager
 import com.mypurchasedproduct.data.remote.PurchasedProductAppApi
+import com.mypurchasedproduct.presentation.utils.Constants.Companion.AUTH_ENDPOINT
 import com.mypurchasedproduct.presentation.utils.Constants.Companion.BASE_URL
 import com.mypurchasedproduct.presentation.utils.JwtTokenUtils
 import dagger.Module
@@ -31,6 +32,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object ApiModule {
 
+    private val refreshTokenPattern = "http://85.209.9.101:3000/api/auth/refresh".toRegex()
+
     @Provides
     @Singleton
     fun dataStoreManager(@ApplicationContext appContext: Context): DataStoreManager =
@@ -45,12 +48,17 @@ object ApiModule {
         .Builder()
         .addInterceptor(httpLoggingInterceptor)
         .addNetworkInterceptor(Interceptor {chain: Interceptor.Chain ->
-            val token: String? = runBlocking {
-                dataStoreManager.getAccessToken().first()
+            var request = chain.request()
+            if(!refreshTokenPattern.containsMatchIn(chain.request().url.toString())){
+                val token: String? = runBlocking {
+                    dataStoreManager.getAccessToken().first()
+                }
+                Log.wtf("NETWORK INTERCEPTOR", "TOKEN $token")
+                request = chain.request().newBuilder().addHeader("Authorization", "Bearer ${token}").build()
             }
-            Log.wtf("NETWORK INTERCEPTOR", "TOKEN $token")
-            val request = chain.request().newBuilder().addHeader("Authorization", "Bearer ${token}").build()
+            Log.wtf("NETWORK INTERCEPTOR", "AUTH ${chain.request().header("Authorization")}")
             chain.proceed(request)
+
         })
         .build()
 

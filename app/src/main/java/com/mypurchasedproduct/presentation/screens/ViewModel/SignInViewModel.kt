@@ -26,7 +26,6 @@ class SignInViewModel @Inject constructor(
     var state by mutableStateOf(SignInState())
     private set
 
-
     init{
 
     }

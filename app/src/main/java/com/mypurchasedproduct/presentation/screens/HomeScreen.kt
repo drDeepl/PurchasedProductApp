@@ -73,9 +73,6 @@ fun HomeScreen(
 ) {
     val homeState = homeViewModel.state
     Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${homeState.isSignIn}")
-    if(homeState.isLoading){
-        LoadScreen()
-    }
 
     if(homeState.isSignIn == null){
         homeViewModel.checkAccessToken()
@@ -83,6 +80,9 @@ fun HomeScreen(
     else if(!homeState.isSignIn){
         appRouter.navigateTo(Screen.SignUpScreen)
         homeViewModel.defaultHomeState()
+    }
+    else if(homeState.isLoading){
+        LoadScreen()
     }
     else{
         Column(

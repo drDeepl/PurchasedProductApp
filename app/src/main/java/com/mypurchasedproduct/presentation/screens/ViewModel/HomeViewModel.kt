@@ -67,6 +67,7 @@ class HomeViewModel @Inject constructor(
         Log.e(TAG, "INIT VIEW MODEL")
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun checkAccessToken(){
         Log.wtf(TAG, "CHECK ACCESS TOKEN")
         viewModelScope.launch {
@@ -80,10 +81,11 @@ class HomeViewModel @Inject constructor(
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
                     val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
                     val difference: Long =System.currentTimeMillis() - accessTokenData.exp
+
                     Log.wtf(TAG, "DIFFERENCE TIME TOKEN: ${difference}")
                     Log.w(TAG, "Current timestamp ${System.currentTimeMillis()}")
-                    Log.w(TAG, "Timestamp from token ${accessTokenData.exp}")
-                    if( difference> 0){
+                    Log.w(TAG, "Timestamp from token ${Instant.ofEpochSecond(accessTokenData.exp.toLong()).epochSecond}")
+                    if( difference > 0){
                         val refreshToken: String? = tokenUseCase.getRefreshToken().first()
                         if(refreshToken != null){
                             val networkResult = this.async { tokenUseCase.updateAccessToken(refreshToken)}.await()

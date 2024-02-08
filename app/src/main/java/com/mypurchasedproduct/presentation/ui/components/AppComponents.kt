@@ -111,6 +111,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -165,7 +166,7 @@ fun HeadingTextComponent(value: String, textAlign: TextAlign = TextAlign.Center)
 }
 
 @Composable
-fun ErrorTextComponent(value: String){
+fun ErrorTextComponent(value: String, fontSize: TextUnit = 12.sp){
     Text(
         text = value,
         textDecoration = TextDecoration.Underline,
@@ -173,7 +174,7 @@ fun ErrorTextComponent(value: String){
             .fillMaxWidth()
             .heightIn(),
         style= TextStyle(
-            fontSize=12.sp,
+            fontSize=fontSize,
             fontWeight = FontWeight.Bold,
             fontStyle= FontStyle.Normal
         ),

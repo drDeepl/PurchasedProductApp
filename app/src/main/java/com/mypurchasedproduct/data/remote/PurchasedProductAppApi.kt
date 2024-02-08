@@ -21,6 +21,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -38,7 +39,7 @@ interface PurchasedProductAppApi {
     @GET("${PURCHASED_PRODUCT_ENDPOINT}/all/{user_id}")
     suspend fun getAllPurchasedProduct(@Path("user_id") userId: Long, @Query("offset") offset: Int): Response<List<PurchasedProductResponse>>
 
-    @GET("${PURCHASED_PRODUCT_ENDPOINT}/all/date")
+    @GET("${PURCHASED_PRODUCT_ENDPOINT}/date")
     suspend fun getPurchasedProductsByDate(@Query("timestamp") timestamp: Long): Response<List<PurchasedProductResponse>>
 
     @POST("${PURCHASED_PRODUCT_ENDPOINT}/add")
@@ -47,8 +48,12 @@ interface PurchasedProductAppApi {
     @DELETE("${PURCHASED_PRODUCT_ENDPOINT}/delete/{purchased_product_id}")
     suspend fun deletePurchasedProduct(@Path("purchased_product_id") purchasedProductId: Long): Response<MessageResponse>
 
-    @POST("${USER_ENDPOINT}/refreshtoken")
-    suspend fun refreshToken(@Body refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
+//    @POST("${USER_ENDPOINT}/refreshtoken")
+//    suspend fun refreshToken(@Body refreshTokenRequest: RefreshTokenRequest): Response<TokenResponse>
+
+    @POST("${AUTH_ENDPOINT}/refresh")
+    suspend fun updateTokens(@Header("Authorization") refreshToken: String): Response<TokenResponse>
+
 
     @GET("${PRODUCT_ENDPOINT}/all")
     suspend fun getProducts(): Response<List<ProductResponse>>
