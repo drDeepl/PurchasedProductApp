@@ -2,10 +2,12 @@ package com.mypurchasedproduct.presentation.screens.ViewModel
 
 import android.util.Log
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.presentation.state.AddProductFormState
 import com.mypurchasedproduct.presentation.state.AddProductState
@@ -34,10 +36,12 @@ class AddProductViewModel @Inject constructor(
     var addProductFormState by mutableStateOf(AddProductFormState())
 
     var productItem by mutableStateOf(ProductItem())
-        private set
 
     var getCategoriesState by mutableStateOf(GetCategoriesState())
         private set
+
+    private var products = mutableStateListOf<ProductResponse>()
+
 
 
     fun getCategories(){
@@ -46,12 +50,12 @@ class AddProductViewModel @Inject constructor(
             getCategoriesState = getCategoriesState.copy(
                 isLoading = true
             )
-            productUseCase.getCategories().let{networkResult ->
-
+            val networkResult = productUseCase.getCategories()
                 when(networkResult){
                     is NetworkResult.Success ->{
                         getCategoriesState = getCategoriesState.copy(
                             isLoading = false,
+                            isSuccess = true,
                             categories = networkResult.data
                         )
                     }
@@ -64,18 +68,18 @@ class AddProductViewModel @Inject constructor(
                     }
                 }
 
-            }
+
         }
     }
 
 
-    fun getProducts(){
+    fun findProducts(){
         viewModelScope.launch {
             Log.wtf(TAG, "GET PRODUCTS")
             getProductsState = getProductsState.copy(
                 isLoading = true
             )
-            val productsResponse = this.async{productUseCase.getProducts()}.await()
+            val productsResponse = productUseCase.getProducts()
             when(productsResponse){
                 is NetworkResult.Success ->{
                     getProductsState = getProductsState.copy(
@@ -97,8 +101,15 @@ class AddProductViewModel @Inject constructor(
         }
     }
 
-    fun toAddProduct(){
+    fun getProducts(): List<ProductResponse>{
+        Log.wtf(TAG, "GET PRODUCTS")
+        return products
+    }
+
+
+    fun toAddProduct(productName: String){
         Log.i(TAG,"ADD PRODUCT REQUEST")
+        productItem = productItem.copy(productName = productName)
         viewModelScope.launch {
             addProductState = addProductState.copy(
                 isLoading = true
@@ -124,6 +135,7 @@ class AddProductViewModel @Inject constructor(
             }
         }
     }
+
 
     fun setDefaultAddProductState(){
         Log.wtf(TAG, "SET DEFAULT ADD PRODUCT STATE")

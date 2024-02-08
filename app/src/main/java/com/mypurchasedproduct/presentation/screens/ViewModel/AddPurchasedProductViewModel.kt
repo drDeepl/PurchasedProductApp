@@ -4,13 +4,17 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
+import com.mypurchasedproduct.presentation.state.FindMeasurementUnitsState
 import com.mypurchasedproduct.presentation.state.ProductBottomSheetState
 import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -21,7 +25,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddPurchasedProductViewModel @Inject constructor(
-    private val purchasedProductUseCase: PurchasedProductUseCase
+    private val purchasedProductUseCase: PurchasedProductUseCase,
+    private val measurementUnitUseCase: MeasurementUnitUseCase
 ) : ViewModel(){
     private val TAG = this.javaClass.simpleName
     var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
@@ -32,11 +37,22 @@ class AddPurchasedProductViewModel @Inject constructor(
 
     var productsBottomSheetState by mutableStateOf(ProductBottomSheetState())
 
-    var measurementUnitBottomSheetState by mutableStateOf(false)
+    var findMeasurementUnits by mutableStateOf(FindMeasurementUnitsState())
+        private set
+
+    private var  measurementUnits = mutableStateListOf<MeasurementUnitResponse>()
+
+
 
     fun onAddPurchasedProductClick(){
         addPurchasedProductState = addPurchasedProductState.copy(
             isActive = true
+        )
+    }
+
+    fun onCloseAddPurchasedProduct(){
+        addPurchasedProductState = addPurchasedProductState.copy(
+            isActive = false
         )
     }
 
@@ -54,31 +70,6 @@ class AddPurchasedProductViewModel @Inject constructor(
         )
     }
 
-    fun setCountFormData(count: String){
-        addPurchasedProductFormData = addPurchasedProductFormData.copy(
-            count = count
-        )
-    }
-    fun setPriceFormData(price: String){
-        addPurchasedProductFormData = addPurchasedProductFormData.copy(
-            price = price
-        )
-    }
-
-    fun setProductFormData(product: ProductResponse){
-        addPurchasedProductFormData = addPurchasedProductFormData.copy(
-            product = product
-        )
-
-    }
-
-    fun setMeasurementUnitId(id: Long){
-        addPurchasedProductFormData = addPurchasedProductFormData.copy(
-            unitMeasurement = id
-        )
-
-    }
-
     fun setDefaultAddPurchasedProductState(){
         addPurchasedProductState = AddPurchasedProductState(isActive = true)
     }
@@ -87,15 +78,43 @@ class AddPurchasedProductViewModel @Inject constructor(
         addPurchasedProductFormData = AddPurchasedProductItem()
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun onClickSavePurchasedProduct(){
-        Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun onClickSavePurchasedProduct(){
+//        Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
+//
+//        viewModelScope.launch {
+//            addPurchasedProductState = addPurchasedProductState.copy(
+//                isLoading = true
+//            )
+//            val networkResult = this.async { purchasedProductUseCase.addPurchasedProduct(addPurchasedProductFormData)}.await()
+//            when(networkResult){
+//                is NetworkResult.Success ->{
+//                    addPurchasedProductState = addPurchasedProductState.copy(
+//                        isLoading = false,
+//                        isSuccess = true,
+//                        product = networkResult.data
+//                    )
+//                }
+//
+//                is NetworkResult.Error ->{
+//                    addPurchasedProductState = addPurchasedProductState.copy(
+//                        isLoading = false,
+//                        isError = true,
+//                        error = networkResult.message
+//                    )
+//                }
+//            }
+//        }
+//    }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun toAddPurchasedProduct(product: ProductResponse, count: String, price: String, measurementUnitId: Int){
+        Log.wtf(TAG, "TO ADD PURCHASED PRODUCT")
         viewModelScope.launch {
             addPurchasedProductState = addPurchasedProductState.copy(
                 isLoading = true
             )
-            val networkResult = this.async { purchasedProductUseCase.addPurchasedProduct(addPurchasedProductFormData)}.await()
+            val networkResult =  purchasedProductUseCase.addPurchasedProduct(product,count,measurementUnitId,price)
             when(networkResult){
                 is NetworkResult.Success ->{
                     addPurchasedProductState = addPurchasedProductState.copy(
@@ -114,11 +133,44 @@ class AddPurchasedProductViewModel @Inject constructor(
                 }
             }
         }
+
     }
 
-    fun onCloseAddPurchasedproduct(){
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = false
-        )
+    fun findMeasurementUnits(){
+        viewModelScope.launch {
+            Log.wtf(TAG, "GET MEASUREMENT UNITS")
+            findMeasurementUnits = findMeasurementUnits.copy(
+                isLoading = true
+            )
+            val measurementUnitsResponse = measurementUnitUseCase.getMeasurementUnits()
+            when(measurementUnitsResponse){
+                is NetworkResult.Success ->{
+                    measurementUnitsResponse.data?.let {
+                        if(measurementUnits.size != it.size){
+                            measurementUnits.addAll(it)
+                        }
+                    }
+                    findMeasurementUnits = findMeasurementUnits.copy(
+                        isLoading = false,
+                        isSuccess = true,
+                        isUpdating = false,
+                    )
+
+                }
+                is NetworkResult.Error -> {
+                    findMeasurementUnits = findMeasurementUnits.copy(
+                        isLoading = false,
+                        isError = true,
+                        isUpdating = false,
+                        error = measurementUnitsResponse.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun getMeasurementUnits(): List<MeasurementUnitResponse>{
+        Log.wtf(TAG, "GET MEASUREMENT UNITS")
+        return measurementUnits
     }
 }

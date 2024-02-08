@@ -182,9 +182,3 @@ fun SignUpScreen(
 
     }
 }
-
-//@Preview
-//@Composable
-//fun DefaultPreviewOfSignUpScreen(signUpViewModel: SignUpViewModel){
-//    SignUpScreen(signUpViewModel);
-//}

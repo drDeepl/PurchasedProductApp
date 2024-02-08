@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -402,11 +403,15 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
 }
 
 @Composable
-fun SecondaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false){
+fun SecondaryButtonComponent(
+    value: String,
+    onClickButton: () -> Unit,
+    isLoading: Boolean = false,
+    modifier: Modifier = Modifier.fillMaxWidth()
+){
     Button(
         onClick=onClickButton,
-        modifier= Modifier
-            .fillMaxWidth()
+        modifier= modifier
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(
@@ -415,8 +420,7 @@ fun SecondaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading
         border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),)
     ){
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = modifier
                 .heightIn(48.dp)
                 .background(
                     Color.White,
@@ -803,18 +807,6 @@ fun LoadScreen(modifier: Modifier = Modifier,){
             color = Color.White
         )
     }
-//    Box(
-//        modifier = modifier
-//            .fillMaxSize()
-//            .background(Color.White),
-//        contentAlignment = Alignment.Center){
-//        if(isActive){
-//            CircularProgressIndicator(
-//                modifier = Modifier.height(45.dp),
-//                color = Color.Black
-//            )
-//        }
-//    }
 }
 
 @Composable
@@ -891,6 +883,26 @@ fun DialogCardComponent(
     }
 }
 
+@Composable
+fun DialogCardComponentWithoutActionBtns(content: @Composable () -> Unit?)
+{
+    Dialog(
+        onDismissRequest = {},
+        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
+    ){
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White
+            )
+        ) {
+            CardHeaderComponent(value = "Добавить продукт")
+            Divider(modifier = Modifier.padding(vertical = 20.dp))
+            content()
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MyTextFieldClickable(selectedValue: String, isExpanded: Boolean, onClick: (Boolean) -> Unit, labelValue: String = "",){
@@ -934,8 +946,8 @@ fun ProductsModalBottomSheet(
     onClickAddProduct: () -> Unit,
     onClickProductItem: (product: ProductResponse) -> Unit
 ) {
+    val skipPartiallyExpanded by remember { mutableStateOf(true) }
 
-    val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
@@ -948,11 +960,11 @@ fun ProductsModalBottomSheet(
             WindowInsets(0) else BottomSheetDefaults.windowInsets
 
         ModalBottomSheet(
+            modifier = Modifier.fillMaxSize(),
             containerColor=Color.White,
             onDismissRequest = { setStateButtomSheet(false)},
             sheetState = bottomSheetState,
             windowInsets = windowInsets
-
         ) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                 Text(text="Нет нужного продукта?")
@@ -974,14 +986,40 @@ fun ProductsModalBottomSheet(
                 userScrollEnabled = true,
             ) {
                 items(products){product ->
-//                    ListItem(
-//                        headlineContent = { Text(product.name) })
-                    TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name) }
+                    TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name, fontSize = 16.sp) }
                     Divider(thickness = 2.dp)
                 }
             }
         }
     }
+}
+
+
+@Composable
+fun ProductsButtonsList(
+    products: List<ProductResponse>,
+    onClickAddProduct: () -> Unit,
+    onClickProductItem: (product: ProductResponse) -> Unit )
+{
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+        Text(text="Нет нужного продукта?")
+        TextButton(
+            onClick = {onClickAddProduct()}
+        ) {
+            Text("добавить", fontSize=16.sp)
+        }
+    }
+    Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness=2.dp)
+    LazyColumn(
+        reverseLayout = true,
+        userScrollEnabled = true,
+    ) {
+        items(products){product ->
+            TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name, fontSize = 16.sp) }
+            Divider(thickness = 2.dp)
+        }
+    }
+
 }
 
 @Composable
