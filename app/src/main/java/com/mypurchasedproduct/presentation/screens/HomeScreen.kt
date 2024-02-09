@@ -63,6 +63,7 @@ import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewCom
 import com.mypurchasedproduct.presentation.ui.components.SecondaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
+import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import kotlinx.coroutines.coroutineScope
 
@@ -196,10 +197,11 @@ fun HomeScreen(
                             Column(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .border(border= BorderStroke(width=2.dp, color= DeepGreyColor)),
+                                    .border(border= BorderStroke(width=2.dp, color= AcidRedColor)),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
+                                TODO("WHY SLOW")
                                 if(products == null){
                                     Text(text="Произошла ошибка при загрузке продуктов. Попробуйте снова позже", fontSize = 12.sp)
                                 }
