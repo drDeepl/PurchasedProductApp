@@ -8,5 +8,5 @@ data class FindProductsState(
     val isSuccess: Boolean = false,
     val isError: Boolean = false,
     val error: String? = null,
-    val products: List<ProductResponse>? = null
+    val products: List<ProductResponse> = listOf()
 )

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
@@ -44,23 +45,15 @@ class AddPurchasedProductViewModel @Inject constructor(
 
 
 
-    fun onAddPurchasedProductClick(){
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = true
-        )
-    }
-
-    fun onCloseAddPurchasedProduct(){
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = false
-        )
-    }
 
     fun setActiveAddPurchasedProductForm(isActive: Boolean){
         Log.wtf(TAG, "SET ACTIVE ADD PURCHASED PRODUCT")
-        addPurchasedProductState = addPurchasedProductState.copy(
-            isActive = isActive
-        )
+        viewModelScope.launch {
+            addPurchasedProductState = addPurchasedProductState.copy(
+                isActive = isActive
+            )
+        }
+
 
     }
 
@@ -78,13 +71,14 @@ class AddPurchasedProductViewModel @Inject constructor(
         addPurchasedProductFormData = AddPurchasedProductItem()
     }
 
-    fun toAddPurchasedProduct(product: ProductResponse, count: String, price: String, measurementUnitId: Int){
+    fun toAddPurchasedProduct(addPurchasedProductModel: AddPurchasedProductModel){
+//        product: ProductResponse, count: String, price: String, measurementUnitId: Int
         Log.wtf(TAG, "TO ADD PURCHASED PRODUCT")
         viewModelScope.launch {
             addPurchasedProductState = addPurchasedProductState.copy(
                 isLoading = true
             )
-            val networkResult =  purchasedProductUseCase.addPurchasedProduct(product,count,measurementUnitId,price)
+            val networkResult =  purchasedProductUseCase.addPurchasedProduct(addPurchasedProductModel)
             when(networkResult){
                 is NetworkResult.Success ->{
                     addPurchasedProductState = addPurchasedProductState.copy(

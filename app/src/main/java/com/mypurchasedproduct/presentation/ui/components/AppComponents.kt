@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,6 +61,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -103,6 +105,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -119,6 +122,8 @@ import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
+import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
+import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -363,18 +368,16 @@ fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
     })
 }
 @Composable
-fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false){
+fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false, modifier: Modifier = Modifier.fillMaxWidth()){
     Button(
         onClick=onClickButton,
-        modifier= Modifier
-            .fillMaxWidth()
+        modifier= modifier
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(),
     ){
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = modifier
                 .heightIn(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
@@ -383,10 +386,7 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             contentAlignment = Alignment.Center
         ){
             if(isLoading){
-                CircularProgressIndicator(
-                    color = Color.White
-
-                )
+                CircularProgressIndicator(color = Color.White)
             }
             else{
                 Text(
@@ -681,13 +681,13 @@ fun PurchasedProductViewComponent(
     modifier: Modifier = Modifier
         .fillMaxSize(),
     paddingValues: PaddingValues,
-    onSwipeDeletePurchasedProduct: (product:PurchasedProductResponse) -> Unit
+    onSwipeDeletePurchasedProduct: (product:PurchasedProductResponse) -> Unit,
+    onSwipeEditPurchasedProduct: (product:PurchasedProductResponse) -> Unit,
 )
 {
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
-
         LazyColumn(
             state = rememberLazyListState(),
             modifier = Modifier
@@ -699,6 +699,9 @@ fun PurchasedProductViewComponent(
                     confirmValueChange = {
                         if(it == DismissValue.DismissedToStart){
                             onSwipeDeletePurchasedProduct(purchasedProduct)
+                        }
+                        if(it == DismissValue.DismissedToEnd){
+                            onSwipeEditPurchasedProduct(purchasedProduct)
                         }
                         false
                     }
@@ -800,10 +803,20 @@ fun LoadScreen(modifier: Modifier = Modifier,){
         onDismissRequest = { /*TODO*/ },
         properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true)
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.height(45.dp),
-            color = Color.White
-        )
+        Column(
+            modifier= Modifier
+                .fillMaxSize()
+                .background(color = Color.White),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.height(45.dp),
+                color = DeepBlackColor
+            )
+
+        }
+
     }
 }
 
@@ -813,7 +826,8 @@ fun PrimaryFloatingActionButton(
     painter: Painter = painterResource(id = R.drawable.ic_plus),
     modifier: Modifier = Modifier
         .height(65.dp)
-        .width(65.dp)
+        .width(65.dp),
+    isLoading: Boolean = false,
     )
 {
     IconButton(
@@ -825,9 +839,15 @@ fun PrimaryFloatingActionButton(
             .padding(8.dp),
         onClick = onClick)
     {
-        Icon(
-            modifier = modifier,
-            painter=painter, contentDescription = "ic_plus", tint=Color.White)
+        if(isLoading){
+            CircularProgressIndicator(color = Color.White)
+        }
+        else{
+            Icon(
+                modifier = modifier,
+                painter=painter, contentDescription = "ic_plus", tint=Color.White)
+        }
+
     }
 }
 
@@ -882,7 +902,7 @@ fun DialogCardComponent(
 }
 
 @Composable
-fun DialogCardComponentWithoutActionBtns(content: @Composable () -> Unit?)
+fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composable () -> Unit?)
 {
     Dialog(
         onDismissRequest = {},
@@ -894,7 +914,7 @@ fun DialogCardComponentWithoutActionBtns(content: @Composable () -> Unit?)
                 containerColor = Color.White
             )
         ) {
-            CardHeaderComponent(value = "Добавить продукт")
+            CardHeaderComponent(value = textHeader)
             Divider(modifier = Modifier.padding(vertical = 20.dp))
             content()
         }
@@ -1211,6 +1231,212 @@ fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: (
                     Text(text = "нет")
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun AddPurchasedProductFormComponent(
+    products: List<ProductResponse>,
+    measurementUnits: List<MeasurementUnitResponse>,
+    onClickAddProduct: () -> Unit,
+    onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
+    onDismiss: () -> Unit)
+{
+
+    var openProductBottomSheet by remember {
+        mutableStateOf(false)
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var count by remember { mutableStateOf("") }
+        var price by remember {mutableStateOf("")}
+            var currentMeasurementUnitId by remember {
+                mutableStateOf(1)
+            }
+            var productName by remember {mutableStateOf("выбери продукт")}
+            var selectedProduct by remember { mutableStateOf(ProductResponse(0,"",0))}
+            ProductsModalBottomSheet(
+                products = products,
+                openBottomSheet = openProductBottomSheet,
+                setStateButtomSheet = {
+                    openProductBottomSheet = it
+                                      },
+                onClickAddProduct =onClickAddProduct,
+                onClickProductItem = {
+                    productName = it.name
+                    selectedProduct = it
+                    openProductBottomSheet = false
+                }
+            )
+                MyTextFieldClickable(
+                    selectedValue = productName,
+                    isExpanded = openProductBottomSheet,
+                    onClick = {
+                        openProductBottomSheet = it
+                    })
+
+            MyTextField(
+                textValue = count,
+                labelValue = "количество",
+                onValueChange = {count = it},
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+            MeasurementUnitsScrollableRow(
+                measurementUnits = measurementUnits,
+                onClickButton = {currentMeasurementUnitId = it.toInt()},
+                selectedUnitId = currentMeasurementUnitId.toLong()
+            )
+            MyTextField(
+                textValue = price,
+                labelValue = "цена",
+                onValueChange = {price = it},
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                SecondaryButtonComponent(
+                    value = "добавить",
+                    onClickButton = {onConfirm(AddPurchasedProductModel(
+                        selectedProduct,
+                        count,
+                        currentMeasurementUnitId.toLong(),
+                        price))},
+                    modifier = Modifier.widthIn(150.dp)
+                )
+                SecondaryButtonComponent(
+                    value = "отмена",
+                    onClickButton = onDismiss,
+                    modifier = Modifier.widthIn(150.dp)
+                )
+            }
+        }
+}
+
+@Composable
+fun EditPurchasedProductFormComponent(
+    products: List<ProductResponse>,
+    measurementUnits: List<MeasurementUnitResponse>,
+    onClickAddProduct: () -> Unit,
+    onConfirm: (ediPurchasedProductModel: EditPurchasedProductModel) -> Unit,
+    onDismiss: () -> Unit,
+    purchasedProduct: PurchasedProductResponse)
+{
+
+    var openProductBottomSheet by remember {
+        mutableStateOf(false)
+    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var count by remember { mutableStateOf(purchasedProduct.count.toString()) }
+        var price by remember {mutableStateOf(purchasedProduct.price.toString())}
+        var currentMeasurementUnitId by remember {
+            mutableStateOf(purchasedProduct.unitMeasurement.id)
+        }
+        var productName by remember {mutableStateOf(purchasedProduct.product.name)}
+        var selectedProduct by remember { mutableStateOf(purchasedProduct.product)}
+        ProductsModalBottomSheet(
+            products = products,
+            openBottomSheet = openProductBottomSheet,
+            setStateButtomSheet = {
+                openProductBottomSheet = it
+            },
+            onClickAddProduct =onClickAddProduct,
+            onClickProductItem = {
+                productName = it.name
+                selectedProduct = it
+                openProductBottomSheet = false
+            }
+        )
+        MyTextFieldClickable(
+            selectedValue = productName,
+            isExpanded = openProductBottomSheet,
+            onClick = {
+                openProductBottomSheet = it
+            })
+
+        MyTextField(
+            textValue = count,
+            labelValue = "количество",
+            onValueChange = {count = it},
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        )
+        MeasurementUnitsScrollableRow(
+            measurementUnits = measurementUnits,
+            onClickButton = {currentMeasurementUnitId = it},
+            selectedUnitId = currentMeasurementUnitId.toLong()
+        )
+        MyTextField(
+            textValue = price,
+            labelValue = "цена",
+            onValueChange = {price = it},
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryButtonComponent(
+                value = "изенить",
+                onClickButton = {onConfirm(
+                    EditPurchasedProductModel(
+                        purchasedProduct.id,
+                        selectedProduct,
+                        count,
+                        purchasedProduct.userId,
+                        currentMeasurementUnitId.toLong(),
+                        price,
+                        purchasedProduct.purchaseDate))},
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryButtonComponent(
+                value = "отмена",
+                onClickButton = onDismiss,
+                modifier = Modifier.widthIn(150.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: (isActive:Boolean) -> Unit) {
+    var categoryName by remember {
+        mutableStateOf("")
+    }
+    DialogCardComponentWithoutActionBtns("Добавление категории") {
+        MyTextField(
+            textValue = categoryName,
+            labelValue = "название",
+            onValueChange = {
+                categoryName = it
+            },
+            enabled = !isLoading
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            PrimaryButtonComponent(
+                value ="добавить" ,
+                { onConfirm(categoryName) },
+                isLoading=isLoading,
+                modifier = Modifier.widthIn(64.dp)
+            )
+            SecondaryButtonComponent(value = "отмена", onClickButton = {onDismiss(false) }, modifier = Modifier.widthIn(64.dp))
+
         }
     }
 }

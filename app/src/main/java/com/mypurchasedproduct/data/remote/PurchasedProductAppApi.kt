@@ -1,7 +1,9 @@
 package com.mypurchasedproduct.data.remote
 
+import com.mypurchasedproduct.data.remote.model.request.AddCategoryRequest
 import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
 import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
+import com.mypurchasedproduct.data.remote.model.request.EditPurchasedProductRequest
 import com.mypurchasedproduct.data.remote.model.request.RefreshTokenRequest
 import com.mypurchasedproduct.data.remote.model.request.SignInRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
@@ -61,11 +63,17 @@ interface PurchasedProductAppApi {
     @POST("${PRODUCT_ENDPOINT}/add")
     suspend fun addProduct(@Body addProductRequest: AddProductRequest): Response<ProductResponse>
 
+    @POST("${PURCHASED_PRODUCT_ENDPOINT}/edit/{id}")
+    suspend fun editPurchasedProduct(@Path("id") id: Long, @Body() editPurchasedProductRequest: EditPurchasedProductRequest): Response<PurchasedProductResponse>
+
     @GET("${MEASUREMENT_ENDPOINT}/all")
     suspend fun getMeasurementUnits(): Response<List<MeasurementUnitResponse>>
 
     @GET("${PRODUCT_ENDPOINT}/category/all")
     suspend fun getCategories(): Response<List<CategoryResponse>>
+
+    @POST("${PRODUCT_ENDPOINT}/category/add")
+    suspend fun addCategory(@Body() addCategoryRequest: AddCategoryRequest): Response<CategoryResponse>
 
 
 }

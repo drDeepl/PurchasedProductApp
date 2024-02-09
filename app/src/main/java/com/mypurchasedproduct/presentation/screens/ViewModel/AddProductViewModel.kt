@@ -24,7 +24,6 @@ import javax.inject.Inject
 class AddProductViewModel @Inject constructor(
     private val productUseCase: ProductUseCase,
 ): ViewModel() {
-
     private val TAG: String = this.javaClass.simpleName
 
     var getProductsState by mutableStateOf(FindProductsState())
@@ -44,7 +43,7 @@ class AddProductViewModel @Inject constructor(
 
 
 
-    fun getCategories(){
+    fun findCategories(){
         viewModelScope.launch {
             Log.wtf(TAG, "GET CATEGORIES")
             getCategoriesState = getCategoriesState.copy(
@@ -86,7 +85,7 @@ class AddProductViewModel @Inject constructor(
                         isLoading = false,
                         isSuccess = true,
                         isUpdating = false,
-                        products = productsResponse.data
+                        products = productsResponse.data ?: listOf()
                     )
                 }
                 is NetworkResult.Error -> {

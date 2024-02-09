@@ -3,8 +3,10 @@ package com.mypurchasedproduct.data.repository
 import android.util.Log
 import com.mypurchasedproduct.data.remote.RemoteDataSource
 import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
+import com.mypurchasedproduct.data.remote.model.request.EditPurchasedProductRequest
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
+import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.utils.BaseApiResponse
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import java.sql.Timestamp
@@ -23,6 +25,10 @@ class PurchasedProductRepository @Inject constructor(
     suspend fun addPurchasedProduct(addPurchasedProductRequest: AddPurchasedProductRequest): NetworkResult<PurchasedProductResponse>{
         Log.w(TAG,"ADD PURCHASED PRODUCT")
         return safeApiCall { remoteDataSource.addPurchasedProduct(addPurchasedProductRequest) }
+    }
+
+    suspend fun editPurchasedProduct(id: Long, editPurchasedProductRequest: EditPurchasedProductRequest): NetworkResult<PurchasedProductResponse>{
+        return safeApiCall { remoteDataSource.editPurchasedProduct(id, editPurchasedProductRequest) }
     }
 
     suspend fun deletePurchasedProduct(id: Long): NetworkResult<MessageResponse>{

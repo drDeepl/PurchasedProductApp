@@ -215,7 +215,12 @@ class HomeViewModel @Inject constructor(
         )
     }
 
-
+    fun setLoadingState(isLoading: Boolean){
+        Log.i(TAG, "SET LOADING STATE")
+        state = state.copy(
+            isLoading = isLoading
+        )
+    }
 
     fun defaultHomeState(){
         state = HomeState()
