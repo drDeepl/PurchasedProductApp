@@ -4,13 +4,17 @@ package com.mypurchasedproduct.presentation.screens
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -45,6 +49,7 @@ import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponentWithoutActionBtns
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
+import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitsScrollableRow
@@ -58,6 +63,7 @@ import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewCom
 import com.mypurchasedproduct.presentation.ui.components.SecondaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
+import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import kotlinx.coroutines.coroutineScope
 
 
@@ -99,8 +105,9 @@ fun HomeScreen(
             val getPurchasedProductsByDateState = purchasedProductListVM.getPurchasedProductsByDateState
 
             if(getPurchasedProductsByDateState.isActive){
-                purchasedProductListVM.getPurchasedProductCurrentUserByDate()
                 LoadScreen()
+                purchasedProductListVM.getPurchasedProductCurrentUserByDate()
+
             }
             else if(getPurchasedProductsByDateState.isSuccessResponse){
                 val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
@@ -167,9 +174,6 @@ fun HomeScreen(
 //                    val count = addPurchasedProductData.count
 //                    val price = addPurchasedProductData.price
 
-
-
-
                     if (addProductViewModel.getProductsState.isUpdating || addPurchasedProductViewModel.findMeasurementUnits.isUpdating) {
                         LoadScreen()
 //                        if (addProductViewModel.getProductsState.isUpdating) {
@@ -182,12 +186,17 @@ fun HomeScreen(
                     if (addProductViewModel.getProductsState.isSuccess && addPurchasedProductViewModel.findMeasurementUnits.isSuccess) {
                         val isActiveSelectProduct =
                             addPurchasedProductViewModel.productsBottomSheetState.isActive
-                        DialogCardComponentWithoutActionBtns()
+                        FormModalBottomSheet(
+                            openBottomSheet = addPurchasedProductState.isActive,
+                            setStateButtomSheet = {
+                                addPurchasedProductViewModel.setActiveAddPurchasedProductForm(it)
+                            }
+                        )
                         {
                             Column(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(10.dp),
+                                    .fillMaxSize()
+                                    .border(border= BorderStroke(width=2.dp, color= DeepGreyColor)),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {

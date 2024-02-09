@@ -5,7 +5,7 @@ import java.sql.Timestamp
 data class AddPurchasedProductRequest(
     private val productId: Long,
     private val count: Int,
-    private val unitMeasurement: Long,
+    private val unitMeasurementId: Long,
     private val price:Double,
-    private val purchasedDatetime: String,
+    private val purchaseDate: Long,
 )

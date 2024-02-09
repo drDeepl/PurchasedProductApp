@@ -20,8 +20,14 @@ class PurchasedProductUseCase @Inject constructor(
     private val TAG: String = this.javaClass.simpleName
 
     suspend fun getAllPurchasedProductsCurrentUser(userId: Long, offset: Int) = purchasedProductRepository.getAllPurchasedProductUser(userId, offset)
-    @RequiresApi(Build.VERSION_CODES.O)
-    suspend fun addPurchasedProduct(product: ProductResponse, count: String, measurementUnitId: Int, price: String): NetworkResult<PurchasedProductResponse>{
+
+    suspend fun addPurchasedProduct(
+        product: ProductResponse,
+        count: String,
+        measurementUnitId: Int,
+        price: String,
+        purchaseDate: Long = Instant.now().epochSecond
+    ): NetworkResult<PurchasedProductResponse>{
         Log.wtf(TAG, "ADD PURCHASED PRODUCT")
         if(product != null){
             if(measurementUnitId > 0){
@@ -30,13 +36,15 @@ class PurchasedProductUseCase @Inject constructor(
                     val count: Int = count.toInt()
                     val unitMeasurement: Long = measurementUnitId.toLong()
                     val price: Double = price.toDouble()
-                    val purchasedDateTime: String = Instant.now().toString()
-                    return purchasedProductRepository.addPurchasedProduct(AddPurchasedProductRequest(
-                        productId = productId,
-                        count = count,
-                        unitMeasurement = unitMeasurement,
-                        price = price,
-                        purchasedDatetime = purchasedDateTime)
+
+                    return purchasedProductRepository.addPurchasedProduct(
+                        AddPurchasedProductRequest(
+                            productId = productId,
+                            count = count,
+                            unitMeasurementId = unitMeasurement,
+                            price = price,
+                            purchaseDate = purchaseDate
+                        )
                     )
                 }
                 catch (nfe: NumberFormatException){

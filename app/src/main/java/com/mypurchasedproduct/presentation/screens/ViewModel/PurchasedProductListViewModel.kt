@@ -18,6 +18,7 @@ import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
@@ -28,7 +29,6 @@ class PurchasedProductListViewModel @Inject constructor(
 
     private val TAG: String = this.javaClass.simpleName
 
-    private val today = System.currentTimeMillis()
 
     var deletePurchasedProductState by mutableStateOf(DeletePurchasedProductState())
         private set
@@ -41,8 +41,8 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
 
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun getPurchasedProductCurrentUserByDate(timestamp: Long = today){
+
+    fun getPurchasedProductCurrentUserByDate(timestamp: Long = Instant.now().epochSecond){
         getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
             isLoading = true
         )

@@ -6,9 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -1021,6 +1018,38 @@ fun ProductsButtonsList(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormModalBottomSheet(
+    openBottomSheet: Boolean,
+    setStateButtomSheet: (Boolean) -> Unit,
+    content: @Composable () -> Unit)
+{
+    Log.wtf("FormModalBottomSheet", "FormModalBottomSheet")
+    val skipPartiallyExpanded by remember { mutableStateOf(true) }
+    val edgeToEdgeEnabled by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded
+    )
+
+    // Sheet content
+    if (openBottomSheet) {
+        val windowInsets = if (edgeToEdgeEnabled)
+            WindowInsets(0) else BottomSheetDefaults.windowInsets
+
+        ModalBottomSheet(
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.White,
+            onDismissRequest = { setStateButtomSheet(false) },
+            sheetState = bottomSheetState,
+            windowInsets = windowInsets
+        ) {
+            content()
+        }
+
+    }
 }
 
 @Composable

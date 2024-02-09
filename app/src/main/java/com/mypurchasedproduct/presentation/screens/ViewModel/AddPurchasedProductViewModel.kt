@@ -78,36 +78,6 @@ class AddPurchasedProductViewModel @Inject constructor(
         addPurchasedProductFormData = AddPurchasedProductItem()
     }
 
-//    @RequiresApi(Build.VERSION_CODES.O)
-//    fun onClickSavePurchasedProduct(){
-//        Log.wtf(TAG, "ON CLICK SAVE PURCHASED PRODUCT")
-//
-//        viewModelScope.launch {
-//            addPurchasedProductState = addPurchasedProductState.copy(
-//                isLoading = true
-//            )
-//            val networkResult = this.async { purchasedProductUseCase.addPurchasedProduct(addPurchasedProductFormData)}.await()
-//            when(networkResult){
-//                is NetworkResult.Success ->{
-//                    addPurchasedProductState = addPurchasedProductState.copy(
-//                        isLoading = false,
-//                        isSuccess = true,
-//                        product = networkResult.data
-//                    )
-//                }
-//
-//                is NetworkResult.Error ->{
-//                    addPurchasedProductState = addPurchasedProductState.copy(
-//                        isLoading = false,
-//                        isError = true,
-//                        error = networkResult.message
-//                    )
-//                }
-//            }
-//        }
-//    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
     fun toAddPurchasedProduct(product: ProductResponse, count: String, price: String, measurementUnitId: Int){
         Log.wtf(TAG, "TO ADD PURCHASED PRODUCT")
         viewModelScope.launch {
