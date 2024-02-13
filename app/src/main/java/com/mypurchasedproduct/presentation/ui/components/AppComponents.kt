@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -78,6 +79,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -105,6 +107,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -124,6 +127,10 @@ import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
+import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignInFormViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -131,9 +138,11 @@ import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
+import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
 @Composable
 fun NormalTextComponent(value: String, textAlign: TextAlign = androidx.compose.ui.text.style.TextAlign.Center){
@@ -206,6 +215,76 @@ fun MyOutlinedTextField(textValue: MutableState<String>, labelValue: String, ico
         shape = componentShapes.large,
         keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
+        enabled=enabled
+
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrimaryOutlinedTextField(textValue: String, labelValue: String, icon: Painter, onValueChange: (String) -> Unit, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(componentShapes.small),
+        value = textValue,
+        onValueChange = { onValueChange(it)},
+        label = { Text(text = labelValue) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = AcidRedColor,
+            focusedLabelColor = Color.Black,
+            containerColor = LightGreyColor,
+            unfocusedBorderColor = LightGreyColor
+        ),
+        shape = componentShapes.large,
+        keyboardOptions = keyboardOptions,
+        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
+        enabled=enabled
+
+    )
+}
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrimaryOutlinedTextFieldPassword(password: String, labelValue: String, icon: Painter, onValueChange: (String) -> Unit, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
+
+    val passwordVisibility = remember{ mutableStateOf(false) }
+
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(componentShapes.small),
+        value = password,
+        onValueChange = { onValueChange(it)},
+        label = { Text(text = labelValue) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = AcidRedColor,
+            focusedLabelColor = Color.Black,
+            containerColor = LightGreyColor,
+            unfocusedBorderColor = LightGreyColor
+
+        ),
+        shape = componentShapes.large,
+        keyboardOptions = keyboardOptions,
+        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
+        trailingIcon = {
+            var iconImage = if(passwordVisibility.value){
+                Icons.Filled.Visibility
+            }
+            else{
+                Icons.Filled.VisibilityOff
+            }
+            var description = if(passwordVisibility.value){
+                stringResource(id = R.string.hide_password)
+            }else{
+                stringResource(id = R.string.show_password)
+            }
+
+            IconButton(onClick = { passwordVisibility.value = !passwordVisibility.value}) {
+                Icon(imageVector = iconImage, contentDescription=description)
+
+            }
+        },
+        visualTransformation = if(passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation(),
         enabled=enabled
 
     )
@@ -1439,4 +1518,82 @@ fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: 
 
         }
     }
+}
+
+@Composable
+fun SignInFormComponent(
+    viewModel: SignInFormViewModel,
+    onConfirm: (username: String, password: String) -> Unit,
+
+){
+    Surface(
+        color = Color.White,
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(28.dp)
+
+    ) {
+        val signInState = viewModel.signInFormState.collectAsState()
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
+        }
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                border = BorderStroke(1.dp, SecondaryColor),
+                shape = componentShapes.large,
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White,
+
+                    ),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(15.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
+                    if(signInState.value.isError){
+                        ErrorTextComponent(value = signInState.value.error, fontSize = 16.sp)
+                    }
+                    PrimaryOutlinedTextField(
+                        signInState.value.username,
+                        onValueChange = {viewModel.onChangeUsername(it)},
+                        labelValue = "Имя пользователя",
+                        icon=painterResource(id = R.drawable.user_icon),
+                        keyboardOptions=KeyboardOptions(imeAction = ImeAction.Next),
+                        enabled=!signInState.value.isLoading
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    PrimaryOutlinedTextFieldPassword1(
+                        password = signInState.value.password,
+                        onValueChange = {viewModel.onChangePassword(it)},
+                        labelValue = "Пароль",
+                        icon=painterResource(id = R.drawable.password_icon),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Go
+                        ),
+                        enabled=!signInState.value.isLoading
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {onConfirm(signInState.value.username, signInState.value.password)}, signInState.value.isLoading)
+                }
+            }
+
+        }
+
+    }
+
 }

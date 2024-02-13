@@ -55,7 +55,7 @@ fun SignUpScreen(
 ) {
 
     val signUpState = signUpViewModel.state
-    val signInState = signInViewModel.state
+
     val passwordValue = remember {
         mutableStateOf("")
     }
@@ -100,11 +100,6 @@ fun SignUpScreen(
                 if(signUpState.isSignUpSuccess){
                     signInViewModel.toSignIn(usernameValue.value, passwordValue.value)
                     signUpViewModel.defaultState()
-                }
-                if(signInState.isSignInSuccess){
-                    appRouter.navigateTo(Screen.HomeScreen)
-                    signInViewModel.defaultState()
-
                 }
                 else{
                     Spacer(modifier = Modifier.height(20.dp))

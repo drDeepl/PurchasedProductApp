@@ -13,6 +13,9 @@ import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.state.SignInState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,8 +26,12 @@ class SignInViewModel @Inject constructor(
 
     private val TAG = this.javaClass.simpleName
 
-    var state by mutableStateOf(SignInState())
-    private set
+//    var state by mutableStateOf(SignInState())
+//    private set
+
+    private val _signInState = MutableStateFlow(SignInState())
+    val signInState = _signInState.asStateFlow()
+
 
     init{
 
@@ -33,38 +40,54 @@ class SignInViewModel @Inject constructor(
     fun toSignIn(username: String, password:String){
         Log.wtf(TAG, "TO SIGN IN")
         viewModelScope.launch {
-            state = state.copy(
-                isLoading = true
-            )
+            _signInState.update {signInState ->
+                signInState.copy(
+                    isLoading = true
+                )
+            }
+
             signInUseCase.invoke(SignInRequest(username, password)).let{
                 when(it){
                     is NetworkResult.Success ->{
                         it.data?. let {
-                            state = state.copy(
-                                responseData = it,
-                                isLoading = false,
-                                isSignInSuccess = true
-                            )
+                            _signInState.update { signInState ->
+                                signInState.copy(
+                                    responseData = it,
+                                    isLoading = false,
+                                    isSuccess = true
+                                )
+                             }
+
                         } ?: {
-                            state = state.copy(
-                                isLoading = false,
-                                isSignInSuccess = false,
-                                error = "токен не найден"
-                            )
+
+                            _signInState.update { signInState ->
+                                signInState.copy(
+                                    isLoading = false,
+                                    isError = true,
+                                    error = "токен не найден"
+                                )
+                            }
                         }
                     }
                     is NetworkResult.Error ->{
-                        state = state.copy(
-                            error = it.message,
-                            isLoading = false
-                        )
+                        _signInState.update { signInState ->
+                            signInState.copy(
+                                isLoading = false,
+                                isError = true,
+                                error = it.message.toString()
+                            )
+                        }
                     }
                 }
             }
         }
     }
-
     fun defaultState(){
-        state = SignInState()
+        Log.wtf(TAG, "DEAFULT STATE")
+        viewModelScope.launch {
+            _signInState.value = SignInState()
+        }
+
     }
 }
+

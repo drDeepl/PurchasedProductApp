@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,16 +32,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignInFormViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ui.components.ErrorTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextField
 import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextFieldPassword
+import com.mypurchasedproduct.presentation.ui.components.SignInFormComponent
 import com.mypurchasedproduct.presentation.ui.components.WithAnimation
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
@@ -48,91 +52,22 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SignInScreen(
-    signInViewModel: SignInViewModel,
+    signInViewModel: SignInViewModel = viewModel(),
+    signInFormViewModel: SignInFormViewModel = viewModel(),
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter) {
+    SystemBackButtonHandler {
+        appRouter.navigateTo(Screen.SignUpScreen)
+    }
+    val signInState = signInViewModel.signInState.collectAsState()
+    if(signInState.value.isSuccess){
+        appRouter.navigateTo(Screen.HomeScreen)
+        signInViewModel.defaultState()
+    }
     WithAnimation(animation = scaleIn() + fadeIn()) {
-    Surface(
-        color = Color.White,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(28.dp)
-
-    ) {
-        val signInState = signInViewModel.state
-        val usernameValue = remember {
-            mutableStateOf("")
-        }
-
-        val passwordValue = remember {
-            mutableStateOf("")
-        }
-
-        SystemBackButtonHandler {
-            appRouter.navigateTo(Screen.SignUpScreen)
-        }
-        if(signInState.isSignInSuccess){
-            appRouter.navigateTo(Screen.HomeScreen)
-            signInViewModel.defaultState()
-        }
-        Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
-            }
-        Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight(),
-                    border = BorderStroke(1.dp, SecondaryColor),
-                    shape = componentShapes.large,
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White,
-
-                        ),
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
-                        if(signInState.error != null){
-                            ErrorTextComponent(value = signInState.error, fontSize = 16.sp)
-                        }
-                        MyOutlinedTextField(
-                            usernameValue,
-                            labelValue = "Имя пользователя",
-                            painterResource(id = R.drawable.user_icon),
-                            KeyboardOptions(imeAction = ImeAction.Next),
-                            enabled=!signInState.isLoading
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-                        MyOutlinedTextFieldPassword(
-                            passwordValue = passwordValue,
-                            labelValue = "Пароль",
-                            icon=painterResource(id = R.drawable.password_icon),
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Go
-                            ),
-                            enabled=!signInState.isLoading
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        PrimaryButtonComponent(stringResource(R.string.login_btn_text), {signInViewModel.toSignIn(usernameValue.value, passwordValue.value)}, signInState.isLoading)
-                    }
-                }
-
-            }
-
-        }
-
+        SignInFormComponent(
+            viewModel = signInFormViewModel,
+            onConfirm = {username,password -> signInViewModel.toSignIn(username, password)}
+            )
 
     }
 }
