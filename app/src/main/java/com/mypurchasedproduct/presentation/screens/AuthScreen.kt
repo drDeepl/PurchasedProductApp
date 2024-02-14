@@ -61,15 +61,31 @@ fun AuthScreen(
     Log.wtf("AuthScreen", "START")
     val authState = authViewModel.state.collectAsState()
     val tokenState = authViewModel.tokenState.collectAsState()
-    val signInState = authViewModel.signInState.collectAsState()
-//    LoadScreen(isActive = authState.value.isLoading)
-//    LaunchedEffect(signInState.value.isSuccess){
-//        Log.wtf("AuthScreen", "LAUNCHED EFFECT")
-//        authViewModel.checkAccessToken()
-//    }
-    if(authState.value.isSignIn){
-        appRouter.navigateTo(Screen.HomeScreen)
+    val signInState = signInViewModel.signInState.collectAsState()
+    val signUpState = signUpViewModel.signUpState.collectAsState()
+    LoadScreen(isActive = authState.value.isLoading)
+    LaunchedEffect(signUpState.value.isSignUpSuccess){
+        Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
+        if(signUpState.value.isSignUpSuccess){
+            authViewModel.setLoading(true)
+            signInViewModel.onUsernameChange(signUpState.value.username)
+            signInViewModel.onPasswordChange(signUpState.value.password)
+            signInViewModel.toSignIn()
+            signUpViewModel.setDefaultState()
+            authViewModel.setLoading(false)
+        }
+
     }
+    LaunchedEffect(signInState.value.isSuccess){
+        Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
+        if(signInState.value.isSuccess){
+            appRouter.navigateTo(Screen.HomeScreen)
+            authViewModel.setSignIn(signInState.value.isSuccess)
+            signInViewModel.defaultState()
+            authViewModel.setCurrentAction(0)
+        }
+    }
+
     val tabs = authViewModel.actionTabs
     val currentTab = authViewModel.currentTab.collectAsState()
     val animated = authViewModel.animated.value

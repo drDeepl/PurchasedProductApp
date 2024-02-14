@@ -32,6 +32,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +52,7 @@ import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.CategoryViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
@@ -88,11 +90,16 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel(),
+    authViewModel: AuthViewModel,
     addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel(),
     addProductViewModel: AddProductViewModel = viewModel(),
     categoryVM: CategoryViewModel = viewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = viewModel()
 ) {
+    val authState = authViewModel.state.collectAsState()
+    if(!authState.value.isSignIn){
+        appRouter.navigateTo(Screen.AuthScreen)
+    }
     val rememberCoroutineScope = rememberCoroutineScope()
     val homeState = homeViewModel.state
 
@@ -172,11 +179,6 @@ fun HomeScreen(
                     }
                 )
             }
-
-
-
-
-
             // TODO: ADDED ADD PURCHASED PRODUCT FORM COMPONENT
             if(addPurchasedProductState.isActive) {
 
@@ -356,8 +358,8 @@ fun HomeScreen(
                     bottomBar = {
                         PrimaryButtonComponent(
                             value = "Выйти", onClickButton = {
-                                homeViewModel.signOut()
-//                                appRouter.navigateTo(Screen.SignUpScreen)
+                                authViewModel.signOut()
+                                appRouter.navigateTo(Screen.AuthScreen)
                             }
                         )
                     }

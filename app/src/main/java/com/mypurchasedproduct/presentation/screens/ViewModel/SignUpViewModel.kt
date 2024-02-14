@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.presentation.screens.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,8 +23,6 @@ class SignUpViewModel @Inject constructor(
 ): ViewModel(){
 
     private val TAG = this.javaClass.simpleName
-//    var state by mutableStateOf(SignUpState())
-//        private set
 
     private val _signUpState = MutableStateFlow(SignUpState())
     val signUpState = _signUpState.asStateFlow()
@@ -56,6 +55,7 @@ class SignUpViewModel @Inject constructor(
 
     fun toSignUp(){
         viewModelScope.launch {
+            Log.wtf(TAG, "TO SIGN UP")
             _signUpState.update { signUpState ->
                 signUpState.copy(isLoading = true)
             }
@@ -74,6 +74,7 @@ class SignUpViewModel @Inject constructor(
                         _signUpState.update { signUpState ->
                             signUpState.copy(
                                 isLoading = false,
+                                isError = true,
                                 error = it.message
                             )
                         }
@@ -95,6 +96,14 @@ class SignUpViewModel @Inject constructor(
         viewModelScope.launch {
             _signUpState.update { signUpState ->
                 signUpState.copy(error = msg.toString())
+            }
+        }
+    }
+
+    fun setDefaultState(){
+        viewModelScope.launch{
+            _signUpState.update { signUpState ->
+                SignUpState()
             }
         }
     }

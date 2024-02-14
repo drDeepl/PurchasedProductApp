@@ -8,6 +8,7 @@ import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,13 +37,23 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity: ComponentActivity() {
-//    private val authViewModel: AuthViewModel by viewModels()
+    private val authViewModel: AuthViewModel by viewModels()
 
     private val TAG: String = this.javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         Log.wtf(TAG, "onCreate")
         super.onCreate(savedInstanceState)
         setContent {
+            val authState = authViewModel.state.collectAsState()
+            LaunchedEffect(authState.value.isSignIn){
+                Log.wtf(TAG, "LAUCNHED EFFECT")
+                if(authState.value.isSignIn){
+                    PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
+                }
+                else{
+                    PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
+                }
+            }
             MyPurchasedProductTheme {
                 Surface(modifier= Modifier.fillMaxSize(), color = Color.White) {
                     Crossfade(targetState = PurchasedProductAppRouter.currentScreen, label = "",
@@ -51,6 +62,9 @@ class MainActivity: ComponentActivity() {
 //                            is Screen.SignUpScreen ->{
 //                                SignUpScreen(signUpViewModel, signInViewModel)
 //                            }
+                            is Screen.LoadScreen ->{
+                                LoadScreen()
+                            }
                             is Screen.TermsAndConditionsScreen ->{
                                 TermsAndConditionScreen()
                             }
@@ -58,10 +72,10 @@ class MainActivity: ComponentActivity() {
 //                                SignInScreen(signInViewModel)
 //                            }
                             is Screen.HomeScreen ->{
-                                HomeScreen()
+                                HomeScreen(authViewModel=authViewModel)
                             }
                             is Screen.AuthScreen ->{
-                                AuthScreen()
+                                AuthScreen(authViewModel)
                             }
                         }
 

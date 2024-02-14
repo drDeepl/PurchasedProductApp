@@ -156,23 +156,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun signOut(){
-        state = state.copy(
-            isLoading = true
-        )
-        viewModelScope.launch {
-            val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
-            removedAccessToken.await()
-            state = state.copy(
-                isLoading = false,
-                isSignIn = null,
-                error = null
-            )
-            getPurchasedProductsState = FindPurchasedProductsState()
-            accessTokenItem = AccessTokenItem()
-            checkTokenState = CheckTokenState()
-        }
-    }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun getPurchasedProductCurrentUser(offset: Int){

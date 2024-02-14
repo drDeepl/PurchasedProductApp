@@ -16,6 +16,7 @@ import com.mypurchasedproduct.domain.usecases.TokenUseCase
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
 import com.mypurchasedproduct.presentation.state.AuthState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
+import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.state.SignInState
 import com.mypurchasedproduct.presentation.state.SignUpState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -62,10 +63,10 @@ class AuthViewModel  @Inject constructor(
     var animated = mutableStateOf(false)
 
     init{
-//        Log.wtf(TAG, "INIT VIEW MODEL")
-//        viewModelScope.launch {
-//            checkAccessToken()
-//        }
+        Log.wtf(TAG, "INIT VIEW MODEL")
+        viewModelScope.launch {
+            checkAccessToken()
+        }
     }
 
 
@@ -130,7 +131,6 @@ class AuthViewModel  @Inject constructor(
             _tokenState.update { tokenState ->
                 tokenState.copy(isActive = true)
             }
-
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
@@ -143,6 +143,9 @@ class AuthViewModel  @Inject constructor(
                         updateAccessToken()
                     }
                     else{
+                        _state.update { state ->
+                            state.copy(isLoading = false, isSignIn = true)
+                        }
                         _tokenState.update { tokenState ->
                             tokenState.copy(
                                 isActive = false,
@@ -173,42 +176,40 @@ class AuthViewModel  @Inject constructor(
             Log.e(TAG, "[FINISH] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
         }
     }
+    fun signOut(){
+        viewModelScope.launch {
+            val removedAccessToken = this.async { tokenUseCase.removeAccessToken() }
+            removedAccessToken.await()
+            _state.update { state ->
+                state.copy(
+                    isSignIn = false
+                )
+            }
+        }
+    }
 
-//    fun toSignUp(signUpRequest: SignUpRequest){
-//        viewModelScope.launch {
-//            Log.wtf(TAG, "TO SIGN UP")
-//            _signUpState.update{signUpState ->
-//                signUpState.copy(
-//                    isLoading = true
-//                )
-//
-//            }
-//
-//
-//            signUpUseCase.invoke(signUpRequest).let{
-//                when(it){
-//                    is NetworkResult.Success ->{
-//                        _signUpState.update{signUpState ->
-//                            signUpState.copy(
-//                                isLoading = false,
-//                                responseMessage = it.data?.message,
-//                                isSignUpSuccess = true
-//                            )
-//                        }
-//                    }
-//                    is NetworkResult.Error ->{
-//                        _signUpState.update {signUpState ->
-//                            signUpState.copy(
-//                                isLoading = false,
-//                                error = it.message
-//
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    fun setSignIn(isSignIn: Boolean){
+        viewModelScope.launch {
+            _state.update {state ->
+                state.copy(
+                    isSignIn = isSignIn
+                )
+
+            }
+        }
+
+    }
+
+    fun setLoading(isLoading: Boolean){
+        viewModelScope.launch{
+            Log.wtf(TAG, "SET LOADING")
+            _state.update { state ->
+                state.copy(
+                    isLoading = isLoading
+                )
+            }
+        }
+    }
 
     fun setCurrentAction(id: Int){
         viewModelScope.launch {
