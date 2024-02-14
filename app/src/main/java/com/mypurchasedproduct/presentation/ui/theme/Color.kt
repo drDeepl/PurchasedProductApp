@@ -1,4 +1,5 @@
 package com.mypurchasedproduct.presentation.ui.theme
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 val Purple80 = Color(0xFFD0BCFF)
@@ -22,8 +23,11 @@ val BackgroundColor = Color(0xFFFCFAF8)
 //val AcidRedColor = Color(0xFF3FF333C)
 val AcidRedColor = Color(0xFFFF2164)
 val AcidPurpleColor = Color(0xFF7633FF)
-val AcidGreenColor = Color(0xFF00F032)
+val AcidGreenColor = Color(0xFF54DB63)
+val AcidYellowColor = Color(0xFFE5F230)
 val AcidBlueColor = Color(0xFF)
 
 val DeepBlackColor = Color(0xFF101010)
 val DeepGreyColor = Color(0xFF14142B)
+
+val lightGreenToYellowGradient = listOf(AcidGreenColor, AcidYellowColor)

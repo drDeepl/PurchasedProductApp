@@ -16,6 +16,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -45,6 +47,7 @@ import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextField
 import com.mypurchasedproduct.presentation.ui.components.MyOutlinedTextFieldPassword
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -53,127 +56,130 @@ fun SignUpScreen(
     signInViewModel: SignInViewModel = viewModel(),
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
 ) {
-
-    val signUpState = signUpViewModel.state
-
-    val passwordValue = remember {
-        mutableStateOf("")
-    }
-    val usernameValue = remember {
-        mutableStateOf("")
-    }
-
-
-    Surface(
-        color = Color.White,
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(28.dp)
-
-    ) {
-        if(signUpState.isLoading){
-            LoadScreen()
-        }
-        Column(
-            modifier=Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.Start
-
-        ){
-            HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
-        }
-        Column(
-            modifier=Modifier.fillMaxSize(),
-            verticalArrangement= Arrangement.Center
-            ){
-            Card(
-                modifier= Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                border= BorderStroke(1.dp, SecondaryColor),
-                shape = componentShapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
-
-                ),
-            ) {
-                if(signUpState.isSignUpSuccess){
-                    signInViewModel.toSignIn(usernameValue.value, passwordValue.value)
-                    signUpViewModel.defaultState()
-                }
-                else{
-                    Spacer(modifier = Modifier.height(20.dp))
-                    if (signUpState.error != null) {
-                        Spacer(modifier = Modifier.height(20.dp))
-                        ErrorTextComponent(signUpState.error)
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(15.dp),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        MyOutlinedTextField(
-                            usernameValue,
-                            labelValue = "Имя пользователя",
-                            painterResource(id = R.drawable.user_icon),
-                            KeyboardOptions(imeAction = ImeAction.Next),
-                            enabled = !signUpState.isLoading
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        MyOutlinedTextFieldPassword(
-                            passwordValue = passwordValue,
-                            labelValue = "Пароль",
-                            painterResource(id = R.drawable.password_icon),
-                            KeyboardOptions(
-                                keyboardType = KeyboardType.Password,
-                                imeAction = ImeAction.Go
-                            ),
-                            enabled = !signUpState.isLoading
-                        )
-                        CheckBoxComponent(
-                            checkedState = signUpState.isApplyTermsAndConditions,
-                            textValue = stringResource(id = R.string.term_and_conditions),
-                            onTextSelected = {
-                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
-                            },
-                            onChackedChange = {
-                                signUpViewModel.setIsApplyTermsAndConditions(it)
-                            }
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-
-                        PrimaryButtonComponent(
-                            value = stringResource(R.string.signup_btn_text),
-                            onClickButton = {
-                                if (signUpState.isApplyTermsAndConditions) {
-                                    signUpViewModel.setError(null)
-                                    signUpViewModel.toSignUp(
-                                        SignUpRequest(
-                                            usernameValue.value,
-                                            passwordValue.value
-                                        )
-                                    )
-                                } else {
-                                    signUpViewModel.setError("Для продолжения необходимо подтвердить правила пользования")
-                                }
-                            },
-                            isLoading = signUpState.isLoading
-                        )
-
-
-                        Spacer(modifier = Modifier.height(20.dp))
-                        DeviderTextComponent("или")
-                        ClickableTextLogInComponent(
-                            onTextSelected = { appRouter.navigateTo(Screen.SignInScreen) })
-                    }
-
-                }
-            }
-
-        }
-
-    }
+    //    TODO("DELETE AFTER TEST AUTH SCREEN")
+//    val signInState = signInViewModel.signInState.collectAsState()
+//
+////    val signUpState = signUpViewModel.state
+//
+//    val passwordValue = remember {
+//        mutableStateOf("")
+//    }
+//    val usernameValue = remember {
+//        mutableStateOf("")
+//    }
+//
+//
+//    Surface(
+//        color = Color.White,
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .background(Color.White)
+//            .padding(28.dp)
+//
+//    ) {
+//        if(signUpState.isLoading){
+//            LoadScreen()
+//        }
+//        Column(
+//            modifier=Modifier.fillMaxSize(),
+//            horizontalAlignment = Alignment.Start
+//
+//        ){
+//            HeadingTextComponent(value = stringResource(id = R.string.create_account), textAlign= TextAlign.Start)
+//        }
+//        Column(
+//            modifier=Modifier.fillMaxSize(),
+//            verticalArrangement= Arrangement.Center
+//            ){
+//            Card(
+//                modifier= Modifier
+//                    .fillMaxWidth()
+//                    .wrapContentHeight(),
+//                border= BorderStroke(1.dp, SecondaryColor),
+//                shape = componentShapes.large,
+//                colors = CardDefaults.cardColors(
+//                    containerColor = Color.White,
+//
+//                ),
+//            ) {
+//                if(signUpState.isSignUpSuccess){
+//                    signInViewModel.toSignIn()
+////                    signUpViewModel.defaultState()
+//                }
+//                else{
+//                    Spacer(modifier = Modifier.height(20.dp))
+//                    if (signUpState.error != null) {
+//                        Spacer(modifier = Modifier.height(20.dp))
+//                        ErrorTextComponent(signUpState.error)
+//                    }
+//
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(15.dp),
+//                        verticalArrangement = Arrangement.Center
+//                    ) {
+//                        MyOutlinedTextField(
+//                            usernameValue,
+//                            labelValue = "Имя пользователя",
+//                            painterResource(id = R.drawable.user_icon),
+//                            KeyboardOptions(imeAction = ImeAction.Next),
+//                            enabled = !signUpState.isLoading
+//                        )
+//                        Spacer(modifier = Modifier.height(10.dp))
+//
+//                        MyOutlinedTextFieldPassword(
+//                            passwordValue = passwordValue,
+//                            labelValue = "Пароль",
+//                            painterResource(id = R.drawable.password_icon),
+//                            KeyboardOptions(
+//                                keyboardType = KeyboardType.Password,
+//                                imeAction = ImeAction.Go
+//                            ),
+//                            enabled = !signUpState.isLoading
+//                        )
+//                        CheckBoxComponent(
+//                            checkedState = signUpState.isApplyTermsAndConditions,
+//                            textValue = stringResource(id = R.string.term_and_conditions),
+//                            onTextSelected = {
+//                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
+//                            },
+//                            onChackedChange = {
+//                                signUpViewModel.setIsApplyTermsAndConditions(it)
+//                            }
+//                        )
+//                        Spacer(modifier = Modifier.height(20.dp))
+//
+//                        PrimaryButtonComponent(
+//                            value = stringResource(R.string.signup_btn_text),
+//                            onClickButton = {
+//                                if (signUpState.isApplyTermsAndConditions) {
+////                                    signUpViewModel.setError(null)
+////                                    signUpViewModel.toSignUp(
+////                                        SignUpRequest(
+////                                            usernameValue.value,
+////                                            passwordValue.value
+////                                        )
+////                                    )
+//                                } else {
+//                                    signUpViewModel.setError("Для продолжения необходимо подтвердить правила пользования")
+//                                }
+//                            },
+//                            isLoading = signUpState.isLoading
+//                        )
+//
+//
+//                        Spacer(modifier = Modifier.height(20.dp))
+//                        DeviderTextComponent("или")
+//                        ClickableTextLogInComponent(
+//                            onTextSelected = { appRouter.navigateTo(Screen.AuthScreen) }
+//                        )
+//                    }
+//
+//                }
+//            }
+//
+//        }
+//
+//    }
 }

@@ -37,7 +37,27 @@ class SignInViewModel @Inject constructor(
 
     }
 
-    fun toSignIn(username: String, password:String){
+    fun onUsernameChange(username: String){
+        viewModelScope.launch {
+            _signInState.update { signInState ->
+                signInState.copy(
+                    username = username
+                )
+            }
+        }
+    }
+
+    fun onPasswordChange(password: String){
+        viewModelScope.launch {
+            _signInState.update { signInState ->
+                signInState.copy(
+                    password = password
+                )
+            }
+        }
+    }
+
+    fun toSignIn(){
         Log.wtf(TAG, "TO SIGN IN")
         viewModelScope.launch {
             _signInState.update {signInState ->
@@ -45,8 +65,7 @@ class SignInViewModel @Inject constructor(
                     isLoading = true
                 )
             }
-
-            signInUseCase.invoke(SignInRequest(username, password)).let{
+            signInUseCase.invoke(SignInRequest(signInState.value.username, signInState.value.password)).let{
                 when(it){
                     is NetworkResult.Success ->{
                         it.data?. let {
@@ -56,7 +75,7 @@ class SignInViewModel @Inject constructor(
                                     isLoading = false,
                                     isSuccess = true
                                 )
-                             }
+                            }
 
                         } ?: {
 
@@ -82,6 +101,52 @@ class SignInViewModel @Inject constructor(
             }
         }
     }
+
+//    fun toSignIn(username: String, password:String){
+//        Log.wtf(TAG, "TO SIGN IN")
+//        viewModelScope.launch {
+//            _signInState.update {signInState ->
+//                signInState.copy(
+//                    isLoading = true
+//                )
+//            }
+//
+//            signInUseCase.invoke(SignInRequest(username, password)).let{
+//                when(it){
+//                    is NetworkResult.Success ->{
+//                        it.data?. let {
+//                            _signInState.update { signInState ->
+//                                signInState.copy(
+//                                    responseData = it,
+//                                    isLoading = false,
+//                                    isSuccess = true
+//                                )
+//                             }
+//
+//                        } ?: {
+//
+//                            _signInState.update { signInState ->
+//                                signInState.copy(
+//                                    isLoading = false,
+//                                    isError = true,
+//                                    error = "токен не найден"
+//                                )
+//                            }
+//                        }
+//                    }
+//                    is NetworkResult.Error ->{
+//                        _signInState.update { signInState ->
+//                            signInState.copy(
+//                                isLoading = false,
+//                                isError = true,
+//                                error = it.message.toString()
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
     fun defaultState(){
         Log.wtf(TAG, "DEAFULT STATE")
         viewModelScope.launch {

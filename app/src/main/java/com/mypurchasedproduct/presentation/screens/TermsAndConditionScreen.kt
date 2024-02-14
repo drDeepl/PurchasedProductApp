@@ -25,14 +25,9 @@ fun TermsAndConditionScreen() {
         HeadingTextComponent(value = stringResource(id = R.string.terms_and_conditions_header))
 
         SystemBackButtonHandler {
-            PurchasedProductAppRouter.navigateTo(Screen.SignUpScreen)
+            PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
         }
 
     }
 }
 
-@Preview
-@Composable
-fun TermsAndConditionsPreview(){
-    TermsAndConditionScreen()
-}

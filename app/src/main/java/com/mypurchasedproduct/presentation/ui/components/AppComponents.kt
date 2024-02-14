@@ -7,6 +7,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -69,6 +71,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -79,6 +82,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -96,12 +100,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
+
+
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
+
+
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -119,7 +123,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.graphics.alpha
+
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
@@ -128,9 +132,13 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
+
+
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignInFormViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
+import com.mypurchasedproduct.presentation.state.SignInState
+
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -140,6 +148,7 @@ import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import com.mypurchasedproduct.presentation.ui.theme.lightGreenToYellowGradient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
@@ -853,7 +862,7 @@ fun PurchasedProductViewComponent(
 }
 
 @Composable
-fun WithAnimation(modifier: Modifier = Modifier, delay: Long = 1, animation: EnterTransition, content: @Composable ()->Unit){
+fun WithAnimation(modifier: Modifier = Modifier.fillMaxSize(), delay: Long = 1, animation: EnterTransition, content: @Composable ()->Unit){
     val visible = remember {
         mutableStateOf(false)
     }
@@ -877,25 +886,33 @@ fun WithAnimation(modifier: Modifier = Modifier, delay: Long = 1, animation: Ent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadScreen(modifier: Modifier = Modifier,){
-    AlertDialog(
-        onDismissRequest = { /*TODO*/ },
-        properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true)
-    ) {
-        Column(
-            modifier= Modifier
-                .fillMaxSize()
-                .background(color = Color.White),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.height(45.dp),
-                color = DeepBlackColor
+fun LoadScreen(modifier: Modifier = Modifier, isActive: Boolean=true){
+    Log.wtf("LoadScreen", "LOAD SCREEN")
+    if(isActive) {
+        AlertDialog(
+            onDismissRequest = { /*TODO*/ },
+            properties = DialogProperties(
+                dismissOnBackPress = false,
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = true
             )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = Color.White),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.height(45.dp),
+                    color = DeepBlackColor
+                )
+
+            }
 
         }
-
     }
 }
 
@@ -1522,78 +1539,170 @@ fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: 
 
 @Composable
 fun SignInFormComponent(
-    viewModel: SignInFormViewModel,
-    onConfirm: (username: String, password: String) -> Unit,
-
-){
-    Surface(
-        color = Color.White,
+    viewModel: SignInViewModel,
+    ){
+    val state = viewModel.signInState.collectAsState()
+    Column(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-            .padding(28.dp)
-
+            .fillMaxWidth()
+            .padding(15.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val signInState = viewModel.signInFormState.collectAsState()
-
-        Column(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            HeadingTextComponent(value = stringResource(id = R.string.log_in_header))
+        if(state.value.isError){
+            ErrorTextComponent(value = state.value.error, fontSize = 16.sp)
         }
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                border = BorderStroke(1.dp, SecondaryColor),
-                shape = componentShapes.large,
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White,
+        PrimaryOutlinedTextField(
+            state.value.username,
+            onValueChange = {viewModel.onUsernameChange(it)},
+            labelValue = "Имя пользователя",
+            icon=painterResource(id = R.drawable.user_icon),
+            keyboardOptions=KeyboardOptions(imeAction = ImeAction.Next),
+            enabled=!state.value.isLoading
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        PrimaryOutlinedTextFieldPassword1(
+            password = state.value.password,
+            onValueChange = {viewModel.onPasswordChange(it)},
+            labelValue = "Пароль",
+            icon=painterResource(id = R.drawable.password_icon),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Go
+            ),
+            enabled=!state.value.isLoading
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        PrimaryButtonComponent(
+            value=stringResource(R.string.login_btn_text),
+            onClickButton={ viewModel.toSignIn() },
+            isLoading=state.value.isLoading
+        )
+    }
+}
 
-                    ),
-            ) {
-                Column(
+@Composable
+fun SelectionTabComponent(labelTabs: List<String>, currentTab: String, onClickTab: (id: Int) -> Unit){
+    val checkedState = remember{mutableStateOf(true)}
+
+//    Switch(checked = checkedState.value, onCheckedChange = {checkedState.value = it})
+    val scope = rememberCoroutineScope()
+
+    val selectedOption = remember {
+        mutableStateOf(currentTab)
+    }
+
+    val onSelectionChange = { text:String ->
+        scope.launch {
+            selectedOption.value = text
+            onClickTab(labelTabs.indexOf(text))
+        }
+    }
+    Box() {
+        Row(
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(24.dp))
+                .background(DeepBlackColor),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            labelTabs.forEach { text->
+                Text(
+                    text = text,
+                    fontSize=16.sp,
+                    fontWeight= FontWeight.SemiBold,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(15.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
-                    if(signInState.value.isError){
-                        ErrorTextComponent(value = signInState.value.error, fontSize = 16.sp)
-                    }
-                    PrimaryOutlinedTextField(
-                        signInState.value.username,
-                        onValueChange = {viewModel.onChangeUsername(it)},
-                        labelValue = "Имя пользователя",
-                        icon=painterResource(id = R.drawable.user_icon),
-                        keyboardOptions=KeyboardOptions(imeAction = ImeAction.Next),
-                        enabled=!signInState.value.isLoading
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                    PrimaryOutlinedTextFieldPassword1(
-                        password = signInState.value.password,
-                        onValueChange = {viewModel.onChangePassword(it)},
-                        labelValue = "Пароль",
-                        icon=painterResource(id = R.drawable.password_icon),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Go
-                        ),
-                        enabled=!signInState.value.isLoading
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                    PrimaryButtonComponent(stringResource(R.string.login_btn_text), {onConfirm(signInState.value.username, signInState.value.password)}, signInState.value.isLoading)
-                }
+                        .clip(shape = RoundedCornerShape(24.dp))
+                        .clickable {
+                            onSelectionChange(text)
+                        }
+                        .border(
+                            width = 2.dp,
+                            shape = RoundedCornerShape(24.dp),
+                            brush = if (text == selectedOption.value) {
+                                Brush.horizontalGradient(colors = lightGreenToYellowGradient)
+                            } else {
+                                Brush.horizontalGradient(
+                                    colors = listOf(
+                                        DeepBlackColor,
+                                        DeepBlackColor
+                                    )
+                                )
+                            }
+                        )
+                        .padding(
+                            vertical = 12.dp,
+                            horizontal = 16.dp,
+                        )
+                        .graphicsLayer(alpha = 0.99f)
+                        .drawWithCache {
+                            val brush = if (text == selectedOption.value) {
+                                Brush.horizontalGradient(lightGreenToYellowGradient)
+                            } else {
+                                Brush.horizontalGradient(listOf(Color.White, Color.White))
+                            }
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(brush, blendMode = BlendMode.SrcAtop)
+                            }
+                        },
+
+                )
             }
-
         }
+    }
+}
 
+@Composable
+fun SignUpFormComponent(
+    viewModel: SignUpViewModel,
+    onTermsAndConditionText: (String) -> Unit
+){
+
+    val state = viewModel.signUpState.collectAsState()
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(15.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if(state.value.isError){
+            ErrorTextComponent(value = state.value.error.toString(), fontSize = 16.sp)
+        }
+        PrimaryOutlinedTextField(
+            state.value.username,
+            onValueChange = {viewModel.onUsernameChange(it)},
+            labelValue = "Имя пользователя",
+            icon=painterResource(id = R.drawable.user_icon),
+            keyboardOptions=KeyboardOptions(imeAction = ImeAction.Next),
+            enabled=!state.value.isLoading
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        PrimaryOutlinedTextFieldPassword1(
+            password = state.value.password,
+            onValueChange = {viewModel.onPasswordChange(it)},
+            labelValue = "Пароль",
+            icon=painterResource(id = R.drawable.password_icon),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Go
+            ),
+            enabled=!state.value.isLoading
+        )
+        CheckBoxComponent(
+            checkedState = state.value.isApplyTermsAndConditions,
+            textValue = stringResource(id = R.string.term_and_conditions),
+            onTextSelected = { onTermsAndConditionText(it) },
+            onChackedChange = {
+                viewModel.setIsApplyTermsAndConditions(it)
+            }
+        )
+        Spacer(modifier = Modifier.height(20.dp))
+        PrimaryButtonComponent(
+            value=stringResource(R.string.signup_btn_text),
+            onClickButton={ viewModel.toSignUp() },
+            isLoading=state.value.isLoading
+        )
     }
 
 }

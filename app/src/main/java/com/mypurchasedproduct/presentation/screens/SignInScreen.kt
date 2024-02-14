@@ -49,6 +49,7 @@ import com.mypurchasedproduct.presentation.ui.components.WithAnimation
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 
+
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun SignInScreen(
@@ -56,8 +57,10 @@ fun SignInScreen(
     signInFormViewModel: SignInFormViewModel = viewModel(),
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter) {
     SystemBackButtonHandler {
-        appRouter.navigateTo(Screen.SignUpScreen)
+//        appRouter.navigateTo(Screen.SignUpScreen)
     }
+
+//    TODO("DELETE AFTER TEST AUTH SCREEN")
     val signInState = signInViewModel.signInState.collectAsState()
     if(signInState.value.isSuccess){
         appRouter.navigateTo(Screen.HomeScreen)
@@ -65,8 +68,7 @@ fun SignInScreen(
     }
     WithAnimation(animation = scaleIn() + fadeIn()) {
         SignInFormComponent(
-            viewModel = signInFormViewModel,
-            onConfirm = {username,password -> signInViewModel.toSignIn(username, password)}
+            viewModel = signInViewModel,
             )
 
     }

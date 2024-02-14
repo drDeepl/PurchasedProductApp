@@ -102,7 +102,7 @@ fun HomeScreen(
         homeViewModel.checkAccessToken()
     }
     else if(!homeState.isSignIn){
-        appRouter.navigateTo(Screen.SignUpScreen)
+//        appRouter.navigateTo(Screen.SignUpScreen)
         homeViewModel.defaultHomeState()
     }
     else if(homeState.isLoading){
@@ -357,7 +357,7 @@ fun HomeScreen(
                         PrimaryButtonComponent(
                             value = "Выйти", onClickButton = {
                                 homeViewModel.signOut()
-                                appRouter.navigateTo(Screen.SignUpScreen)
+//                                appRouter.navigateTo(Screen.SignUpScreen)
                             }
                         )
                     }
