@@ -118,6 +118,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -131,6 +132,7 @@ import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
+import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.navigation.Screen
 
 
@@ -151,6 +153,8 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.lightGreenToYellowGradient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.joda.time.Instant
+import kotlin.time.Duration.Companion.days
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
 @Composable
@@ -1582,19 +1586,20 @@ fun SignInFormComponent(
 }
 
 @Composable
-fun SelectionTabComponent(labelTabs: List<String>, currentTab: String, onClickTab: (id: Int) -> Unit){
+fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, onClickTab: (id: Int) -> Unit){
     val checkedState = remember{mutableStateOf(true)}
 
 //    Switch(checked = checkedState.value, onCheckedChange = {checkedState.value = it})
     val scope = rememberCoroutineScope()
 
-    val selectedOption = remember {
-        mutableStateOf(currentTab)
-    }
+//    val selectedOption = remember {
+//        mutableStateOf(currentTab)
+//    }
+
+
 
     val onSelectionChange = { text:String ->
         scope.launch {
-            selectedOption.value = text
             onClickTab(labelTabs.indexOf(text))
         }
     }
@@ -1618,7 +1623,7 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: String, onClickTa
                         .border(
                             width = 2.dp,
                             shape = RoundedCornerShape(24.dp),
-                            brush = if (text == selectedOption.value) {
+                            brush = if (text == currentTab.value) {
                                 Brush.horizontalGradient(colors = lightGreenToYellowGradient)
                             } else {
                                 Brush.horizontalGradient(
@@ -1635,7 +1640,7 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: String, onClickTa
                         )
                         .graphicsLayer(alpha = 0.99f)
                         .drawWithCache {
-                            val brush = if (text == selectedOption.value) {
+                            val brush = if (text == currentTab.value) {
                                 Brush.horizontalGradient(lightGreenToYellowGradient)
                             } else {
                                 Brush.horizontalGradient(listOf(Color.White, Color.White))
@@ -1704,5 +1709,50 @@ fun SignUpFormComponent(
             isLoading=state.value.isLoading
         )
     }
+}
+
+@Composable
+fun DayComponent(dayItem: DayItem){
+    Box(modifier= Modifier
+        .heightIn(32.dp)
+        .widthIn(16.dp),
+            contentAlignment = Alignment.Center){
+        Column() {
+            Text(text=dayItem.dayWeekName)
+            Text(text=dayItem.dayOfMonth.toString())
+        }
+    }
+}
+
+@Composable
+fun DaysRowComponent(days: List<DayItem>, modifier: Modifier = Modifier){
+    TODO("DESIGN OF COPMONENT")
+    Column(){
+        HeadingTextComponent(value = "15 февраля 2024")
+        LazyRow(
+            modifier = modifier.fillMaxWidth(0.95f),
+            userScrollEnabled = true,
+            horizontalArrangement = Arrangement.SpaceAround
+        ){
+            items(days){
+                DayComponent(it)
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewDaysRowComponent(){
+    val days: List<DayItem> = listOf(
+        DayItem(dayWeekName="пн.", dayOfMonth=10, month=2,2024),
+        DayItem(dayWeekName="вт.", dayOfMonth=11, month=2,2024),
+        DayItem(dayWeekName="ср.", dayOfMonth=12, month=2,2024),
+        DayItem(dayWeekName="чт.", dayOfMonth=13, month=2,2024),
+        DayItem(dayWeekName="пт.", dayOfMonth=14, month=2,2024),
+        DayItem(dayWeekName="сб.", dayOfMonth=15, month=2,2024),
+        DayItem(dayWeekName="вс.", dayOfMonth=16, month=2,2024),
+        )
+    DaysRowComponent(days)
 
 }

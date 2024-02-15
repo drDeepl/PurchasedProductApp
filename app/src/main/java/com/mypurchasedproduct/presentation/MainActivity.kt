@@ -12,27 +12,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.lifecycleScope
-import com.mypurchasedproduct.data.local.DataStoreManager
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.AuthScreen
-import com.mypurchasedproduct.presentation.screens.SignInScreen
 import com.mypurchasedproduct.presentation.screens.HomeScreen
-import com.mypurchasedproduct.presentation.screens.SignUpScreen
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.screens.TermsAndConditionScreen
 import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.theme.MyPurchasedProductTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import javax.inject.Inject
+
 
 
 @AndroidEntryPoint
@@ -59,18 +48,12 @@ class MainActivity: ComponentActivity() {
                     Crossfade(targetState = PurchasedProductAppRouter.currentScreen, label = "",
                     ) { currentState ->
                         when(currentState.value){
-//                            is Screen.SignUpScreen ->{
-//                                SignUpScreen(signUpViewModel, signInViewModel)
-//                            }
                             is Screen.LoadScreen ->{
                                 LoadScreen()
                             }
                             is Screen.TermsAndConditionsScreen ->{
                                 TermsAndConditionScreen()
                             }
-//                            is Screen.SignInScreen ->{
-//                                SignInScreen(signInViewModel)
-//                            }
                             is Screen.HomeScreen ->{
                                 HomeScreen(authViewModel=authViewModel)
                             }

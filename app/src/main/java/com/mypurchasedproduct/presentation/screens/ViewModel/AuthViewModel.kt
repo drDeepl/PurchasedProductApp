@@ -1,14 +1,9 @@
 package com.mypurchasedproduct.presentation.screens.ViewModel
 
 import android.util.Log
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mypurchasedproduct.data.remote.model.request.SignInRequest
-import com.mypurchasedproduct.data.remote.model.request.SignUpRequest
 import com.mypurchasedproduct.domain.model.TokenModel
 import com.mypurchasedproduct.domain.usecases.SignInUseCase
 import com.mypurchasedproduct.domain.usecases.SignUpUseCase
@@ -16,7 +11,6 @@ import com.mypurchasedproduct.domain.usecases.TokenUseCase
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
 import com.mypurchasedproduct.presentation.state.AuthState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
-import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.state.SignInState
 import com.mypurchasedproduct.presentation.state.SignUpState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -30,7 +24,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
-import androidx.compose.runtime.remember as remember
 
 @HiltViewModel
 class AuthViewModel  @Inject constructor(
@@ -212,6 +205,7 @@ class AuthViewModel  @Inject constructor(
     }
 
     fun setCurrentAction(id: Int){
+
         viewModelScope.launch {
             animated.value = !animated.value
             _currentTab.update {

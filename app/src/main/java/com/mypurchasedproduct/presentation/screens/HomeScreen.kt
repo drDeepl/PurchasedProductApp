@@ -4,21 +4,14 @@ package com.mypurchasedproduct.presentation.screens
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -30,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,7 +36,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
@@ -54,6 +45,7 @@ import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.CategoryViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.DateListViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
@@ -80,7 +72,6 @@ import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 
@@ -88,13 +79,14 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    authViewModel: AuthViewModel,
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel(),
-    authViewModel: AuthViewModel,
+    dateListViewModel: DateListViewModel = viewModel(),
     addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel(),
     addProductViewModel: AddProductViewModel = viewModel(),
     categoryVM: CategoryViewModel = viewModel(),
-    purchasedProductListVM: PurchasedProductListViewModel = viewModel()
+    purchasedProductListVM: PurchasedProductListViewModel = viewModel(),
 ) {
     val authState = authViewModel.state.collectAsState()
     if(!authState.value.isSignIn){
@@ -311,7 +303,10 @@ fun HomeScreen(
             }
             else if(getPurchasedProductsByDateState.isSuccessResponse){
                 Scaffold(
-                    topBar = {HeadingTextComponent(value = "Потрачено сегодня: ${purchasedProductListVM.totalCosts} ₽")},
+                    topBar = {
+//                        DaysRowComponent(viewModel=dateListViewModel)
+                        HeadingTextComponent(value = "Потрачено сегодня: ${purchasedProductListVM.totalCosts} ₽")
+                             },
                     content = {paddingValues: PaddingValues ->
                         if(getPurchasedProductsByDateState.isLoading){
                             Column(
