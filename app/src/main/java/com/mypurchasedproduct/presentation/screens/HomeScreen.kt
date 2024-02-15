@@ -45,33 +45,27 @@ import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.CategoryViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.DateListViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
+import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
-import com.mypurchasedproduct.presentation.ui.components.DialogCardComponentWithoutActionBtns
 import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
 import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
-import com.mypurchasedproduct.presentation.ui.components.MeasurementUnitsScrollableRow
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
-import com.mypurchasedproduct.presentation.ui.components.MyTextFieldClickable
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
-import com.mypurchasedproduct.presentation.ui.components.ProductsModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
-import com.mypurchasedproduct.presentation.ui.components.SecondaryButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
-import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
-import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
 import kotlinx.coroutines.launch
 
 
@@ -82,7 +76,7 @@ fun HomeScreen(
     authViewModel: AuthViewModel,
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     homeViewModel: HomeViewModel = viewModel(),
-    dateListViewModel: DateListViewModel = viewModel(),
+    dateRowListViewModel: DateRowListViewModel = viewModel(),
     addPurchasedProductViewModel: AddPurchasedProductViewModel = viewModel(),
     addProductViewModel: AddProductViewModel = viewModel(),
     categoryVM: CategoryViewModel = viewModel(),
@@ -302,10 +296,13 @@ fun HomeScreen(
 
             }
             else if(getPurchasedProductsByDateState.isSuccessResponse){
+                TODO("VIEW PURCHASED PRODUCTS BY DATE")
                 Scaffold(
                     topBar = {
-//                        DaysRowComponent(viewModel=dateListViewModel)
-                        HeadingTextComponent(value = "Потрачено сегодня: ${purchasedProductListVM.totalCosts} ₽")
+                        Column {
+                            DaysRowComponent(dateRowListViewModel)
+                            HeadingTextComponent(value = "Потрачено сегодня: ${purchasedProductListVM.totalCosts} ₽")
+                        }
                              },
                     content = {paddingValues: PaddingValues ->
                         if(getPurchasedProductsByDateState.isLoading){

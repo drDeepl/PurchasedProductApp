@@ -23,13 +23,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -37,9 +35,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Visibility
@@ -48,7 +43,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,24 +53,18 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -88,7 +76,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,12 +87,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
-
-
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-
-
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -118,13 +101,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
@@ -133,28 +114,23 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.item.DayItem
-import com.mypurchasedproduct.presentation.navigation.Screen
-
-
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignInFormViewModel
+import com.mypurchasedproduct.presentation.screens.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
-import com.mypurchasedproduct.presentation.state.SignInState
-
+import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
-import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
+import com.mypurchasedproduct.presentation.ui.theme.AcidRedPurpleGradient
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
+import com.mypurchasedproduct.presentation.ui.theme.GreenToYellowGradient
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
+import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
-import com.mypurchasedproduct.presentation.ui.theme.lightGreenToYellowGradient
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.joda.time.Instant
-import kotlin.time.Duration.Companion.days
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
 @Composable
@@ -1624,7 +1600,7 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, on
                             width = 2.dp,
                             shape = RoundedCornerShape(24.dp),
                             brush = if (text == currentTab.value) {
-                                Brush.horizontalGradient(colors = lightGreenToYellowGradient)
+                                Brush.horizontalGradient(colors = GreenToYellowGradient)
                             } else {
                                 Brush.horizontalGradient(
                                     colors = listOf(
@@ -1641,7 +1617,7 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, on
                         .graphicsLayer(alpha = 0.99f)
                         .drawWithCache {
                             val brush = if (text == currentTab.value) {
-                                Brush.horizontalGradient(lightGreenToYellowGradient)
+                                Brush.horizontalGradient(GreenToYellowGradient)
                             } else {
                                 Brush.horizontalGradient(listOf(Color.White, Color.White))
                             }
@@ -1712,47 +1688,146 @@ fun SignUpFormComponent(
 }
 
 @Composable
-fun DayComponent(dayItem: DayItem){
-    Box(modifier= Modifier
-        .heightIn(32.dp)
-        .widthIn(16.dp),
-            contentAlignment = Alignment.Center){
-        Column() {
-            Text(text=dayItem.dayWeekName)
-            Text(text=dayItem.dayOfMonth.toString())
+fun DayComponent(dayItem: DayItem, state: State<DateBoxUIState>, onClick: (day:DayItem) -> Unit){
+//    AcidRedPurpleGradient.reversed()
+    val scope = rememberCoroutineScope()
+
+    val gradient = remember {
+        mutableStateOf(listOf(SecondaryColor, SecondaryColor))
+    }
+    LaunchedEffect(state.value.selectedDate){
+        if(state.value.selectedDate.dayOfMonth == dayItem.dayOfMonth){
+            gradient.value = AcidRedPurpleGradient.reversed()
+        }
+        else{
+            gradient.value = listOf(SecondaryColor, SecondaryColor)
+        }
+    }
+    Column(
+        modifier= Modifier
+            .fillMaxWidth()
+            .heightIn(64.dp)
+            .widthIn(32.dp)
+            .border(
+                width = 1.5.dp,
+                shape = componentShapes.medium,
+                brush = Brush.verticalGradient(gradient.value)
+            )
+            .clickable {
+                scope.launch {
+                    onClick(dayItem)
+//                    gradient.value = AcidRedPurpleGradient.reversed()
+                }
+            },
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            modifier=Modifier.padding(all=4.dp),
+            text=dayItem.dayWeekName,
+            fontWeight = FontWeight.SemiBold
+        )
+        Box(
+            modifier = Modifier
+                .heightIn(36.dp)
+                .widthIn(30.dp)
+                .background(
+                    color = DeepGreyColor.copy(alpha = .1f),
+                    shape = RoundedCornerShape(
+                        topStart = 8.dp,
+                        topEnd = 8.dp,
+                        bottomEnd = 18.dp,
+                        bottomStart = 18.dp
+                    )
+                )
+                .padding(horizontal = 16.dp),
+            contentAlignment = Alignment.Center,
+        ){
+            Text(text=dayItem.dayOfMonth.toString(),fontWeight = FontWeight.SemiBold)
         }
     }
 }
 
 @Composable
-fun DaysRowComponent(days: List<DayItem>, modifier: Modifier = Modifier){
-    TODO("DESIGN OF COPMONENT")
-    Column(){
-        HeadingTextComponent(value = "15 февраля 2024")
+fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modifier){
+    Log.wtf("DaysRowComponent", "start")
+    Column(
+        modifier = Modifier
+            .padding(vertical = 16.dp)
+            .background(Color.White),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
+        val state = viewModel.state.collectAsState()
+        LoadScreen(isActive = state.value.isLoading)
+        val days = viewModel.listDates.collectAsState()
+        Log.wtf("DaysRowComponent", "count days: ${days.value.size}")
+
+//        TODO("DELETE AFTER TEST")
+//        Text(
+//            modifier = Modifier.padding(vertical=8.dp),
+//            text="15 февраля 2024",
+//            fontSize=18.sp,
+//            fontWeight = FontWeight.SemiBold,
+//            textAlign= TextAlign.Start
+//
+//        )
+
+        val listState = rememberLazyListState(initialFirstVisibleItemIndex=state.value.selectedDate.dayOfMonth-3)
+        val scope = rememberCoroutineScope()
+
         LazyRow(
             modifier = modifier.fillMaxWidth(0.95f),
+            state = listState,
             userScrollEnabled = true,
-            horizontalArrangement = Arrangement.SpaceAround
+            horizontalArrangement = Arrangement.SpaceAround,
         ){
-            items(days){
-                DayComponent(it)
+            itemsIndexed(items=days.value){index: Int, it: DayItem ->
+                Spacer(modifier = Modifier.padding(2.dp))
+                DayComponent(
+                    it,
+                    state,
+                    onClick = {
+                        scope.launch {
+                            viewModel.onSelectDay(it)
+//                            listState.animateScrollToItem(index = it.dayOfMonth)
+                        }
+                    })
             }
+//            items(days.value, key={ day:DayItem -> day.dayOfMonth}){
+//                Spacer(modifier = Modifier.padding(2.dp))
+//                DayComponent(
+//                    it,
+//                    state,
+//                    onClick = {
+//                        scope.launch {
+//                            viewModel.onSelectDay(it)
+//                            listState.animateScrollToItem(index = it.dayOfMonth)
+//                        }
+//                })
+//            }
         }
     }
 }
 
-@Preview
-@Composable
-fun PreviewDaysRowComponent(){
-    val days: List<DayItem> = listOf(
-        DayItem(dayWeekName="пн.", dayOfMonth=10, month=2,2024),
-        DayItem(dayWeekName="вт.", dayOfMonth=11, month=2,2024),
-        DayItem(dayWeekName="ср.", dayOfMonth=12, month=2,2024),
-        DayItem(dayWeekName="чт.", dayOfMonth=13, month=2,2024),
-        DayItem(dayWeekName="пт.", dayOfMonth=14, month=2,2024),
-        DayItem(dayWeekName="сб.", dayOfMonth=15, month=2,2024),
-        DayItem(dayWeekName="вс.", dayOfMonth=16, month=2,2024),
-        )
-    DaysRowComponent(days)
-
-}
+//@Preview
+//@Composable
+//fun PreviewDaysRowComponent(){
+//    val days: List<DayItem> = listOf(
+//        DayItem(dayWeekName="пн.", dayOfMonth=10, month=2,2024),
+//        DayItem(dayWeekName="вт.", dayOfMonth=11, month=2,2024),
+//        DayItem(dayWeekName="ср.", dayOfMonth=12, month=2,2024),
+//        DayItem(dayWeekName="чт.", dayOfMonth=13, month=2,2024),
+//        DayItem(dayWeekName="пт.", dayOfMonth=14, month=2,2024),
+//        DayItem(dayWeekName="сб.", dayOfMonth=15, month=2,2024),
+//        DayItem(dayWeekName="вс.", dayOfMonth=16, month=2,2024),
+//        )
+//    Surface(modifier= Modifier
+//        .fillMaxSize()
+//        .background(Color.White)) {
+//        DaysRowComponent(days)
+//
+//    }
+//
+//
+//}
