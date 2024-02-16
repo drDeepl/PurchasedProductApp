@@ -6,33 +6,22 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mypurchasedproduct.data.remote.model.response.ProductResponse
-import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.TokenModel
-import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
-import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.domain.usecases.TokenUseCase
-import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
+import com.mypurchasedproduct.presentation.state.PurchasedProductsListState
 import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
-import com.mypurchasedproduct.presentation.state.AddPurchasedProductState
 import com.mypurchasedproduct.presentation.state.CheckTokenState
-import com.mypurchasedproduct.presentation.state.FindMeasurementUnitsState
-import com.mypurchasedproduct.presentation.state.FindProductsState
-import com.mypurchasedproduct.presentation.ui.item.AddPurchasedProductItem
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
-import java.sql.Timestamp
 import java.time.Instant
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,7 +44,7 @@ class HomeViewModel @Inject constructor(
     var accessTokenItem by mutableStateOf(AccessTokenItem())
         private set
 
-    var getPurchasedProductsState by mutableStateOf(FindPurchasedProductsState())
+    var getPurchasedProductsState by mutableStateOf(PurchasedProductsListState(false,false,false,""))
         private set
 
 
@@ -155,50 +144,6 @@ class HomeViewModel @Inject constructor(
             Log.e(TAG, "[FINISH] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
         }
     }
-
-
-
-    @RequiresApi(Build.VERSION_CODES.N)
-    fun getPurchasedProductCurrentUser(offset: Int){
-        getPurchasedProductsState = getPurchasedProductsState.copy(
-            isLoading = true
-        )
-        viewModelScope.launch{
-            Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
-            accessTokenItem.accessTokenData?.let{tokenModel->
-                val purchasedProducts = this.async { purchasedProductUseCase.getAllPurchasedProductsCurrentUser(tokenModel.id, offset) }.await()
-                when(purchasedProducts){
-                    is NetworkResult.Success -> {
-                        purchasedProducts.data?.let{
-                            getPurchasedProductsState = getPurchasedProductsState.copy(
-                                isActive = false,
-                                purchasedProducts = it,
-                                isSuccessResponse = true,
-                                isLoading = false,
-                            )
-                        }
-
-                    }
-                    is NetworkResult.Error ->{
-                        getPurchasedProductsState = getPurchasedProductsState.copy(
-                            isActive = false,
-                            error = purchasedProducts.message,
-                            isLoading = false
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-
-    fun setGetPurchasedProduct(){
-        Log.wtf(TAG, "SET GET PURCHASED PRODUCTS")
-        getPurchasedProductsState = getPurchasedProductsState.copy(
-            isActive = true
-        )
-    }
-
     fun setLoadingState(isLoading: Boolean){
         Log.i(TAG, "SET LOADING STATE")
         state = state.copy(

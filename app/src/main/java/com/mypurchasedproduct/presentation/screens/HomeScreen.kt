@@ -88,8 +88,11 @@ fun HomeScreen(
     val dateRowState = dateRowListViewModel.state.collectAsState()
     LaunchedEffect(dateRowState.value.selectedDate){
         val selectedDay = dateRowState.value.selectedDate
-        val mills: Long = Instant.parse("${selectedDay.year}-${selectedDay.month}-${selectedDay.dayOfMonth}").millis
-        Log.wtf("HomeScreen", "selected date: ${mills}")
+        val instant: Instant = Instant.parse("${selectedDay.year}-${selectedDay.month}-${selectedDay.dayOfMonth}")
+        val mills: Long = instant.millis
+        TODO("GET TIME ZONE")
+        Log.wtf("HomeScreen", "selected date: ${mills}\tzone id: ${instant.zone.getName(mills)}")
+        purchasedProductListVM.getPurchasedProductCurrentUserByDate(mills)
     }
 
     val authState = authViewModel.state.collectAsState()
@@ -118,11 +121,11 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            val getPurchasedProductsByDateState = purchasedProductListVM.getPurchasedProductsByDateState
+
+            val getPurchasedProductsByDateState = purchasedProductListVM.purchasedProductsListState
             val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
             val addPurchasedProductState = addPurchasedProductViewModel.addPurchasedProductState
             val editPurchasedProductState = purchasedProductListVM.editPurchasedProductState
-            val purchasedProducts: List<PurchasedProductResponse> = getPurchasedProductsByDateState.purchasedProducts
             val measurementUnits = addPurchasedProductViewModel.getMeasurementUnits()
 
             if(editPurchasedProductState.isActive){
@@ -159,7 +162,6 @@ fun HomeScreen(
                 SuccessMessageDialog(
                     text ="купленный продукт изменен",
                     onDismiss = {
-                        purchasedProductListVM.getPurchasedProductCurrentUserByDate()
                         purchasedProductListVM.setDefaultEditPurchasedProductState()
                         purchasedProductListVM.setActiveEditPurchasedProduct(false)
                     })
@@ -300,12 +302,7 @@ fun HomeScreen(
                     }
                 }
             }
-            if(getPurchasedProductsByDateState.isActive){
-//                LoadScreen()
-                purchasedProductListVM.getPurchasedProductCurrentUserByDate()
 
-            }
-            else if(getPurchasedProductsByDateState.isSuccessResponse){
 //                TODO("VIEW PURCHASED PRODUCTS BY DATE")
                 Scaffold(
                     topBar = {
@@ -315,32 +312,27 @@ fun HomeScreen(
                         }
                              },
                     content = {paddingValues: PaddingValues ->
-                        if(getPurchasedProductsByDateState.isLoading){
-                            Column(
-                                modifier= Modifier
-                                    .fillMaxSize()
-                                    .background(color = Color.White),
-                                verticalArrangement = Arrangement.Center,
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.height(45.dp),
-                                    color = DeepBlackColor
-                                )
-
-                            }
-                        }
-                        else{
-                            PurchasedProductViewComponent(purchasedProducts,
+//                        if(getPurchasedProductsByDateState.isLoading){
+//                            Column(
+//                                modifier= Modifier
+//                                    .fillMaxSize()
+//                                    .background(color = Color.White),
+//                                verticalArrangement = Arrangement.Center,
+//                                horizontalAlignment = Alignment.CenterHorizontally
+//                            ) {
+//                                CircularProgressIndicator(
+//                                    modifier = Modifier.height(45.dp),
+//                                    color = DeepBlackColor
+//                                )
+//
+//                            }
+//                        }
+//                        else{
+                            PurchasedProductViewComponent(
+                                purchasedProductListVM,
                                 paddingValues=paddingValues,
-                                onSwipeDeletePurchasedProduct={purchasedProductListVM.onSwipeDelete(it)},
-                                onSwipeEditPurchasedProduct={
-                                    purchasedProductListVM.onSwipeEditPurchasedProduct(it)
-                                    addProductViewModel.findProducts()
-                                    addPurchasedProductViewModel.findMeasurementUnits()
-                                }
-                            )
-                        }
+                                )
+//                        }
                     },
                     floatingActionButton = {
                         PrimaryFloatingActionButton(
@@ -381,7 +373,6 @@ fun HomeScreen(
                             text = "Купленный продукт удален!",
                             onDismiss = {
                                 purchasedProductListVM.setDefaultDeletePurchasedProductState()
-                                purchasedProductListVM.setUpdatePurchasedProductByDate(true)
                                 homeViewModel.setLoadingState(false)
                             }
                         )
@@ -402,7 +393,6 @@ fun HomeScreen(
                         text="Купленный продукт добавлен!",
                         onDismiss = {
                             addPurchasedProductViewModel.setDefaultAddPurchasedProductState()
-                            purchasedProductListVM.getPurchasedProductCurrentUserByDate()
                             addPurchasedProductViewModel.setDefaultFormDataAddPurchasedProduct()
 
                         }
@@ -416,10 +406,10 @@ fun HomeScreen(
                         addPurchasedProductViewModel.setDefaultFormDataAddPurchasedProduct()
                     })
                 }
-            }
-            else{
-                NormalTextComponent(value = "Произошла ошибка при получении покупок")
-            }
+
+
+
+
         }
     }
 }

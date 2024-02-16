@@ -1,8 +1,6 @@
 package com.mypurchasedproduct.presentation.ViewModel
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,14 +13,14 @@ import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.DeletePurchasedProductState
 import com.mypurchasedproduct.presentation.state.EditPurchasedProductState
-import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
+import com.mypurchasedproduct.presentation.state.PurchasedProductsListState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
@@ -40,8 +38,9 @@ class PurchasedProductListViewModel @Inject constructor(
 
     var editPurchasedProductState by mutableStateOf(EditPurchasedProductState())
 
-    var getPurchasedProductsByDateState by mutableStateOf(FindPurchasedProductsState())
-        private set
+    private var _purchasedProductsListState = MutableStateFlow(PurchasedProductsListState(false, true, false, ""))
+
+    var purchasedProductsListState = _purchasedProductsListState.asStateFlow()
 
     private var _pruchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
     var purchasedProducts = _pruchasedProducts.asStateFlow()
@@ -53,42 +52,46 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
 
-    fun getPurchasedProductCurrentUserByDate(timestamp: Long = Instant.now().toEpochMilli()){
-        TODO("move response purchased product to _pruchasedProducts state")
-        getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
-            isLoading = true
-        )
+    fun getPurchasedProductCurrentUserByDate(timestamp: Long){
         viewModelScope.launch{
             Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
-                val purchasedProducts = this.async {
-                    purchasedProductRepository.getPurchasedProductsByDate(timestamp) }
-                    .await()
-                when(purchasedProducts){
-                    is NetworkResult.Success -> {
-                        purchasedProducts.data?.let{
-                            this.launch { calculateTotalCosts(it)}
-                            getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
-                                isActive = false,
-                                purchasedProducts = it,
-                                isSuccessResponse = true,
-                                isLoading = false,
-                            )
-                        }
-
+            _purchasedProductsListState.update{ purchasedProductsListState ->
+                purchasedProductsListState.copy(
+                    isLoading = true,
+                )
+            }
+            val networkResult = purchasedProductRepository.getPurchasedProductsByDate(timestamp)
+            when(networkResult){
+                is NetworkResult.Success ->{
+                    _pruchasedProducts.update { purchasedProducts ->
+                        purchasedProducts
                     }
-                    is NetworkResult.Error ->{
-                        getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
-                            isActive = false,
-                            error = purchasedProducts.message,
-                            isLoading = false
+                    _purchasedProductsListState.update{ purchasedProductsListState ->
+                        purchasedProductsListState.copy(
+                            isLoading = false,
+                            isUpdate = false
                         )
                     }
                 }
+
+                is NetworkResult.Error ->{
+                    _purchasedProductsListState.update{ purchasedProductsListState ->
+                        purchasedProductsListState.copy(
+                            isLoading = false,
+                            isUpdate = false,
+                            isError = true,
+                            error = networkResult.message.toString()
+
+                        )
+                    }
+
+                }
             }
         }
+    }
 
 
-    fun onSwipeDelete(purchasedProduct: PurchasedProductResponse){
+    fun onSwipeDeletePurchasedProduct(purchasedProduct: PurchasedProductResponse){
         Log.wtf(TAG, "ON SWIPE DELETE PURCHASED PRODUCT")
         deletePurchasedProductState = deletePurchasedProductState.copy(
             isActive = true,
@@ -113,6 +116,7 @@ class PurchasedProductListViewModel @Inject constructor(
             val response = purchasedProductUseCase.editPurchasedProduct(editPurchasedProductModel)
             when(response){
                 is NetworkResult.Success ->{
+                    // TODO: ADD PurchasedProductResponse to array
                     editPurchasedProductState = editPurchasedProductState.copy(
                         isSuccess = true,
                         isLoading = false,
@@ -141,6 +145,7 @@ class PurchasedProductListViewModel @Inject constructor(
         editPurchasedProductState = EditPurchasedProductState()
     }
 
+
     fun onDismissDeletePurchasedProduct(){
             Log.wtf(TAG, "ON DISMISS DELETE PURCHASED PRODUCT")
             deletePurchasedProductState = deletePurchasedProductState.copy(
@@ -154,12 +159,6 @@ class PurchasedProductListViewModel @Inject constructor(
         deletePurchasedProductState = DeletePurchasedProductState()
     }
 
-    fun setUpdatePurchasedProductByDate(isActive: Boolean){
-        Log.wtf(TAG, "SET UPDATE PURCHASED PRODUCTS BY DATE")
-        getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
-            isActive = isActive
-        )
-    }
 
     fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
         Log.wtf(TAG, "CALCULATE TOTAL COSTS")

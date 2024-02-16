@@ -450,11 +450,14 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             modifier = modifier
                 .heightIn(48.dp)
                 .background(
-                    color= DeepBlackColor,
+                    color = DeepBlackColor,
                     shape = RoundedCornerShape(50.dp)
                 )
                 .border(
-                    border = BorderStroke(2.dp, brush = Brush.horizontalGradient(AcidRedPurpleGradient)),
+                    border = BorderStroke(
+                        2.dp,
+                        brush = Brush.horizontalGradient(AcidRedPurpleGradient)
+                    ),
                     shape = RoundedCornerShape(50.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -753,97 +756,107 @@ fun PurchasedProductItem(purchasedProduct:PurchasedProductResponse){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PurchasedProductViewComponent(
-    purchasedProducts: List<PurchasedProductResponse>,
+    viewModel: PurchasedProductListViewModel,
     modifier: Modifier = Modifier
         .fillMaxSize(),
     paddingValues: PaddingValues,
-    onSwipeDeletePurchasedProduct: (product:PurchasedProductResponse) -> Unit,
-    onSwipeEditPurchasedProduct: (product:PurchasedProductResponse) -> Unit,
 )
 {
+    val scope = rememberCoroutineScope()
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-        ){
-            items(purchasedProducts){purchasedProduct ->
-                val state = rememberDismissState(
-                    confirmValueChange = {
-                        if(it == DismissValue.DismissedToStart){
-                            onSwipeDeletePurchasedProduct(purchasedProduct)
-                        }
-                        if(it == DismissValue.DismissedToEnd){
-                            onSwipeEditPurchasedProduct(purchasedProduct)
-                        }
-                        false
-                    }
-                )
-                SwipeToDismiss(
-                    state = state,
-                    background = {
-                                 val color = when(state.dismissDirection){
-                                     DismissDirection.EndToStart -> Color.Transparent
-                                     DismissDirection.StartToEnd -> Color.Transparent
-                                     null -> Color.Transparent
-                                 }
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(2.dp, 7.dp)
-                                .height(65.dp)
-                                .background(color = color, shape = componentShapes.medium),
-                        ){
-                            Spacer(modifier = modifier.padding(horizontal=10.dp))
-                            Icon(
-                                imageVector = Icons.Outlined.Delete,
-                                contentDescription=null,
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .align(Alignment.CenterEnd)
-                                    .graphicsLayer(alpha = 0.9f)
-                                    .drawWithCache {
-                                        onDrawWithContent {
-                                            drawContent()
-                                            drawRect(
-                                                brush = Brush.horizontalGradient(
-                                                    listOf(AcidRedColor, AcidPurpleColor)
-                                                ),
-                                                blendMode = BlendMode.SrcAtop
-                                            )
-                                        }
-                                    }
-                            )
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription=null,
-                                modifier = Modifier
-                                    .size(42.dp)
-                                    .align(Alignment.CenterStart)
-                                    .graphicsLayer(alpha = 0.9f)
-                                    .drawWithCache {
-                                        onDrawWithContent {
-                                            drawContent()
-                                            drawRect(
-                                                brush = Brush.horizontalGradient(
-                                                    listOf(AcidRedColor, AcidPurpleColor)
-                                                ),
-                                                blendMode = BlendMode.SrcAtop
-                                            )
-                                        }
-                                    }
-                            )
-                            Spacer(modifier = modifier.padding(horizontal=10.dp))
-                        }
-                    },
-                    dismissContent = {
-                        PurchasedProductItem(purchasedProduct)
-                    }
-                )
+        val listState = viewModel.purchasedProductsListState.collectAsState()
+        val purchasedProducts = viewModel.purchasedProducts.collectAsState()
+        if(listState.value.isLoading){
+            LoadScreen()
+        }
+        else{
+            LazyColumn(
+                state = rememberLazyListState(),
+                userScrollEnabled = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(5.dp),
+            ) {
+                items(purchasedProducts.value) { purchasedProduct ->
+                    val state = rememberDismissState(
+                        confirmValueChange = {
+                            scope.launch {
+                                if (it == DismissValue.DismissedToStart) {
+                                    viewModel.onSwipeDeletePurchasedProduct(purchasedProduct)
+                                }
+                                if (it == DismissValue.DismissedToEnd) {
+                                    viewModel.onSwipeEditPurchasedProduct(purchasedProduct)
+                                }
 
+                            }
+                            false
+                        }
+                    )
+                    SwipeToDismiss(
+                        state = state,
+                        background = {
+                            val color = when (state.dismissDirection) {
+                                DismissDirection.EndToStart -> Color.Transparent
+                                DismissDirection.StartToEnd -> Color.Transparent
+                                null -> Color.Transparent
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(2.dp, 7.dp)
+                                    .height(65.dp)
+                                    .background(color = color, shape = componentShapes.medium),
+                            ) {
+                                Spacer(modifier = modifier.padding(horizontal = 10.dp))
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .align(Alignment.CenterEnd)
+                                        .graphicsLayer(alpha = 0.9f)
+                                        .drawWithCache {
+                                            onDrawWithContent {
+                                                drawContent()
+                                                drawRect(
+                                                    brush = Brush.horizontalGradient(
+                                                        listOf(AcidRedColor, AcidPurpleColor)
+                                                    ),
+                                                    blendMode = BlendMode.SrcAtop
+                                                )
+                                            }
+                                        }
+                                )
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(42.dp)
+                                        .align(Alignment.CenterStart)
+                                        .graphicsLayer(alpha = 0.9f)
+                                        .drawWithCache {
+                                            onDrawWithContent {
+                                                drawContent()
+                                                drawRect(
+                                                    brush = Brush.horizontalGradient(
+                                                        listOf(AcidRedColor, AcidPurpleColor)
+                                                    ),
+                                                    blendMode = BlendMode.SrcAtop
+                                                )
+                                            }
+                                        }
+                                )
+                                Spacer(modifier = modifier.padding(horizontal = 10.dp))
+                            }
+                        },
+                        dismissContent = {
+                            PurchasedProductItem(purchasedProduct)
+                        }
+                    )
+
+                }
             }
         }
     }
