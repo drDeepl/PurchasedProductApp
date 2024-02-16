@@ -27,9 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
+import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
+import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.SelectionTabComponent
 import com.mypurchasedproduct.presentation.ui.components.SignInFormComponent

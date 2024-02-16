@@ -114,9 +114,10 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.item.DayItem
-import com.mypurchasedproduct.presentation.screens.ViewModel.DateRowListViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignInViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.SignUpViewModel
+import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
+import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -131,6 +132,7 @@ import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.joda.time.Instant
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
 @Composable
@@ -448,7 +450,11 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             modifier = modifier
                 .heightIn(48.dp)
                 .background(
-                    brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),
+                    color= DeepBlackColor,
+                    shape = RoundedCornerShape(50.dp)
+                )
+                .border(
+                    border = BorderStroke(2.dp, brush = Brush.horizontalGradient(AcidRedPurpleGradient)),
                     shape = RoundedCornerShape(50.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -460,7 +466,9 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
                 Text(
                     text=value,
                     fontSize=18.sp,
-                    fontWeight = FontWeight.Bold)
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
 
             }
 
@@ -1689,7 +1697,6 @@ fun SignUpFormComponent(
 
 @Composable
 fun DayComponent(dayItem: DayItem, state: State<DateBoxUIState>, onClick: (day:DayItem) -> Unit){
-//    AcidRedPurpleGradient.reversed()
     val scope = rememberCoroutineScope()
 
     val gradient = remember {
@@ -1790,22 +1797,9 @@ fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modif
                     onClick = {
                         scope.launch {
                             viewModel.onSelectDay(it)
-//                            listState.animateScrollToItem(index = it.dayOfMonth)
                         }
                     })
             }
-//            items(days.value, key={ day:DayItem -> day.dayOfMonth}){
-//                Spacer(modifier = Modifier.padding(2.dp))
-//                DayComponent(
-//                    it,
-//                    state,
-//                    onClick = {
-//                        scope.launch {
-//                            viewModel.onSelectDay(it)
-//                            listState.animateScrollToItem(index = it.dayOfMonth)
-//                        }
-//                })
-//            }
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.presentation.screens.ViewModel
+package com.mypurchasedproduct.presentation.ViewModel
 
 
 import android.util.Log
@@ -38,10 +38,8 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
             val maximumDayInMonth = now.dayOfMonth().withMaximumValue().dayOfMonth
             val listDays:MutableList<DayItem> = mutableListOf()
             for(i in 1..maximumDayInMonth){
-                Log.d(TAG, "size list: ${listDays.size}")
                 val day: DateTime = now.dayOfMonth().setCopy(i)
                 listDays.add(i-1,DayItem(dayWeekName = day.dayOfWeek().asShortText, dayOfMonth = day.dayOfMonth, month=day.monthOfYear,year=day.year) )
-                Log.wtf(TAG, "Day of month: ${day.dayOfMonth}\t day of week: ${day.dayOfWeek().asShortText}")
 
             }
             _listDates.update{ listDates ->

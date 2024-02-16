@@ -17,7 +17,7 @@ import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.screens.AuthScreen
 import com.mypurchasedproduct.presentation.screens.HomeScreen
 import com.mypurchasedproduct.presentation.screens.TermsAndConditionScreen
-import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.theme.MyPurchasedProductTheme
 import dagger.hilt.android.AndroidEntryPoint

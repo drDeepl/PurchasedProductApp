@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.presentation.screens.ViewModel
+package com.mypurchasedproduct.presentation.ViewModel
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

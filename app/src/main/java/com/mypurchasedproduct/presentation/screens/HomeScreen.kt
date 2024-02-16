@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,13 +42,13 @@ import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.screens.ViewModel.AddProductViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.AddPurchasedProductViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.CategoryViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.DateRowListViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.HomeViewModel
-import com.mypurchasedproduct.presentation.screens.ViewModel.PurchasedProductListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AddProductViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
+import com.mypurchasedproduct.presentation.ViewModel.CategoryViewModel
+import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
+import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
@@ -67,6 +68,7 @@ import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import kotlinx.coroutines.launch
+import org.joda.time.Instant
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -82,6 +84,14 @@ fun HomeScreen(
     categoryVM: CategoryViewModel = viewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = viewModel(),
 ) {
+
+    val dateRowState = dateRowListViewModel.state.collectAsState()
+    LaunchedEffect(dateRowState.value.selectedDate){
+        val selectedDay = dateRowState.value.selectedDate
+        val mills: Long = Instant.parse("${selectedDay.year}-${selectedDay.month}-${selectedDay.dayOfMonth}").millis
+        Log.wtf("HomeScreen", "selected date: ${mills}")
+    }
+
     val authState = authViewModel.state.collectAsState()
     if(!authState.value.isSignIn){
         appRouter.navigateTo(Screen.AuthScreen)
@@ -296,7 +306,7 @@ fun HomeScreen(
 
             }
             else if(getPurchasedProductsByDateState.isSuccessResponse){
-                TODO("VIEW PURCHASED PRODUCTS BY DATE")
+//                TODO("VIEW PURCHASED PRODUCTS BY DATE")
                 Scaffold(
                     topBar = {
                         Column {

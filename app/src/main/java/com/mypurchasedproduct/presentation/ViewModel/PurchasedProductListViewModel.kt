@@ -1,4 +1,4 @@
-package com.mypurchasedproduct.presentation.screens.ViewModel
+package com.mypurchasedproduct.presentation.ViewModel
 
 import android.os.Build
 import android.util.Log
@@ -19,6 +19,8 @@ import com.mypurchasedproduct.presentation.state.FindPurchasedProductsState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
@@ -41,6 +43,9 @@ class PurchasedProductListViewModel @Inject constructor(
     var getPurchasedProductsByDateState by mutableStateOf(FindPurchasedProductsState())
         private set
 
+    private var _pruchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
+    var purchasedProducts = _pruchasedProducts.asStateFlow()
+
     var totalCosts by mutableStateOf(AtomicInteger(0))
         private set
 
@@ -48,7 +53,8 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
 
-    fun getPurchasedProductCurrentUserByDate(timestamp: Long = Instant.now().epochSecond){
+    fun getPurchasedProductCurrentUserByDate(timestamp: Long = Instant.now().toEpochMilli()){
+        TODO("move response purchased product to _pruchasedProducts state")
         getPurchasedProductsByDateState = getPurchasedProductsByDateState.copy(
             isLoading = true
         )
