@@ -29,33 +29,26 @@ class PurchasedProductUseCase @Inject constructor(
         purchaseDate: Long = Instant.now().epochSecond
     ): NetworkResult<PurchasedProductResponse>{
         Log.wtf(TAG, "ADD PURCHASED PRODUCT")
-        if(addPurchasedProductModel.product != null){
-            if(addPurchasedProductModel.unitMeasurement > 0){
-                try{
-                    val productId: Long = addPurchasedProductModel.product.id
-                    val count: Int = addPurchasedProductModel.count.toInt()
-                    val unitMeasurement: Long = addPurchasedProductModel.unitMeasurement
-                    val price: Double = addPurchasedProductModel.price.toDouble()
+        if(addPurchasedProductModel.product != null && addPurchasedProductModel.measurementUnit != null){
+            try{
+                val productId: Long = addPurchasedProductModel.product.id
+                val count: Int = addPurchasedProductModel.count.toInt()
+                val unitMeasurement: Long = addPurchasedProductModel.measurementUnit.id
+                val price: Double = addPurchasedProductModel.price.toDouble()
 
-                    return purchasedProductRepository.addPurchasedProduct(
-                        AddPurchasedProductRequest(
-                            productId = productId,
-                            count = count,
-                            unitMeasurementId = unitMeasurement,
-                            price = price,
-                            purchaseDate = purchaseDate
-                        )
+                return purchasedProductRepository.addPurchasedProduct(
+                    AddPurchasedProductRequest(
+                        productId = productId,
+                        count = count,
+                        unitMeasurementId = unitMeasurement,
+                        price = price,
+                        purchaseDate = purchaseDate
                     )
-                }
-                catch (nfe: NumberFormatException){
-                    return NetworkResult.Error("есть пустые поля")
-
-                }
+                )
             }
-            else{
-                return NetworkResult.Error("не выбрана еденица измерения")
+            catch (nfe: NumberFormatException){
+                return NetworkResult.Error("есть незаполненные поля")
             }
-
         }
         else{
             return NetworkResult.Error("продукт не выбран")

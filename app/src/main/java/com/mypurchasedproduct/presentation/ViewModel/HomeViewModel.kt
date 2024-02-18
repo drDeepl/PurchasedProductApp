@@ -18,140 +18,40 @@ import com.mypurchasedproduct.presentation.state.CheckTokenState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val purchasedProductUseCase: PurchasedProductUseCase,
-    private val tokenUseCase: TokenUseCase,
 ): ViewModel(){
 
     private val TAG = this.javaClass.simpleName
 
-    var state by mutableStateOf(HomeState())
-        private set
-
-    var checkTokenState by mutableStateOf(CheckTokenState())
-        private set
-
-
-
-
-    var accessTokenItem by mutableStateOf(AccessTokenItem())
-        private set
-
-    var getPurchasedProductsState by mutableStateOf(PurchasedProductsListState(false,false,false,""))
-        private set
-
-
-
-
-
+    private val _state = MutableStateFlow(HomeState(isLoading=false, isError = false, error=""))
+    val state = _state.asStateFlow()
 
     init {
         Log.e(TAG, "INIT VIEW MODEL")
     }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun checkAccessToken(){
-        Log.wtf(TAG, "CHECK ACCESS TOKEN")
+    fun setLoadingState(isLoading: Boolean){
         viewModelScope.launch {
-            Log.e(TAG, "[START] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
-            state = state.copy(isLoading=true)
-            checkTokenState = checkTokenState.copy(
-                isActive = true
-            )
-            tokenUseCase.getAccessToken().take(1).collect{accessToken ->
-                if(accessToken != null){
-                    Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
-                    val accessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
-                    val difference: Long =System.currentTimeMillis() - accessTokenData.exp
-
-                    Log.wtf(TAG, "DIFFERENCE TIME TOKEN: ${difference}")
-                    Log.w(TAG, "Current timestamp ${System.currentTimeMillis()}")
-                    Log.w(TAG, "Timestamp from token ${Instant.ofEpochSecond(accessTokenData.exp.toLong()).epochSecond}")
-                    if( difference > 0){
-                        val refreshToken: String? = tokenUseCase.getRefreshToken().first()
-                        if(refreshToken != null){
-                            val networkResult = this.async { tokenUseCase.updateAccessToken(refreshToken)}.await()
-                            when(networkResult){
-                                is NetworkResult.Success ->{
-                                    val newAccessToken: String? = networkResult.data?.accessToken
-                                    val newAccessTokenData: TokenModel = tokenUseCase.getAccessTokenData(accessToken)
-                                    checkTokenState = checkTokenState.copy(
-                                        isActive = false,
-                                        isComplete = true,
-                                    )
-                                    accessTokenItem = accessTokenItem.copy(
-                                        accessToken = newAccessToken,
-                                        accessTokenData = newAccessTokenData
-                                    )
-                                    state = state.copy(
-                                        isSignIn = true,
-                                        isLoading=false
-                                    )
-                                }
-                                is NetworkResult.Error ->{
-                                    Log.wtf(TAG, "NETWORK ERROR TOKEN IS NOT EXISTS")
-                                    checkTokenState = checkTokenState.copy(
-                                        isActive = false,
-                                        isError = true,
-                                        error =  networkResult.message
-                                    )
-                                    state = state.copy(
-                                        isSignIn = false,
-                                        isLoading = false
-                                    )
-
-                                }
-                            }
-                        }
-
-                    }
-                    else{
-                        checkTokenState = checkTokenState.copy(
-                            isActive = false,
-                            isComplete = true,
-                        )
-                        accessTokenItem = accessTokenItem.copy(
-                            accessToken = accessToken,
-                            accessTokenData = accessTokenData
-                        )
-                        state = state.copy(
-                            isSignIn = true,
-                            isLoading = false
-                        )
-                    }
-                }
-                else{
-                    Log.wtf(TAG, "ACCESS TOKEN IS NOT EXISTS ${accessToken}")
-                    checkTokenState = checkTokenState.copy(
-                        isActive = false,
-                        isComplete = true,
-                    )
-                    state = state.copy(
-                        isSignIn = false,
-                        isLoading = false
-                    )
-
-                }
-
+            Log.i(TAG, "SET LOADING STATE")
+            _state.update { state ->
+                state.copy(isLoading = isLoading)
             }
-            Log.e(TAG, "[FINISH] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
         }
     }
-    fun setLoadingState(isLoading: Boolean){
-        Log.i(TAG, "SET LOADING STATE")
-        state = state.copy(
-            isLoading = isLoading
-        )
-    }
-
     fun defaultHomeState(){
-        state = HomeState()
+        viewModelScope.launch{
+            _state.update { state ->
+                HomeState(false, false, "")
+            }
+        }
     }
 }

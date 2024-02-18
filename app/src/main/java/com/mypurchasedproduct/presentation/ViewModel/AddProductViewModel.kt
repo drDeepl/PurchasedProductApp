@@ -26,6 +26,9 @@ class AddProductViewModel @Inject constructor(
 ): ViewModel() {
     private val TAG: String = this.javaClass.simpleName
 
+
+
+
     var getProductsState by mutableStateOf(FindProductsState())
         private set
 

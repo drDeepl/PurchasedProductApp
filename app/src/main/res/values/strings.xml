@@ -12,4 +12,5 @@
     <string name="signup_btn_text">зарегистрироваться</string>
     <string name="login_btn_text">войти</string>
     <string name="after_success_signup">продолжить</string>
+    <string name="not_add_product">необходимо выбрать продукт</string>
 </resources>

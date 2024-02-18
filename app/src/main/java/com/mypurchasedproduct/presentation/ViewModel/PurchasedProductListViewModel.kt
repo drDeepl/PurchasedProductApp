@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.MessageResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.data.repository.PurchasedProductRepository
+import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.DeletePurchasedProductState
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.joda.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
@@ -33,17 +35,21 @@ class PurchasedProductListViewModel @Inject constructor(
     private val TAG: String = this.javaClass.simpleName
 
 
+    private var _state = MutableStateFlow(PurchasedProductsListState(false, true, false, ""))
+
+    var state = _state.asStateFlow()
+
+    private var _pruchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
+    var purchasedProducts = _pruchasedProducts.asStateFlow()
+
+
+
     var deletePurchasedProductState by mutableStateOf(DeletePurchasedProductState())
         private set
 
     var editPurchasedProductState by mutableStateOf(EditPurchasedProductState())
 
-    private var _purchasedProductsListState = MutableStateFlow(PurchasedProductsListState(false, true, false, ""))
 
-    var purchasedProductsListState = _purchasedProductsListState.asStateFlow()
-
-    private var _pruchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
-    var purchasedProducts = _pruchasedProducts.asStateFlow()
 
     var totalCosts by mutableStateOf(AtomicInteger(0))
         private set
@@ -51,11 +57,39 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
 
-
+    fun toAddPurchasedProduct(addPurchasedProductModel: AddPurchasedProductModel, timestamp:Long){
+        viewModelScope.launch {
+            _state.update { state ->
+                state.copy(isLoading = true)
+            }
+            Log.d(TAG, "TO ADD PRODUCT")
+            val result = purchasedProductUseCase.addPurchasedProduct(addPurchasedProductModel, timestamp)
+            when(result){
+                is NetworkResult.Success ->{
+                    result.data?.let {
+                        _pruchasedProducts.update { purchasedProducts ->
+                            purchasedProducts.plus(it)
+                        }
+                    }
+                    _state.update { state ->
+                        state.copy(isLoading = false)
+                    }
+                }
+                is NetworkResult.Error ->{
+                    _state.update { state ->
+                        state.copy(
+                            isLoading = false,
+                            isError = true,
+                            error = result.message.toString())
+                    }
+                }
+            }
+        }
+    }
     fun getPurchasedProductCurrentUserByDate(timestamp: Long){
         viewModelScope.launch{
             Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
-            _purchasedProductsListState.update{ purchasedProductsListState ->
+            _state.update{ purchasedProductsListState ->
                 purchasedProductsListState.copy(
                     isLoading = true,
                 )
@@ -66,7 +100,7 @@ class PurchasedProductListViewModel @Inject constructor(
                     _pruchasedProducts.update { purchasedProducts ->
                         purchasedProducts
                     }
-                    _purchasedProductsListState.update{ purchasedProductsListState ->
+                    _state.update{ purchasedProductsListState ->
                         purchasedProductsListState.copy(
                             isLoading = false,
                             isUpdate = false
@@ -75,7 +109,7 @@ class PurchasedProductListViewModel @Inject constructor(
                 }
 
                 is NetworkResult.Error ->{
-                    _purchasedProductsListState.update{ purchasedProductsListState ->
+                    _state.update{ purchasedProductsListState ->
                         purchasedProductsListState.copy(
                             isLoading = false,
                             isUpdate = false,

@@ -56,6 +56,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -113,8 +114,11 @@ import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
+import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
@@ -132,8 +136,9 @@ import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.joda.time.Instant
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
+
+private val TAG = "AppComponent"
 
 @Composable
 fun NormalTextComponent(value: String, textAlign: TextAlign = androidx.compose.ui.text.style.TextAlign.Center){
@@ -766,7 +771,7 @@ fun PurchasedProductViewComponent(
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
-        val listState = viewModel.purchasedProductsListState.collectAsState()
+        val listState = viewModel.state.collectAsState()
         val purchasedProducts = viewModel.purchasedProducts.collectAsState()
         if(listState.value.isLoading){
             LoadScreen()
@@ -1054,30 +1059,29 @@ fun MyTextFieldClickable(selectedValue: String, isExpanded: Boolean, onClick: (B
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductsModalBottomSheet(
-    products: List<ProductResponse>,
-    openBottomSheet: Boolean,
-    setStateButtomSheet: (Boolean) -> Unit,
+fun ProductModalBottomSheet(
+    viewModel: ProductListBottomSheetViewModel,
     onClickAddProduct: () -> Unit,
     onClickProductItem: (product: ProductResponse) -> Unit
 ) {
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
-
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
+    val state = viewModel.state.collectAsState()
+    val products = viewModel.products.collectAsState()
 
     // Sheet content
-    if (openBottomSheet) {
+    if (state.value.isActive) {
         val windowInsets = if (edgeToEdgeEnabled)
             WindowInsets(0) else BottomSheetDefaults.windowInsets
 
         ModalBottomSheet(
             modifier = Modifier.fillMaxSize(),
             containerColor=Color.White,
-            onDismissRequest = { setStateButtomSheet(false)},
+            onDismissRequest = { },
             sheetState = bottomSheetState,
             windowInsets = windowInsets
         ) {
@@ -1087,7 +1091,7 @@ fun ProductsModalBottomSheet(
                     onClick = {
                         scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
                             if (!bottomSheetState.isVisible) {
-                                setStateButtomSheet(false)
+                                viewModel.setActive(false)
                                 onClickAddProduct()
                             }
                         }
@@ -1100,7 +1104,7 @@ fun ProductsModalBottomSheet(
             LazyColumn(
                 userScrollEnabled = true,
             ) {
-                items(products){product ->
+                items(products.value){product ->
                     TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name, fontSize = 16.sp) }
                     Divider(thickness = 2.dp)
                 }
@@ -1110,32 +1114,6 @@ fun ProductsModalBottomSheet(
 }
 
 
-@Composable
-fun ProductsButtonsList(
-    products: List<ProductResponse>,
-    onClickAddProduct: () -> Unit,
-    onClickProductItem: (product: ProductResponse) -> Unit )
-{
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-        Text(text="Нет нужного продукта?")
-        TextButton(
-            onClick = {onClickAddProduct()}
-        ) {
-            Text("добавить", fontSize=16.sp)
-        }
-    }
-    Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness=2.dp)
-    LazyColumn(
-        reverseLayout = true,
-        userScrollEnabled = true,
-    ) {
-        items(products){product ->
-            TextButton(modifier = Modifier.fillMaxWidth(), onClick = { onClickProductItem(product) }) {Text(product.name, fontSize = 16.sp) }
-            Divider(thickness = 2.dp)
-        }
-    }
-
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1144,7 +1122,7 @@ fun FormModalBottomSheet(
     setStateButtomSheet: (Boolean) -> Unit,
     content: @Composable () -> Unit)
 {
-    Log.wtf("FormModalBottomSheet", "FormModalBottomSheet")
+    Log.wtf(TAG, "FormModalBottomSheet")
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
@@ -1274,31 +1252,6 @@ fun ErrorMessageDialog(headerText: String, description: String, onDismiss: () ->
     }
 }
 
-@Composable
-fun MeasurementUnitsScrollableRow(
-    measurementUnits: List<MeasurementUnitResponse>,
-    onClickButton: (id:Long) -> Unit,
-    selectedUnitId: Long? = null ){
-        LazyRow(
-            userScrollEnabled = true,
-            horizontalArrangement = Arrangement.SpaceAround
-        ){
-
-            items(items = measurementUnits){measurementUnit->
-                OutlinedButton(onClick = {
-                    onClickButton(measurementUnit.id)
-                }
-                ) {
-                    Text(text = measurementUnit.name)
-                    if(selectedUnitId === measurementUnit.id){
-                        Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-                    }
-                }
-
-            }
-        }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: () -> Unit, content: @Composable () -> Unit){
@@ -1333,65 +1286,116 @@ fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: (
 }
 
 @Composable
+fun MeasurementUnitListComponent(
+    viewModel: MeasurementUnitsListViewModel,
+    onClick: (it: MeasurementUnitResponse)-> Unit,
+    modifier: Modifier = Modifier
+){
+    Log.d(TAG, "MeasurementUnitListComponent")
+    val state = viewModel.state.collectAsState()
+    val measurementUnits  = viewModel.measurementUnits.collectAsState()
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    LazyRow(
+        modifier = modifier
+            .fillMaxWidth(0.95f)
+            .padding(vertical = 4.dp),
+        state = listState,
+        userScrollEnabled = true,
+        horizontalArrangement = Arrangement.SpaceAround,
+    ){
+        itemsIndexed(items=measurementUnits.value){
+            index, item: MeasurementUnitResponse ->
+            OutlinedButton(
+                onClick = {
+                    scope.launch{
+                        viewModel.setSelectedMeasurementUnit(item)
+                        onClick(item)
+                    }
+                }
+            ){
+                Text(text=item.name)
+                if(state.value.selectedMeasurementUnit?.id == item.id){
+                    Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun AddPurchasedProductFormComponent(
-    products: List<ProductResponse>,
-    measurementUnits: List<MeasurementUnitResponse>,
+    addPurchasedProductVM: AddPurchasedProductFormViewModel,
+    productListBottomSheetVM: ProductListBottomSheetViewModel,
+    measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit)
 {
-
+    val scope = rememberCoroutineScope()
     var openProductBottomSheet by remember {
         mutableStateOf(false)
     }
+    val addPurchasedProductState = addPurchasedProductVM.state.collectAsState()
+    val productState = productListBottomSheetVM.state.collectAsState()
+    val measurementUnitState = measurementUnitsListVM.state.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var count by remember { mutableStateOf("") }
-        var price by remember {mutableStateOf("")}
-            var currentMeasurementUnitId by remember {
-                mutableStateOf(1)
-            }
-            var productName by remember {mutableStateOf("выбери продукт")}
-            var selectedProduct by remember { mutableStateOf(ProductResponse(0,"",0))}
-            ProductsModalBottomSheet(
-                products = products,
-                openBottomSheet = openProductBottomSheet,
-                setStateButtomSheet = {
-                    openProductBottomSheet = it
-                                      },
-                onClickAddProduct =onClickAddProduct,
+        if(productState.value.isLoading){
+            LinearProgressIndicator()
+        }
+        else {
+            ProductModalBottomSheet(
+                viewModel = productListBottomSheetVM,
+                onClickAddProduct = onClickAddProduct,
                 onClickProductItem = {
-                    productName = it.name
-                    selectedProduct = it
-                    openProductBottomSheet = false
+                    scope.launch {
+                        addPurchasedProductVM.setProduct(it)
+                        productListBottomSheetVM.setActive(false)
+                    }
                 }
             )
-                MyTextFieldClickable(
-                    selectedValue = productName,
-                    isExpanded = openProductBottomSheet,
-                    onClick = {
-                        openProductBottomSheet = it
-                    })
-
-            MyTextField(
-                textValue = count,
-                labelValue = "количество",
-                onValueChange = {count = it},
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                )
-            MeasurementUnitsScrollableRow(
-                measurementUnits = measurementUnits,
-                onClickButton = {currentMeasurementUnitId = it.toInt()},
-                selectedUnitId = currentMeasurementUnitId.toLong()
+            MyTextFieldClickable(
+                selectedValue = addPurchasedProductState.value.product?.let{it.name} ?: "",
+                isExpanded = productState.value.isActive,
+                onClick = {
+                    productListBottomSheetVM.setActive(it)
+                }
             )
+
+        }
+        MyTextField(
+            textValue = addPurchasedProductState.value.count,
+            labelValue = "количество",
+            onValueChange = {
+                scope.launch {
+                    addPurchasedProductVM.setCount(it)
+                }
+                            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            )
+        if(measurementUnitState.value.isLoading){
+            LinearProgressIndicator()
+        }
+        else {
+            MeasurementUnitListComponent(
+                viewModel = measurementUnitsListVM,
+                onClick = { addPurchasedProductVM.setMeasurementUnit(it) }
+            )
+        }
             MyTextField(
-                textValue = price,
+                textValue = addPurchasedProductState.value.price,
                 labelValue = "цена",
-                onValueChange = {price = it},
+                onValueChange = {
+                    scope.launch {
+                        addPurchasedProductVM.setPrice(it)
+                    }
+                                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
             Row(
@@ -1401,11 +1405,11 @@ fun AddPurchasedProductFormComponent(
             ) {
                 SecondaryButtonComponent(
                     value = "добавить",
-                    onClickButton = {onConfirm(AddPurchasedProductModel(
-                        selectedProduct,
-                        count,
-                        currentMeasurementUnitId.toLong(),
-                        price))},
+                    onClickButton = {
+                        scope.launch {
+                            onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
+                        }
+                                    },
                     modifier = Modifier.widthIn(150.dp)
                 )
                 SecondaryButtonComponent(
@@ -1427,84 +1431,86 @@ fun EditPurchasedProductFormComponent(
     purchasedProduct: PurchasedProductResponse)
 {
 
-    var openProductBottomSheet by remember {
-        mutableStateOf(false)
-    }
-    Column(
-        modifier = Modifier
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        var count by remember { mutableStateOf(purchasedProduct.count.toString()) }
-        var price by remember {mutableStateOf(purchasedProduct.price.toString())}
-        var currentMeasurementUnitId by remember {
-            mutableStateOf(purchasedProduct.unitMeasurement.id)
-        }
-        var productName by remember {mutableStateOf(purchasedProduct.product.name)}
-        var selectedProduct by remember { mutableStateOf(purchasedProduct.product)}
-        ProductsModalBottomSheet(
-            products = products,
-            openBottomSheet = openProductBottomSheet,
-            setStateButtomSheet = {
-                openProductBottomSheet = it
-            },
-            onClickAddProduct =onClickAddProduct,
-            onClickProductItem = {
-                productName = it.name
-                selectedProduct = it
-                openProductBottomSheet = false
-            }
-        )
-        MyTextFieldClickable(
-            selectedValue = productName,
-            isExpanded = openProductBottomSheet,
-            onClick = {
-                openProductBottomSheet = it
-            })
+    // TODO: REDESIGN
 
-        MyTextField(
-            textValue = count,
-            labelValue = "количество",
-            onValueChange = {count = it},
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-        )
-        MeasurementUnitsScrollableRow(
-            measurementUnits = measurementUnits,
-            onClickButton = {currentMeasurementUnitId = it},
-            selectedUnitId = currentMeasurementUnitId.toLong()
-        )
-        MyTextField(
-            textValue = price,
-            labelValue = "цена",
-            onValueChange = {price = it},
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            SecondaryButtonComponent(
-                value = "изенить",
-                onClickButton = {onConfirm(
-                    EditPurchasedProductModel(
-                        purchasedProduct.id,
-                        selectedProduct,
-                        count,
-                        purchasedProduct.userId,
-                        currentMeasurementUnitId.toLong(),
-                        price,
-                        purchasedProduct.purchaseDate))},
-                modifier = Modifier.widthIn(150.dp)
-            )
-            SecondaryButtonComponent(
-                value = "отмена",
-                onClickButton = onDismiss,
-                modifier = Modifier.widthIn(150.dp)
-            )
-        }
-    }
+//    var openProductBottomSheet by remember {
+//        mutableStateOf(false)
+//    }
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize(),
+//        verticalArrangement = Arrangement.Center,
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        var count by remember { mutableStateOf(purchasedProduct.count.toString()) }
+//        var price by remember {mutableStateOf(purchasedProduct.price.toString())}
+//        var currentMeasurementUnitId by remember {
+//            mutableStateOf(purchasedProduct.unitMeasurement.id)
+//        }
+//        var productName by remember {mutableStateOf(purchasedProduct.product.name)}
+//        var selectedProduct by remember { mutableStateOf(purchasedProduct.product)}
+//        ProductModalBottomSheet(
+//            products = products,
+//            openBottomSheet = openProductBottomSheet,
+//            setStateButtomSheet = {
+//                openProductBottomSheet = it
+//            },
+//            onClickAddProduct =onClickAddProduct,
+//            onClickProductItem = {
+//                productName = it.name
+//                selectedProduct = it
+//                openProductBottomSheet = false
+//            }
+//        )
+//        MyTextFieldClickable(
+//            selectedValue = productName,
+//            isExpanded = openProductBottomSheet,
+//            onClick = {
+//                openProductBottomSheet = it
+//            })
+//
+//        MyTextField(
+//            textValue = count,
+//            labelValue = "количество",
+//            onValueChange = {count = it},
+//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+//        )
+//        MeasurementUnitsScrollableRow(
+//            measurementUnits = measurementUnits,
+//            onClickButton = {currentMeasurementUnitId = it},
+//            selectedUnitId = currentMeasurementUnitId.toLong()
+//        )
+//        MyTextField(
+//            textValue = price,
+//            labelValue = "цена",
+//            onValueChange = {price = it},
+//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+//        )
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            verticalAlignment = Alignment.CenterVertically,
+//            horizontalArrangement = Arrangement.SpaceAround
+//        ) {
+//            SecondaryButtonComponent(
+//                value = "изенить",
+//                onClickButton = {onConfirm(
+//                    EditPurchasedProductModel(
+//                        purchasedProduct.id,
+//                        selectedProduct,
+//                        count,
+//                        purchasedProduct.userId,
+//                        currentMeasurementUnitId.toLong(),
+//                        price,
+//                        purchasedProduct.purchaseDate))},
+//                modifier = Modifier.widthIn(150.dp)
+//            )
+//            SecondaryButtonComponent(
+//                value = "отмена",
+//                onClickButton = onDismiss,
+//                modifier = Modifier.widthIn(150.dp)
+//            )
+//        }
+//    }
 }
 
 @Composable
@@ -1783,16 +1789,6 @@ fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modif
         val days = viewModel.listDates.collectAsState()
         Log.wtf("DaysRowComponent", "count days: ${days.value.size}")
 
-//        TODO("DELETE AFTER TEST")
-//        Text(
-//            modifier = Modifier.padding(vertical=8.dp),
-//            text="15 февраля 2024",
-//            fontSize=18.sp,
-//            fontWeight = FontWeight.SemiBold,
-//            textAlign= TextAlign.Start
-//
-//        )
-
         val listState = rememberLazyListState(initialFirstVisibleItemIndex=state.value.selectedDate.dayOfMonth-3)
         val scope = rememberCoroutineScope()
 
@@ -1816,25 +1812,3 @@ fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modif
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun PreviewDaysRowComponent(){
-//    val days: List<DayItem> = listOf(
-//        DayItem(dayWeekName="пн.", dayOfMonth=10, month=2,2024),
-//        DayItem(dayWeekName="вт.", dayOfMonth=11, month=2,2024),
-//        DayItem(dayWeekName="ср.", dayOfMonth=12, month=2,2024),
-//        DayItem(dayWeekName="чт.", dayOfMonth=13, month=2,2024),
-//        DayItem(dayWeekName="пт.", dayOfMonth=14, month=2,2024),
-//        DayItem(dayWeekName="сб.", dayOfMonth=15, month=2,2024),
-//        DayItem(dayWeekName="вс.", dayOfMonth=16, month=2,2024),
-//        )
-//    Surface(modifier= Modifier
-//        .fillMaxSize()
-//        .background(Color.White)) {
-//        DaysRowComponent(days)
-//
-//    }
-//
-//
-//}

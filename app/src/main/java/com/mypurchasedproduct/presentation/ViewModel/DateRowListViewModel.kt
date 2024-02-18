@@ -53,6 +53,10 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
         }
     }
 
+    fun getSelectedDayTimestamp(): Long{
+        val selectedDay = state.value.selectedDate
+        return Instant.parse("${selectedDay.year}-${selectedDay.month}-${selectedDay.dayOfMonth}").millis
+    }
     fun onSelectDay(day:DayItem){
         viewModelScope.launch {
             Log.v(TAG, "onSelectDay")
