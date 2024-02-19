@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
@@ -35,7 +36,7 @@ class MainActivity: ComponentActivity() {
         setContent {
             val authState = authViewModel.state.collectAsState()
             LaunchedEffect(authState.value.isSignIn){
-                Log.wtf(TAG, "LAUCNHED EFFECT")
+                Log.wtf(TAG, "LAUNCHED EFFECT")
                 if(authState.value.isSignIn){
                     PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
                 }
@@ -45,12 +46,10 @@ class MainActivity: ComponentActivity() {
             }
             MyPurchasedProductTheme {
                 Surface(modifier= Modifier.fillMaxSize(), color = Color.White) {
-                    Crossfade(targetState = PurchasedProductAppRouter.currentScreen, label = "",
+                    Crossfade(
+                        targetState = PurchasedProductAppRouter.currentScreen, label = "",
                     ) { currentState ->
                         when(currentState.value){
-                            is Screen.LoadScreen ->{
-                                LoadScreen()
-                            }
                             is Screen.TermsAndConditionsScreen ->{
                                 TermsAndConditionScreen()
                             }

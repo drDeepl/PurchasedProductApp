@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(
-    authViewModel: AuthViewModel = viewModel(),
+    authViewModel: AuthViewModel,
     signUpViewModel: SignUpViewModel = viewModel(),
     signInViewModel: SignInViewModel = viewModel(),
     appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
@@ -51,11 +51,10 @@ fun AuthScreen(
     val signInState = signInViewModel.signInState.collectAsState()
     val signUpState = signUpViewModel.signUpState.collectAsState()
     val scope = rememberCoroutineScope()
-    LoadScreen(isActive = authState.value.isLoading)
+    LoadScreen(isActive=authState.value.isLoading)
     LaunchedEffect(signUpState.value.isSignUpSuccess){
         Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
         if(signUpState.value.isSignUpSuccess){
-            authViewModel.setLoading(true)
             signInViewModel.onUsernameChange(signUpState.value.username)
             signInViewModel.onPasswordChange(signUpState.value.password)
             signInViewModel.toSignIn()

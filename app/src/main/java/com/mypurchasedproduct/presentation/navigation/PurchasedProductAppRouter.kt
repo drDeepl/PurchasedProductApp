@@ -9,12 +9,10 @@ sealed class Screen() {
     object HomeScreen: Screen()
     object AuthScreen: Screen()
 
-    object LoadScreen: Screen()
-
 }
 
 object PurchasedProductAppRouter{
-    val currentScreen: MutableState<Screen> = mutableStateOf(Screen.LoadScreen)
+    val currentScreen: MutableState<Screen> = mutableStateOf(Screen.AuthScreen)
 
     fun navigateTo(destination: Screen){
         currentScreen.value = destination

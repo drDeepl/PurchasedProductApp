@@ -56,8 +56,8 @@ class AuthViewModel  @Inject constructor(
     var animated = mutableStateOf(false)
 
     init{
-        Log.wtf(TAG, "INIT VIEW MODEL")
         viewModelScope.launch {
+            Log.wtf(TAG, "INIT VIEW MODEL")
             checkAccessToken()
         }
     }
@@ -88,7 +88,6 @@ class AuthViewModel  @Inject constructor(
                         }
                         _state.update { state ->
                             state.copy(
-                                isLoading = false,
                                 isSignIn = true
                             )
                         }
@@ -124,6 +123,11 @@ class AuthViewModel  @Inject constructor(
             _tokenState.update { tokenState ->
                 tokenState.copy(isActive = true)
             }
+            _state.update { state ->
+                state.copy(
+                    isLoading = true
+                )
+            }
             tokenUseCase.getAccessToken().take(1).collect{accessToken ->
                 if(accessToken != null){
                     Log.wtf(TAG, "ACCESS TOKEN IS EXISTS ${accessToken}")
@@ -137,7 +141,7 @@ class AuthViewModel  @Inject constructor(
                     }
                     else{
                         _state.update { state ->
-                            state.copy(isLoading = false, isSignIn = true)
+                            state.copy(isSignIn = true)
                         }
                         _tokenState.update { tokenState ->
                             tokenState.copy(
@@ -162,9 +166,9 @@ class AuthViewModel  @Inject constructor(
                         )
                     }
                 }
-                _state.update { state ->
-                    state.copy(isLoading = false)
-                }
+            }
+            _state.update {state ->
+            state.copy(isLoading = false)
             }
             Log.e(TAG, "[FINISH] VIEW MODEL SCOPE : CHECK ACCESS TOKEN")
         }
