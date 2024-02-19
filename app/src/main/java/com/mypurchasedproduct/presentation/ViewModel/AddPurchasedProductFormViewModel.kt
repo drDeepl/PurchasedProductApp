@@ -28,31 +28,39 @@ import org.joda.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
-class AddPurchasedProductFormViewModel @Inject constructor(
-    private val purchasedProductUseCase: PurchasedProductUseCase,
-    private val measurementUnitUseCase: MeasurementUnitUseCase
-) : ViewModel(){
+class AddPurchasedProductFormViewModel @Inject constructor() : ViewModel(){
+
     private val TAG = this.javaClass.simpleName
 
     private val _state = MutableStateFlow(AddPurchasedProductState())
     val state = _state.asStateFlow()
 
 
-    var addPurchasedProductState by mutableStateOf(AddPurchasedProductState())
-        private set
 
-    var addPurchasedProductFormData by mutableStateOf( AddPurchasedProductItem())
-        private set
+    fun setSuccessState(){
+        viewModelScope.launch {
+            Log.d(TAG, "SET SUCCESS")
+            _state.update { state ->
+                state.copy(isSuccess = true)
+            }
+        }
+    }
 
-    var productsBottomSheetState by mutableStateOf(ProductBottomSheetState())
+    fun setErrorState(msg: String){
+        viewModelScope.launch {
+            Log.d(TAG, "SET ERROR")
+            _state.update { state ->
+                state.copy(isError = true)
+            }
+        }
+    }
 
-    var findMeasurementUnits by mutableStateOf(FindMeasurementUnitsState())
-        private set
-
-    private var  measurementUnits = mutableStateListOf<MeasurementUnitResponse>()
-
-
-
+    fun setDefaultState(){
+        viewModelScope.launch {
+            Log.d(TAG, "SET DEFAULT STATE")
+            _state.value = AddPurchasedProductState()
+        }
+    }
 
    fun getAddPurchasedProductModel(): AddPurchasedProductModel{
         return AddPurchasedProductModel(
@@ -103,81 +111,9 @@ class AddPurchasedProductFormViewModel @Inject constructor(
     fun setActiveAddPurchasedProductForm(isActive: Boolean){
         Log.wtf(TAG, "SET ACTIVE ADD PURCHASED PRODUCT")
         viewModelScope.launch {
-            addPurchasedProductState = addPurchasedProductState.copy(
-                isActive = isActive
-            )
+            _state.update{state ->
+                state.copy(isActive = isActive)
+            }
         }
-
-
     }
 }
-
-
-
-//    fun toAddPurchasedProduct(addPurchasedProductModel: AddPurchasedProductModel){
-////        product: ProductResponse, count: String, price: String, measurementUnitId: Int
-//        Log.wtf(TAG, "TO ADD PURCHASED PRODUCT")
-//        viewModelScope.launch {
-//            addPurchasedProductState = addPurchasedProductState.copy(
-//                isLoading = true
-//            )
-//            val networkResult =  purchasedProductUseCase.addPurchasedProduct(addPurchasedProductModel)
-//            when(networkResult){
-//                is NetworkResult.Success ->{
-//                    addPurchasedProductState = addPurchasedProductState.copy(
-//                        isLoading = false,
-//                        isSuccess = true,
-//                        product = networkResult.data
-//                    )
-//                }
-//
-//                is NetworkResult.Error ->{
-//                    addPurchasedProductState = addPurchasedProductState.copy(
-//                        isLoading = false,
-//                        isError = true,
-//                        error = networkResult.message
-//                    )
-//                }
-//            }
-//        }
-//
-//    }
-
-//    fun findMeasurementUnits(){
-//        viewModelScope.launch {
-//            Log.wtf(TAG, "GET MEASUREMENT UNITS")
-//            findMeasurementUnits = findMeasurementUnits.copy(
-//                isLoading = true
-//            )
-//            val measurementUnitsResponse = measurementUnitUseCase.getMeasurementUnits()
-//            when(measurementUnitsResponse){
-//                is NetworkResult.Success ->{
-//                    measurementUnitsResponse.data?.let {
-//                        if(measurementUnits.size != it.size){
-//                            measurementUnits.addAll(it)
-//                        }
-//                    }
-//                    findMeasurementUnits = findMeasurementUnits.copy(
-//                        isLoading = false,
-//                        isSuccess = true,
-//                        isUpdating = false,
-//                    )
-//
-//                }
-//                is NetworkResult.Error -> {
-//                    findMeasurementUnits = findMeasurementUnits.copy(
-//                        isLoading = false,
-//                        isError = true,
-//                        isUpdating = false,
-//                        error = measurementUnitsResponse.message
-//                    )
-//                }
-//            }
-//        }
-//    }
-//
-//    fun getMeasurementUnits(): List<MeasurementUnitResponse>{
-//        Log.wtf(TAG, "GET MEASUREMENT UNITS")
-//        return measurementUnits
-//    }
-//}

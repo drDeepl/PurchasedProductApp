@@ -15,6 +15,7 @@ import com.mypurchasedproduct.presentation.state.PurchasedProductsListState
 import com.mypurchasedproduct.presentation.state.HomeState
 import com.mypurchasedproduct.presentation.state.AccessTokenItem
 import com.mypurchasedproduct.presentation.state.CheckTokenState
+import com.mypurchasedproduct.presentation.state.MessageState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
@@ -36,9 +37,42 @@ class HomeViewModel @Inject constructor(
     private val _state = MutableStateFlow(HomeState(isLoading=false, isError = false, error=""))
     val state = _state.asStateFlow()
 
+    private val _msgState = MutableStateFlow(MessageState())
+    val msgState = _msgState.asStateFlow()
+
     init {
         Log.e(TAG, "INIT VIEW MODEL")
     }
+
+
+    fun setSuccessMsgState(header:String, onConfirm: () -> Unit){
+        viewModelScope.launch {
+            Log.d(TAG, "SET SUCCESS MSG STATE")
+            _msgState.value = MessageState(isSuccess = true, header=header, onConfirm = onConfirm)
+        }
+
+    }
+
+    fun setErrorMsgState(header:String, description: String, onConfirm: () -> Unit, onDismiss: () -> Unit){
+        viewModelScope.launch {
+            Log.d(TAG, "SET ERROR MSG STATE")
+            _msgState.value = MessageState(
+                isError = true,
+                header=header,
+                description=description,
+                onConfirm = onConfirm,
+                onDismiss=onDismiss
+            )
+        }
+
+    }
+    fun setDefaultMsgState(){
+        viewModelScope.launch {
+            Log.d(TAG, "SET DEFAULT MSG STATE")
+            _msgState.value = MessageState()
+        }
+    }
+
     fun setLoadingState(isLoading: Boolean){
         viewModelScope.launch {
             Log.i(TAG, "SET LOADING STATE")

@@ -22,8 +22,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.joda.time.Instant
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.DoubleAccumulator
+import java.util.concurrent.atomic.DoubleAdder
+import java.util.function.DoubleBinaryOperator
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,25 +41,36 @@ class PurchasedProductListViewModel @Inject constructor(
 
     var state = _state.asStateFlow()
 
-    private var _pruchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
-    var purchasedProducts = _pruchasedProducts.asStateFlow()
+    private var _purchasedProducts = MutableStateFlow<List<PurchasedProductResponse>>(listOf())
+    var purchasedProducts = _purchasedProducts.asStateFlow()
+
+    private val _deletePurchasedProductState = MutableStateFlow(DeletePurchasedProductState())
+    val deletePurchasedProductState = _deletePurchasedProductState.asStateFlow()
 
 
 
-    var deletePurchasedProductState by mutableStateOf(DeletePurchasedProductState())
-        private set
+//    var deletePurchasedProductState by mutableStateOf(DeletePurchasedProductState())
+//        private set
 
     var editPurchasedProductState by mutableStateOf(EditPurchasedProductState())
 
 
 
-    var totalCosts by mutableStateOf(AtomicInteger(0))
-        private set
+    private val _totalCosts = MutableStateFlow(DoubleAccumulator(DoubleBinaryOperator { left, right ->  left + right},(0.0)))
+    val totalCosts = _totalCosts.asStateFlow()
+
+//
+//    var totalCosts by mutableStateOf(AtomicInteger(0))
+//        private set
 
 
 
 
-    fun toAddPurchasedProduct(addPurchasedProductModel: AddPurchasedProductModel, timestamp:Long){
+    fun toAddPurchasedProduct(
+        addPurchasedProductModel: AddPurchasedProductModel,
+        timestamp:Long,
+        onSuccess: (header:String) -> Unit,
+        ){
         viewModelScope.launch {
             _state.update { state ->
                 state.copy(isLoading = true)
@@ -67,10 +80,12 @@ class PurchasedProductListViewModel @Inject constructor(
             when(result){
                 is NetworkResult.Success ->{
                     result.data?.let {
-                        _pruchasedProducts.update { purchasedProducts ->
+                        _purchasedProducts.update { purchasedProducts ->
                             purchasedProducts.plus(it)
                         }
+                        _totalCosts.value.accumulate(it.price)
                     }
+                    onSuccess("запись добавлена!")
                     _state.update { state ->
                         state.copy(isLoading = false)
                     }
@@ -88,7 +103,6 @@ class PurchasedProductListViewModel @Inject constructor(
     }
     fun getPurchasedProductCurrentUserByDate(timestamp: Long){
         viewModelScope.launch{
-            Log.wtf(TAG, "GET PURCHASED PRODUCT CURRENT USER")
             _state.update{ purchasedProductsListState ->
                 purchasedProductsListState.copy(
                     isLoading = true,
@@ -97,15 +111,14 @@ class PurchasedProductListViewModel @Inject constructor(
             val networkResult = purchasedProductRepository.getPurchasedProductsByDate(timestamp)
             when(networkResult){
                 is NetworkResult.Success ->{
-                    _pruchasedProducts.update { purchasedProducts ->
-                        purchasedProducts
-                    }
+                    _purchasedProducts.value = networkResult.data ?: listOf()
                     _state.update{ purchasedProductsListState ->
                         purchasedProductsListState.copy(
                             isLoading = false,
                             isUpdate = false
                         )
                     }
+                    calculateTotalCosts(networkResult.data ?: listOf())
                 }
 
                 is NetworkResult.Error ->{
@@ -126,11 +139,16 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
     fun onSwipeDeletePurchasedProduct(purchasedProduct: PurchasedProductResponse){
-        Log.wtf(TAG, "ON SWIPE DELETE PURCHASED PRODUCT")
-        deletePurchasedProductState = deletePurchasedProductState.copy(
-            isActive = true,
-            purchasedProduct = purchasedProduct
-        )
+        viewModelScope.launch {
+            Log.wtf(TAG, "ON SWIPE DELETE PURCHASED PRODUCT")
+            _deletePurchasedProductState.update {deletePurchasedProductState ->
+                deletePurchasedProductState.copy(
+                    isActive = true,
+                    purchasedProduct = purchasedProduct
+                )
+            }
+
+        }
     }
 
     fun onSwipeEditPurchasedProduct(purchasedProduct: PurchasedProductResponse){
@@ -181,52 +199,87 @@ class PurchasedProductListViewModel @Inject constructor(
 
 
     fun onDismissDeletePurchasedProduct(){
-            Log.wtf(TAG, "ON DISMISS DELETE PURCHASED PRODUCT")
-            deletePurchasedProductState = deletePurchasedProductState.copy(
-                isActive = false,
-                purchasedProduct = null
-            )
-    }
-
-    fun setDefaultDeletePurchasedProductState(){
-        Log.wtf(TAG, "SET DEFAULT DELETE PURCHASED PRODUCT STATE")
-        deletePurchasedProductState = DeletePurchasedProductState()
-    }
-
-
-    fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
-        Log.wtf(TAG, "CALCULATE TOTAL COSTS")
-        totalCosts = AtomicInteger(0)
         viewModelScope.launch {
-            purchasedProducts.forEach{
-                totalCosts.addAndGet(it.price.toInt())
+            Log.wtf(TAG, "ON DISMISS DELETE PURCHASED PRODUCT")
+            _deletePurchasedProductState.update {deletePurchasedProductState ->
+                deletePurchasedProductState.copy(
+                    isActive = false,
+                    purchasedProduct = null
+                )
             }
 
         }
     }
 
-    fun deletePurchasedProduct(){
-        Log.wtf(TAG, "DELETE PURCHASED PRODUCT")
-        deletePurchasedProductState = deletePurchasedProductState.copy(
-            isLoading = true
-        )
+    fun setDefaultDeletePurchasedProductState(){
         viewModelScope.launch {
-            val purchasedProduct: PurchasedProductResponse? = deletePurchasedProductState.purchasedProduct
+            Log.wtf(TAG, "SET DEFAULT DELETE PURCHASED PRODUCT STATE")
+            _deletePurchasedProductState.value = DeletePurchasedProductState()
+
+        }
+    }
+
+
+    fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
+        Log.wtf(TAG, "CALCULATE TOTAL COSTS")
+        viewModelScope.launch {
+            _totalCosts.value = DoubleAccumulator(DoubleBinaryOperator { left, right ->  left + right},(0.0))
+            purchasedProducts.forEach{
+                _totalCosts.value.accumulate(it.price)
+            }
+        }
+    }
+
+    fun deletePurchasedProduct(){
+        viewModelScope.launch {
+            Log.wtf(TAG, "ON DISMISS DELETE PURCHASED PRODUCT")
+            _deletePurchasedProductState.update {deletePurchasedProductState ->
+                deletePurchasedProductState.copy(
+                    isLoading = true
+                )
+            }
+            val purchasedProduct: PurchasedProductResponse? = deletePurchasedProductState.value.purchasedProduct
             if( purchasedProduct != null){
-                val networkResult: NetworkResult<MessageResponse> = this.async { purchasedProductRepository.deletePurchasedProduct(purchasedProduct.id)}.await()
+                val networkResult = purchasedProductRepository.deletePurchasedProduct(purchasedProduct.id)
                 when(networkResult){
                     is NetworkResult.Success ->{
-                        deletePurchasedProductState = deletePurchasedProductState.copy(
-                            isSuccess = true,
-                            isLoading = false
-                        )
+                        _deletePurchasedProductState.update {deletePurchasedProductState ->
+                            deletePurchasedProductState.copy(
+                                isSuccess = true,
+                                isLoading = false
+                            )
+                        }
+
+                        deletePurchasedProductState.value.purchasedProduct?.let {purchasedProduct ->
+                            _purchasedProducts.update { purchasedProducts ->
+                                purchasedProducts.filter { it.id != purchasedProduct.id  }
+                            }
+                            _totalCosts.value.accumulate(-purchasedProduct.price)
+
+                        }
+
+
+
                     }
                     is NetworkResult.Error ->{
-                        deletePurchasedProductState = deletePurchasedProductState.copy(isLoading = false,isError = true,error = networkResult.message)
+                        _deletePurchasedProductState.update {deletePurchasedProductState ->
+                            deletePurchasedProductState.copy(
+                                isLoading = false,
+                                isError = true,
+                                error = networkResult.message
+                            )
+                        }
                     }
                 }
             }else{
-                deletePurchasedProductState = deletePurchasedProductState.copy(isLoading = false,isError = true,error = "что-то пошло не так")
+                _deletePurchasedProductState.update {deletePurchasedProductState ->
+                    deletePurchasedProductState.copy(
+                        isLoading = false,
+                        isError = true,
+                        error = "что-то пошло не так"
+                    )
+                }
+
             }
         }
     }

@@ -4,6 +4,7 @@ package com.mypurchasedproduct.presentation.ui.components
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,10 +34,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.Delete
@@ -83,11 +86,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -134,6 +139,8 @@ import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
+import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
@@ -218,10 +225,18 @@ fun MyOutlinedTextField(textValue: MutableState<String>, labelValue: String, ico
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PrimaryOutlinedTextField(textValue: String, labelValue: String, icon: Painter, onValueChange: (String) -> Unit, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
+fun PrimaryOutlinedTextField(
+    textValue: String,
+    labelValue: String,
+    enabled: Boolean = true,
+    icon: Painter = rememberVectorPainter(image = Icons.Filled.Abc),
+    onValueChange: (String) -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    ){
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = lowPadding)
             .clip(componentShapes.small),
         value = textValue,
         onValueChange = { onValueChange(it)},
@@ -239,6 +254,59 @@ fun PrimaryOutlinedTextField(textValue: String, labelValue: String, icon: Painte
 
     )
 }
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrimaryClickableOutlinedTextField(
+    textValue: String,
+    labelValue: String,
+    isExpanded: Boolean,
+    enabled: Boolean = true,
+    isReadOnly: Boolean = true,
+    onValueChange: (String) -> Unit = {},
+    onClick: (Boolean) -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    trailingIconSuffix: @Composable() (() -> Unit)? = null,
+    ){
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = lowPadding)
+            .clip(componentShapes.small),
+        value = textValue,
+        onValueChange = { onValueChange(it)},
+        label = { Text(text = labelValue) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = AcidRedColor,
+            focusedLabelColor = Color.Black,
+            containerColor = LightGreyColor,
+            unfocusedBorderColor = LightGreyColor
+        ),
+        shape = componentShapes.large,
+        keyboardOptions = keyboardOptions,
+        trailingIcon = {
+            Row()
+            {
+                if (trailingIconSuffix != null) {
+                    trailingIconSuffix()
+                }
+                IconButton(
+                    onClick = { onClick(!isExpanded) })
+                {
+                    if (isExpanded) {
+                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
+                    } else {
+                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
+                    }
+                }
+            }
+        },
+        enabled=enabled,
+        readOnly = isReadOnly,
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrimaryOutlinedTextFieldPassword(password: String, labelValue: String, icon: Painter, onValueChange: (String) -> Unit, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
@@ -248,6 +316,7 @@ fun PrimaryOutlinedTextFieldPassword(password: String, labelValue: String, icon:
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(vertical = lowPadding)
             .clip(componentShapes.small),
         value = password,
         onValueChange = { onValueChange(it)},
@@ -263,13 +332,13 @@ fun PrimaryOutlinedTextFieldPassword(password: String, labelValue: String, icon:
         keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
         trailingIcon = {
-            var iconImage = if(passwordVisibility.value){
+            val iconImage = if(passwordVisibility.value){
                 Icons.Filled.Visibility
             }
             else{
                 Icons.Filled.VisibilityOff
             }
-            var description = if(passwordVisibility.value){
+            val description = if(passwordVisibility.value){
                 stringResource(id = R.string.hide_password)
             }else{
                 stringResource(id = R.string.show_password)
@@ -767,12 +836,13 @@ fun PurchasedProductViewComponent(
     paddingValues: PaddingValues,
 )
 {
+    val listState = viewModel.state.collectAsState()
+    val purchasedProducts = viewModel.purchasedProducts.collectAsState()
     val scope = rememberCoroutineScope()
     Box(
         modifier =modifier.padding(paddingValues),
     ) {
-        val listState = viewModel.state.collectAsState()
-        val purchasedProducts = viewModel.purchasedProducts.collectAsState()
+
         if(listState.value.isLoading){
             LoadScreen()
         }
@@ -1025,7 +1095,12 @@ fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composabl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldClickable(selectedValue: String, isExpanded: Boolean, onClick: (Boolean) -> Unit, labelValue: String = "",){
+fun MyTextFieldClickable(
+    selectedValue: String,
+    isExpanded: Boolean,
+    onClick: (Boolean) -> Unit,
+    labelValue: String = ""
+){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -1081,7 +1156,11 @@ fun ProductModalBottomSheet(
         ModalBottomSheet(
             modifier = Modifier.fillMaxSize(),
             containerColor=Color.White,
-            onDismissRequest = { },
+            onDismissRequest = {
+                scope.launch {
+                    viewModel.setActive(false)
+                }
+                               },
             sheetState = bottomSheetState,
             windowInsets = windowInsets
         ) {
@@ -1089,10 +1168,12 @@ fun ProductModalBottomSheet(
                 Text(text="Нет нужного продукта?")
                 TextButton(
                     onClick = {
-                        scope.launch { bottomSheetState.hide() }.invokeOnCompletion {
+                        scope.launch {
+                            bottomSheetState.hide()
+                            onClickAddProduct()
+                        }.invokeOnCompletion {
                             if (!bottomSheetState.isVisible) {
                                 viewModel.setActive(false)
-                                onClickAddProduct()
                             }
                         }
                     }
@@ -1120,26 +1201,22 @@ fun ProductModalBottomSheet(
 fun FormModalBottomSheet(
     openBottomSheet: Boolean,
     setStateButtomSheet: (Boolean) -> Unit,
-    content: @Composable () -> Unit)
-{
+    content: @Composable () -> Unit,
+){
     Log.wtf(TAG, "FormModalBottomSheet")
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
-    val edgeToEdgeEnabled by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
 
     // Sheet content
     if (openBottomSheet) {
-        val windowInsets = if (edgeToEdgeEnabled)
-            WindowInsets(0) else BottomSheetDefaults.windowInsets
-
         ModalBottomSheet(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.White,
             onDismissRequest = { setStateButtomSheet(false) },
             sheetState = bottomSheetState,
-            windowInsets = windowInsets
+            windowInsets = BottomSheetDefaults.windowInsets
         ) {
             content()
         }
@@ -1287,19 +1364,19 @@ fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: (
 
 @Composable
 fun MeasurementUnitListComponent(
-    viewModel: MeasurementUnitsListViewModel,
+    measurementUnits:  State<List<MeasurementUnitResponse>>,
     onClick: (it: MeasurementUnitResponse)-> Unit,
     modifier: Modifier = Modifier
 ){
     Log.d(TAG, "MeasurementUnitListComponent")
-    val state = viewModel.state.collectAsState()
-    val measurementUnits  = viewModel.measurementUnits.collectAsState()
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     LazyRow(
         modifier = modifier
-            .fillMaxWidth(0.95f)
-            .padding(vertical = 4.dp),
+            .fillMaxWidth()
+            .padding(
+                vertical = lowPadding
+            ),
         state = listState,
         userScrollEnabled = true,
         horizontalArrangement = Arrangement.SpaceAround,
@@ -1309,15 +1386,14 @@ fun MeasurementUnitListComponent(
             OutlinedButton(
                 onClick = {
                     scope.launch{
-                        viewModel.setSelectedMeasurementUnit(item)
                         onClick(item)
                     }
                 }
             ){
                 Text(text=item.name)
-                if(state.value.selectedMeasurementUnit?.id == item.id){
-                    Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-                }
+//                if(state.value.selectedMeasurementUnit?.id == item.id){
+//                    Icon(imageVector = Icons.Filled.Check, contentDescription = null)
+//                }
             }
         }
     }
@@ -1330,26 +1406,35 @@ fun AddPurchasedProductFormComponent(
     measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
-    onDismiss: () -> Unit)
-{
+    onDismiss: () -> Unit,
+){
     val scope = rememberCoroutineScope()
-    var openProductBottomSheet by remember {
-        mutableStateOf(false)
-    }
     val addPurchasedProductState = addPurchasedProductVM.state.collectAsState()
     val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
-
+    val isOpenMeasurementUnits = remember{mutableStateOf(false)}
+    val measurementUnits = measurementUnitsListVM.measurementUnits.collectAsState()
+    if(addPurchasedProductState.value.measurementUnit == null) {
+        addPurchasedProductVM.setMeasurementUnit(measurementUnits.value[0])
+    }
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if(productState.value.isLoading){
+        if (productState.value.isLoading) {
             LinearProgressIndicator()
-        }
-        else {
+        } else {
+            PrimaryClickableOutlinedTextField(
+                textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
+                labelValue = "продукт",
+                isExpanded = productState.value.isActive,
+                onClick = {
+                    productListBottomSheetVM.setActive(it)
+                },
+            )
             ProductModalBottomSheet(
                 viewModel = productListBottomSheetVM,
                 onClickAddProduct = onClickAddProduct,
@@ -1360,65 +1445,67 @@ fun AddPurchasedProductFormComponent(
                     }
                 }
             )
-            MyTextFieldClickable(
-                selectedValue = addPurchasedProductState.value.product?.let{it.name} ?: "",
-                isExpanded = productState.value.isActive,
-                onClick = {
-                    productListBottomSheetVM.setActive(it)
-                }
-            )
-
         }
-        MyTextField(
-            textValue = addPurchasedProductState.value.count,
-            labelValue = "количество",
-            onValueChange = {
-                scope.launch {
-                    addPurchasedProductVM.setCount(it)
-                }
-                            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            )
-        if(measurementUnitState.value.isLoading){
-            LinearProgressIndicator()
-        }
-        else {
-            MeasurementUnitListComponent(
-                viewModel = measurementUnitsListVM,
-                onClick = { addPurchasedProductVM.setMeasurementUnit(it) }
-            )
-        }
-            MyTextField(
-                textValue = addPurchasedProductState.value.price,
-                labelValue = "цена",
-                onValueChange = {
-                    scope.launch {
-                        addPurchasedProductVM.setPrice(it)
-                    }
-                                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                SecondaryButtonComponent(
-                    value = "добавить",
-                    onClickButton = {
-                        scope.launch {
-                            onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
+        Column(modifier = Modifier.animateContentSize())
+        {
+            if (measurementUnitState.value.isLoading) {
+                LinearProgressIndicator()
+            } else {
+                PrimaryClickableOutlinedTextField(
+                    textValue = addPurchasedProductState.value.count,
+                    labelValue = "количество",
+                    isExpanded = isOpenMeasurementUnits.value,
+                    onClick = {
+                        isOpenMeasurementUnits.value = it
+                    },
+                    onValueChange = {addPurchasedProductVM.setCount(it)},
+                    isReadOnly = false,
+                    trailingIconSuffix = {
+                            TextButton(onClick = { isOpenMeasurementUnits.value = !isOpenMeasurementUnits.value }) {
+                                Text(text=addPurchasedProductState.value.measurementUnit?.let{it.name} ?: "", fontSize = 16.sp)
+                            }
+                    },
+                )
+                if(isOpenMeasurementUnits.value) {
+                    MeasurementUnitListComponent(
+                        measurementUnits = measurementUnits,
+                        onClick = {
+                            addPurchasedProductVM.setMeasurementUnit(it)
+                            isOpenMeasurementUnits.value = false
                         }
-                                    },
-                    modifier = Modifier.widthIn(150.dp)
-                )
-                SecondaryButtonComponent(
-                    value = "отмена",
-                    onClickButton = onDismiss,
-                    modifier = Modifier.widthIn(150.dp)
-                )
+                    )
+                }
             }
         }
+        PrimaryOutlinedTextField(
+            textValue = addPurchasedProductState.value.price,
+            labelValue = "цена",
+            onValueChange = {
+                addPurchasedProductVM.setPrice(it)
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryButtonComponent(
+                value = "добавить",
+                onClickButton = {
+                    scope.launch {
+                        onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
+                    }
+                },
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryButtonComponent(
+                value = "отмена",
+                onClickButton = onDismiss,
+                modifier = Modifier.widthIn(150.dp)
+            )
+        }
+    }
 }
 
 @Composable

@@ -62,12 +62,13 @@ import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionBu
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.observeOn
 import kotlinx.coroutines.launch
 import org.joda.time.Instant
+import kotlin.coroutines.CoroutineContext
 
 
-@RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     authViewModel: AuthViewModel,
@@ -82,6 +83,8 @@ fun HomeScreen(
     measurementUnitsListVM: MeasurementUnitsListViewModel = viewModel(),
 ) {
     val scope = rememberCoroutineScope()
+    val homeState = homeViewModel.state.collectAsState()
+
     val authState = authViewModel.state.collectAsState()
     LaunchedEffect(authState.value.isSignIn){
         Log.d("HomeScreen.LaunchedEffect", "AUTH STATE")
@@ -97,20 +100,108 @@ fun HomeScreen(
     }
 
     val rememberCoroutineScope = rememberCoroutineScope()
-    val homeState = homeViewModel.state.collectAsState()
+
+    val totalCosts = purchasedProductListVM.totalCosts.collectAsState()
     LoadScreen(isActive=homeState.value.isLoading)
+    val msgState = homeViewModel.msgState.collectAsState()
+    if(msgState.value.isSuccess){
+        SuccessMessageDialog(
+            text = msgState.value.header,
+            onDismiss = {
+                scope.launch{
+                    msgState.value.onConfirm()
+                    homeViewModel.setDefaultMsgState()
+                }
+            }
+        )
+    }
+    if(msgState.value.isError){
+        ErrorMessageDialog(
+            headerText = msgState.value.header,
+            description = msgState.value.description,
+            onDismiss = {
+                homeViewModel.setDefaultMsgState()
+                addPurchasedProductFormViewModel.setDefaultState()
+            })
+    }
+    val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
+    if(deletePurchasedProductState.value.isActive){
+        AlertDialogComponent(
+            headerText="Удалить купленный продукт?",
+            onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
+            onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
+        )
+        {
+            NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState.value?.purchasedProduct?.product?.name}")
+        }
+        if(deletePurchasedProductState.value.isSuccess){
+            SuccessMessageDialog(
+                text = "Купленный продукт удален!",
+                onDismiss = {
+                    purchasedProductListVM.setDefaultDeletePurchasedProductState()
+                    homeViewModel.setLoadingState(false)
+                }
+            )
+        }
+        if(deletePurchasedProductState.value.isError){
+            ErrorMessageDialog(
+                headerText = "Что-то пошло не так",
+                description = deletePurchasedProductState.value.error.toString(),
+                onDismiss = {
+                    purchasedProductListVM.setDefaultDeletePurchasedProductState()
+                    homeViewModel.setLoadingState(false)
+                }
+            )
+        }
+    }
     Scaffold(
         topBar = {
             Column {
                 DaysRowComponent(dateRowListViewModel)
-                HeadingTextComponent(value = "Потрачено сегодня: ${purchasedProductListVM.totalCosts} ₽")
+                HeadingTextComponent(value = "Потрачено сегодня: ${totalCosts.value} ₽")
             }
         },
         content = {paddingValues: PaddingValues ->
+            val addPurchasedProductState = addPurchasedProductFormViewModel.state.collectAsState()
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
             )
+            FormModalBottomSheet(
+                openBottomSheet = addPurchasedProductState.value.isActive,
+                setStateButtomSheet = {
+                    scope.launch {
+                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
+                    }
+
+                }
+            )
+            {
+                AddPurchasedProductFormComponent(
+                    addPurchasedProductVM = addPurchasedProductFormViewModel,
+                    productListBottomSheetVM = productListBottomSheetVM,
+                    measurementUnitsListVM = measurementUnitsListVM,
+                    onClickAddProduct = {
+                        addProductViewModel.onClickAddProduct()
+                        addProductViewModel.findCategories()
+                    },
+                    onConfirm = {
+                        scope.launch{
+                            purchasedProductListVM.toAddPurchasedProduct(
+                                it,
+                                dateRowListViewModel.getSelectedDayTimestamp(),
+                                onSuccess = {
+                                    homeViewModel.setSuccessMsgState(
+                                        header=it,
+                                        onConfirm = { addPurchasedProductFormViewModel.setDefaultState() }
+                                    )})
+                        }
+
+                    },
+                    onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)}
+                )
+            }
+
         },
         floatingActionButton = {
             PrimaryFloatingActionButton(
@@ -145,9 +236,7 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            val getPurchasedProductsByDateState = purchasedProductListVM.state
             val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
-            val addPurchasedProductState = addPurchasedProductFormViewModel.addPurchasedProductState
             val editPurchasedProductState = purchasedProductListVM.editPurchasedProductState
 
 //            TODO("EDIT PURCHASED PRODUCT")
@@ -201,35 +290,7 @@ fun HomeScreen(
                     }
                 )
             }
-            // TODO: ADDED ADD PURCHASED PRODUCT FORM COMPONENT
-            if(addPurchasedProductState.isActive) {
 
-                FormModalBottomSheet(
-                    openBottomSheet = addPurchasedProductState.isActive,
-                    setStateButtomSheet = {
-                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
-                    }
-                )
-                {
-                    AddPurchasedProductFormComponent(
-                        addPurchasedProductVM = addPurchasedProductFormViewModel,
-                        productListBottomSheetVM = productListBottomSheetVM,
-                        measurementUnitsListVM = measurementUnitsListVM,
-                        onClickAddProduct = {
-                            addProductViewModel.onClickAddProduct()
-                            addProductViewModel.findCategories()
-                                            },
-                        onConfirm = {
-                            scope.launch{
-                                purchasedProductListVM.toAddPurchasedProduct(it, dateRowListViewModel.getSelectedDayTimestamp())
-                            }
-
-                                    },
-                        onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)}
-                    )
-                }
-
-            }
 
             if(categoryVM.addCategoryState.isActive){
                 val addCategoryState = categoryVM.addCategoryState
@@ -324,35 +385,7 @@ fun HomeScreen(
                     }
                 }
             }
-            if(deletePurchasedProductState.isActive){
-                    AlertDialogComponent(
-                        headerText="Удалить купленный продукт?",
-                        onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
-                        onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
-                    )
-                    {
-                        NormalTextComponent(value = "Будет удалено: ${deletePurchasedProductState?.purchasedProduct?.product?.name}")
-                    }
-                    if(deletePurchasedProductState.isSuccess){
-                        SuccessMessageDialog(
-                            text = "Купленный продукт удален!",
-                            onDismiss = {
-                                purchasedProductListVM.setDefaultDeletePurchasedProductState()
-                                homeViewModel.setLoadingState(false)
-                            }
-                        )
-                    }
-                    if(deletePurchasedProductState.isError){
-                        ErrorMessageDialog(
-                            headerText = "Что-то пошло не так",
-                            description =deletePurchasedProductState.error.toString(),
-                            onDismiss = {
-                                purchasedProductListVM.setDefaultDeletePurchasedProductState()
-                                homeViewModel.setLoadingState(false)
-                            }
-                        )
-                    }
-                }
+
 
         }
 
