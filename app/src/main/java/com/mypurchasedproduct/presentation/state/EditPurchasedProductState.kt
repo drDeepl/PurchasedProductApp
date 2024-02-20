@@ -7,6 +7,6 @@ data class EditPurchasedProductState(
     val isLoading: Boolean = false,
     val isSuccess: Boolean = false,
     val isError: Boolean = false,
-    val error: String? = null,
-    val purchasedProduct: PurchasedProductResponse? = null
+    val error: String = "",
+    val purchasedProduct: PurchasedProductResponse? = null,
 )

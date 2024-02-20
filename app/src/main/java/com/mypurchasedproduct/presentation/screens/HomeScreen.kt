@@ -38,6 +38,7 @@ import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormView
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
@@ -47,6 +48,7 @@ import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductForm
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
+import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
 import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
@@ -76,6 +78,7 @@ fun HomeScreen(
 ) {
     val scope = rememberCoroutineScope()
     val homeState = homeViewModel.state.collectAsState()
+    val editPurchasedProductFormVM = EditPurchasedProductFormViewModel()
 
     val authState = authViewModel.state.collectAsState()
     LaunchedEffect(authState.value.isSignIn){
@@ -158,6 +161,7 @@ fun HomeScreen(
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
+                onSwipeToEdit = { editPurchasedProductFormVM.onEdit(it) }
             )
             FormModalBottomSheet(
                 openBottomSheet = addPurchasedProductState.value.isActive,
@@ -218,20 +222,32 @@ fun HomeScreen(
             )
         }
     )
-
-    Log.e("HOME SCREEN", "START HOME SCREEN IS SIGN IN: ${authState.value.isSignIn}")
-
-        Column(
+    Column(
             modifier = Modifier
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
 
-            val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState
-            val editPurchasedProductState = purchasedProductListVM.editPurchasedProductState
+            val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
+            val editPurchasedProductState = editPurchasedProductFormVM.state.collectAsState()
 
 //            TODO("EDIT PURCHASED PRODUCT")
+        FormModalBottomSheet(
+            openBottomSheet = editPurchasedProductState.value.isActive,
+            setStateBottomSheet = {
+                editPurchasedProductFormVM.setActive(it)
+            }
+        ){
+            EditPurchasedProductFormComponent(
+                editPurchasedProductVM = editPurchasedProductFormVM,
+                productListBottomSheetVM = productListBottomSheetVM,
+                measurementUnitsListVM = measurementUnitsListVM,
+                onConfirm = {purchasedProductListVM.toEditPurchasedProduct(it)}
+            ) {
+
+            }
+        }
 
 //            if(editPurchasedProductState.isActive){
 //                FormModalBottomSheet(
@@ -263,20 +279,20 @@ fun HomeScreen(
 //
 //            }
 
-            if(editPurchasedProductState.isSuccess){
+            if(editPurchasedProductState.value.isSuccess){
                 SuccessMessageDialog(
                     text ="купленный продукт изменен",
                     onDismiss = {
                         purchasedProductListVM.setDefaultEditPurchasedProductState()
-                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
+//                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
                     })
             }
-            if(editPurchasedProductState.isError){
+            if(editPurchasedProductState.value.isError){
                 ErrorMessageDialog(
                     headerText ="Что-то пошло не так" ,
-                    description = editPurchasedProductState.error.toString(),
+                    description = editPurchasedProductState.value.error.toString(),
                     onDismiss = {
-                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
+//                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
                         purchasedProductListVM.setDefaultEditPurchasedProductState()
 
                     }

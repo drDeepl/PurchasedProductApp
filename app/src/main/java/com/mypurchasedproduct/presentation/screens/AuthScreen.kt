@@ -97,7 +97,8 @@ fun AuthScreen(
                 labelTabs = tabs,
                 currentTab = currentTab,
                 onClickTab = {
-                scope.launch { authViewModel.setCurrentAction(it) }}
+                    authViewModel.setCurrentAction(it)
+                }
             )
             Box(
                 modifier = Modifier.animateContentSize()
@@ -105,7 +106,6 @@ fun AuthScreen(
             {
                 when (currentTab.value) {
                     "вход" -> {
-//                    Icon(painter = painterResource(id = R.drawable.user_circle_icon), contentDescription = "", modifier = Modifier.height(128.dp))
                         SignInFormComponent(viewModel = signInViewModel)
                     }
 

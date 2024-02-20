@@ -46,6 +46,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -92,6 +93,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -106,6 +108,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -121,12 +124,14 @@ import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
+import com.mypurchasedproduct.presentation.state.EditPurchasedProductState
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
@@ -473,7 +478,7 @@ fun SecondaryGradientButtonComponent(
             modifier = modifier
                 .heightIn(48.dp)
                 .background(
-                    color=BackgroundColor,
+                    color = BackgroundColor,
                     shape = componentShapes.large
                 ),
             contentAlignment = Alignment.Center
@@ -732,6 +737,7 @@ fun PurchasedProductViewComponent(
     modifier: Modifier = Modifier
         .fillMaxSize(),
     paddingValues: PaddingValues,
+    onSwipeToEdit: (PurchasedProductResponse) -> Unit
 )
 {
     val listState = viewModel.state.collectAsState()
@@ -760,7 +766,7 @@ fun PurchasedProductViewComponent(
                                     viewModel.onSwipeDeletePurchasedProduct(purchasedProduct)
                                 }
                                 if (it == DismissValue.DismissedToEnd) {
-                                    viewModel.onSwipeEditPurchasedProduct(purchasedProduct)
+                                    onSwipeToEdit(purchasedProduct)
                                 }
 
                             }
@@ -1013,7 +1019,6 @@ fun ProductModalBottomSheet(
             WindowInsets(0) else BottomSheetDefaults.windowInsets
 
         ModalBottomSheet(
-            modifier = Modifier.fillMaxSize(),
             containerColor=Color.White,
             onDismissRequest = {
                 scope.launch {
@@ -1068,10 +1073,8 @@ fun FormModalBottomSheet(
         skipPartiallyExpanded = skipPartiallyExpanded
     )
 
-    // Sheet content
     if (openBottomSheet) {
         ModalBottomSheet(
-            modifier = Modifier.heightIn(200.dp),
             containerColor = Color.White,
             onDismissRequest = { setStateBottomSheet(false) },
             sheetState = bottomSheetState,
@@ -1250,9 +1253,6 @@ fun MeasurementUnitListComponent(
                 }
             ){
                 Text(text=item.name)
-//                if(state.value.selectedMeasurementUnit?.id == item.id){
-//                    Icon(imageVector = Icons.Filled.Check, contentDescription = null)
-//                }
             }
         }
     }
@@ -1267,7 +1267,9 @@ fun AddPurchasedProductFormComponent(
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
 ){
+
     val scope = rememberCoroutineScope()
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp.value/1.8f
     val addPurchasedProductState = addPurchasedProductVM.state.collectAsState()
     val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
@@ -1278,7 +1280,7 @@ fun AddPurchasedProductFormComponent(
     }
     Column(
         modifier = Modifier
-            .fillMaxSize()
+            .heightIn(Dp(screenHeight))
             .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1347,7 +1349,9 @@ fun AddPurchasedProductFormComponent(
             icon = rememberVectorPainter(image = Icons.Filled.Numbers)
         )
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical= lowPadding),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = lowPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
@@ -1372,95 +1376,120 @@ fun AddPurchasedProductFormComponent(
 
 @Composable
 fun EditPurchasedProductFormComponent(
-    products: List<ProductResponse>,
-    measurementUnits: List<MeasurementUnitResponse>,
+    editPurchasedProductVM: EditPurchasedProductFormViewModel,
+    productListBottomSheetVM: ProductListBottomSheetViewModel,
+    measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
-    onConfirm: (ediPurchasedProductModel: EditPurchasedProductModel) -> Unit,
+    onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    purchasedProduct: PurchasedProductResponse)
-{
+){
 
-    // TODO: REDESIGN
+    val scope = rememberCoroutineScope()
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp.value/1.8f
+    val editPurchasedProductState = editPurchasedProductVM.state.collectAsState()
+    val editablePurchasedProduct = editPurchasedProductState.value.purchasedProduct
+    val productState = productListBottomSheetVM.state.collectAsState()
+    val measurementUnitState = measurementUnitsListVM.state.collectAsState()
+    val isOpenMeasurementUnits = remember{mutableStateOf(false)}
+    val measurementUnits = measurementUnitsListVM.measurementUnits.collectAsState()
 
-//    var openProductBottomSheet by remember {
-//        mutableStateOf(false)
-//    }
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize(),
-//        verticalArrangement = Arrangement.Center,
-//        horizontalAlignment = Alignment.CenterHorizontally
-//    ) {
-//        var count by remember { mutableStateOf(purchasedProduct.count.toString()) }
-//        var price by remember {mutableStateOf(purchasedProduct.price.toString())}
-//        var currentMeasurementUnitId by remember {
-//            mutableStateOf(purchasedProduct.unitMeasurement.id)
-//        }
-//        var productName by remember {mutableStateOf(purchasedProduct.product.name)}
-//        var selectedProduct by remember { mutableStateOf(purchasedProduct.product)}
-//        ProductModalBottomSheet(
-//            products = products,
-//            openBottomSheet = openProductBottomSheet,
-//            setStateButtomSheet = {
-//                openProductBottomSheet = it
-//            },
-//            onClickAddProduct =onClickAddProduct,
-//            onClickProductItem = {
-//                productName = it.name
-//                selectedProduct = it
-//                openProductBottomSheet = false
-//            }
-//        )
-//        MyTextFieldClickable(
-//            selectedValue = productName,
-//            isExpanded = openProductBottomSheet,
-//            onClick = {
-//                openProductBottomSheet = it
-//            })
-//
-//        MyTextField(
-//            textValue = count,
-//            labelValue = "количество",
-//            onValueChange = {count = it},
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//        )
-//        MeasurementUnitsScrollableRow(
-//            measurementUnits = measurementUnits,
-//            onClickButton = {currentMeasurementUnitId = it},
-//            selectedUnitId = currentMeasurementUnitId.toLong()
-//        )
-//        MyTextField(
-//            textValue = price,
-//            labelValue = "цена",
-//            onValueChange = {price = it},
-//            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-//        )
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.SpaceAround
-//        ) {
-//            SecondaryButtonComponent(
-//                value = "изенить",
-//                onClickButton = {onConfirm(
-//                    EditPurchasedProductModel(
-//                        purchasedProduct.id,
-//                        selectedProduct,
-//                        count,
-//                        purchasedProduct.userId,
-//                        currentMeasurementUnitId.toLong(),
-//                        price,
-//                        purchasedProduct.purchaseDate))},
-//                modifier = Modifier.widthIn(150.dp)
-//            )
-//            SecondaryButtonComponent(
-//                value = "отмена",
-//                onClickButton = onDismiss,
-//                modifier = Modifier.widthIn(150.dp)
-//            )
-//        }
-//    }
+    Column(
+        modifier = Modifier
+            .heightIn(Dp(screenHeight))
+            .padding(horizontal = 12.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (productState.value.isLoading) {
+            LinearProgressIndicator()
+        } else {
+            PrimaryClickableOutlinedTextField(
+                textValue = editablePurchasedProduct?.let { it.product.name } ?: "",
+                labelValue = "продукт",
+                isExpanded = productState.value.isActive,
+                onClick = {
+                    productListBottomSheetVM.setActive(it)
+                },
+            )
+            ProductModalBottomSheet(
+                viewModel = productListBottomSheetVM,
+                onClickAddProduct = onClickAddProduct,
+                onClickProductItem = {
+                    scope.launch {
+                        editPurchasedProductState.setProduct(it)
+                        productListBottomSheetVM.setActive(false)
+                    }
+                }
+            )
+        }
+        Column(modifier = Modifier.animateContentSize())
+        {
+            if (measurementUnitState.value.isLoading) {
+                LinearProgressIndicator()
+            } else {
+                PrimaryClickableOutlinedTextField(
+                    textValue = editPurchasedProductState.value.purchasedProduct?.let { it.count.toString() } ?: "",
+                    labelValue = "количество",
+                    isExpanded = isOpenMeasurementUnits.value,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    onClick = {
+                        isOpenMeasurementUnits.value = it
+                    },
+                    onValueChange = {editPurchasedProductVM.setCount(it)},
+                    isReadOnly = false,
+                    trailingIconSuffix = {
+                        TextButton(onClick = { isOpenMeasurementUnits.value = !isOpenMeasurementUnits.value }) {
+                            Text(text=editPurchasedProductState.value.purchasedProduct?.let{it.unitMeasurement.name} ?: "", fontSize = 16.sp)
+                        }
+                    },
+                )
+                if(isOpenMeasurementUnits.value) {
+                    MeasurementUnitListComponent(
+                        measurementUnits = measurementUnits,
+                        onClick = {
+                            editPurchasedProductVM.setMeasurementUnit(it)
+                            isOpenMeasurementUnits.value = false
+                        }
+                    )
+                }
+            }
+        }
+        PrimaryOutlinedTextField(
+            textValue = editPurchasedProductState.value.price,
+            labelValue = "цена",
+            onValueChange = {
+                addPurchasedProductVM.setPrice(it)
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            icon = rememberVectorPainter(image = Icons.Filled.Numbers)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = lowPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryGradientButtonComponent(
+                value = "добавить",
+                onClickButton = {
+                    scope.launch {
+                        onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
+                    }
+                },
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryGradientButtonComponent(
+                value = "отмена",
+                onClickButton = onDismiss,
+                gradientColors = GreyGradient,
+                modifier = Modifier.widthIn(150.dp)
+            )
+        }
+    }
 }
+
+
 
 @Composable
 fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: (isActive:Boolean) -> Unit) {
@@ -1539,11 +1568,9 @@ fun SignInFormComponent(
 
 @Composable
 fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, onClickTab: (id: Int) -> Unit){
-    val checkedState = remember{mutableStateOf(true)}
 
 //    Switch(checked = checkedState.value, onCheckedChange = {checkedState.value = it})
     val scope = rememberCoroutineScope()
-
 //    val selectedOption = remember {
 //        mutableStateOf(currentTab)
 //    }
@@ -1559,7 +1586,7 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, on
         Row(
             modifier = Modifier
                 .clip(shape = RoundedCornerShape(24.dp))
-                .background(DeepBlackColor),
+                .background(brush = Brush.horizontalGradient(SmoothBlackGradient)),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             labelTabs.forEach { text->
@@ -1578,13 +1605,9 @@ fun SelectionTabComponent(labelTabs: List<String>, currentTab: State<String>, on
                             brush = if (text == currentTab.value) {
                                 Brush.horizontalGradient(colors = GreenToYellowGradient)
                             } else {
-                                Brush.horizontalGradient(
-                                    colors = listOf(
-                                        DeepBlackColor,
-                                        DeepBlackColor
-                                    )
-                                )
+                                Brush.horizontalGradient(colors = SmoothBlackGradient)
                             }
+
                         )
                         .padding(
                             vertical = 12.dp,
@@ -1708,7 +1731,7 @@ fun DayComponent(dayItem: DayItem, state: State<DateBoxUIState>, onClick: (day:D
                 .heightIn(36.dp)
                 .widthIn(30.dp)
                 .background(
-                    color = GreyColor.copy(alpha = .1f),
+                    color = GreyColor.copy(alpha = .25f),
                     shape = RoundedCornerShape(
                         topStart = 8.dp,
                         topEnd = 8.dp,
