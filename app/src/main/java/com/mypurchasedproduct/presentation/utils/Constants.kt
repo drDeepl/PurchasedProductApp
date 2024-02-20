@@ -1,7 +1,6 @@
 package com.mypurchasedproduct.presentation.utils
 
 class Constants {
-
     companion object{
         const val BASE_URL="http://85.209.9.101:3000/api/"
         const val AUTH_ENDPOINT = "auth"

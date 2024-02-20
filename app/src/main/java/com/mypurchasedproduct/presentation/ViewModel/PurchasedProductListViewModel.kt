@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.data.repository.PurchasedProductRepository
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
-import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.domain.usecases.PurchasedProductUseCase
 import com.mypurchasedproduct.presentation.state.DeletePurchasedProductState
 import com.mypurchasedproduct.presentation.state.EditPurchasedProductState
@@ -142,18 +141,18 @@ class PurchasedProductListViewModel @Inject constructor(
         }
     }
 
-    fun onSwipeEditPurchasedProduct(purchasedProduct: PurchasedProductResponse){
-        viewModelScope.launch {
-            Log.wtf(TAG, "ON SWIPE EDIT PURCHASED PRODUCT")
-            _editPurchasedProductState.update { editPurchasedProductState ->
-                editPurchasedProductState.copy(
-                    isActive = true,
-                    purchasedProduct = purchasedProduct
-                )
-            }
-
-        }
-    }
+//    fun onSwipeEditPurchasedProduct(purchasedProduct: PurchasedProductResponse){
+//        viewModelScope.launch {
+//            Log.wtf(TAG, "ON SWIPE EDIT PURCHASED PRODUCT")
+//            _editPurchasedProductState.update { editPurchasedProductState ->
+//                editPurchasedProductState.copy(
+//                    isActive = true,
+//                    purchasedProduct = purchasedProduct
+//                )
+//            }
+//
+//        }
+//    }
 
     fun setDefaultEditPurchasedProductState(){
         viewModelScope.launch {
@@ -163,46 +162,46 @@ class PurchasedProductListViewModel @Inject constructor(
         }
     }
 
-    fun toEditPurchasedProduct(editPurchasedProductModel: EditPurchasedProductModel){
-        Log.wtf(TAG, "TO EDIT PURCHASED PRODUCT MODEL")
-        viewModelScope.launch {
-            _editPurchasedProductState.update { editPurchasedProductState ->
-                editPurchasedProductState.copy(
-                    isLoading = true
-                )
-            }
-            val result = purchasedProductUseCase.editPurchasedProduct(editPurchasedProductModel)
-            when(result){
-                is NetworkResult.Success ->{
-                    // TODO: ADD PurchasedProductResponse to array
-                    result.data?.let {purchasedProductResponse ->
-                        val index: Int = _purchasedProducts.value.indexOfFirst {purchasedProduct ->
-                            purchasedProduct.id == purchasedProductResponse.id
-                        }
-                        _purchasedProducts.value[index]= purchasedProductResponse
-
-                    }
-                    _editPurchasedProductState.update { editPurchasedProductState ->
-                        editPurchasedProductState.copy(
-                            isSuccess = true,
-                            isLoading = false,
-                            isActive = false
-                        )
-                    }
-
-                }
-                is NetworkResult.Error ->{
-                    _editPurchasedProductState.update { editPurchasedProductState ->
-                        editPurchasedProductState.copy(
-                            isError = true,
-                            isLoading = false,
-                            error = result.message.toString()
-                        )
-                    }
-                }
-            }
-        }
-    }
+//    fun toEditPurchasedProduct(editPurchasedProductModel: EditPurchasedProductModel){
+//        Log.wtf(TAG, "TO EDIT PURCHASED PRODUCT MODEL")
+//        viewModelScope.launch {
+//            _editPurchasedProductState.update { editPurchasedProductState ->
+//                editPurchasedProductState.copy(
+//                    isLoading = true
+//                )
+//            }
+//            val result = purchasedProductUseCase.editPurchasedProduct(editPurchasedProductModel)
+//            when(result){
+//                is NetworkResult.Success ->{
+//                    // TODO: ADD PurchasedProductResponse to array
+//                    result.data?.let {purchasedProductResponse ->
+//                        val index: Int = _purchasedProducts.value.indexOfFirst {purchasedProduct ->
+//                            purchasedProduct.id == purchasedProductResponse.id
+//                        }
+//                        _purchasedProducts.value[index]= purchasedProductResponse
+//
+//                    }
+//                    _editPurchasedProductState.update { editPurchasedProductState ->
+//                        editPurchasedProductState.copy(
+//                            isSuccess = true,
+//                            isLoading = false,
+//                            isActive = false
+//                        )
+//                    }
+//
+//                }
+//                is NetworkResult.Error ->{
+//                    _editPurchasedProductState.update { editPurchasedProductState ->
+//                        editPurchasedProductState.copy(
+//                            isError = true,
+//                            isLoading = false,
+//                            error = result.message.toString()
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 
 

@@ -31,8 +31,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.ViewModel.AddProductViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
@@ -43,6 +41,8 @@ import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
+import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
+import com.mypurchasedproduct.presentation.navigation.Screen
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
@@ -55,8 +55,8 @@ import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
-import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
+import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
@@ -75,11 +75,10 @@ fun HomeScreen(
     purchasedProductListVM: PurchasedProductListViewModel = viewModel(),
     productListBottomSheetVM: ProductListBottomSheetViewModel = viewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = viewModel(),
+    editPurchasedProductFormVM: EditPurchasedProductFormViewModel = viewModel()
 ) {
     val scope = rememberCoroutineScope()
     val homeState = homeViewModel.state.collectAsState()
-    val editPurchasedProductFormVM = EditPurchasedProductFormViewModel()
-
     val authState = authViewModel.state.collectAsState()
     LaunchedEffect(authState.value.isSignIn){
         Log.d("HomeScreen.LaunchedEffect", "AUTH STATE")
@@ -161,7 +160,10 @@ fun HomeScreen(
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
-                onSwipeToEdit = { editPurchasedProductFormVM.onEdit(it) }
+                onSwipeToEdit = {
+                    editPurchasedProductFormVM.setActive(true)
+                    editPurchasedProductFormVM.setPurchasedProduct(it)
+                }
             )
             FormModalBottomSheet(
                 openBottomSheet = addPurchasedProductState.value.isActive,
@@ -237,16 +239,23 @@ fun HomeScreen(
             openBottomSheet = editPurchasedProductState.value.isActive,
             setStateBottomSheet = {
                 editPurchasedProductFormVM.setActive(it)
+            },
+            onDismissRequest = {
+                editPurchasedProductFormVM.setDefaultState()
+                editPurchasedProductFormVM.clearErrors()
             }
         ){
             EditPurchasedProductFormComponent(
                 editPurchasedProductVM = editPurchasedProductFormVM,
                 productListBottomSheetVM = productListBottomSheetVM,
                 measurementUnitsListVM = measurementUnitsListVM,
-                onConfirm = {purchasedProductListVM.toEditPurchasedProduct(it)}
-            ) {
-
-            }
+                onConfirm = {},
+                onClickAddProduct = {},
+                onDismiss = {
+                    editPurchasedProductFormVM.setDefaultState()
+                    editPurchasedProductFormVM.clearErrors()
+                }
+            )
         }
 
 //            if(editPurchasedProductState.isActive){
@@ -287,17 +296,17 @@ fun HomeScreen(
 //                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
                     })
             }
-            if(editPurchasedProductState.value.isError){
-                ErrorMessageDialog(
-                    headerText ="Что-то пошло не так" ,
-                    description = editPurchasedProductState.value.error.toString(),
-                    onDismiss = {
-//                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
-                        purchasedProductListVM.setDefaultEditPurchasedProductState()
-
-                    }
-                )
-            }
+//            if(editPurchasedProductState.value.isError){
+//                ErrorMessageDialog(
+//                    headerText ="Что-то пошло не так" ,
+//                    description = editPurchasedProductState.value.error.toString(),
+//                    onDismiss = {
+////                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
+//                        purchasedProductListVM.setDefaultEditPurchasedProductState()
+//
+//                    }
+//                )
+//            }
 
 
             if(categoryVM.addCategoryState.isActive){

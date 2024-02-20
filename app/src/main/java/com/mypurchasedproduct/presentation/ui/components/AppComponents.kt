@@ -37,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Numbers
@@ -46,7 +47,6 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,7 +74,6 @@ import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -108,6 +107,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -122,7 +122,6 @@ import com.mypurchasedproduct.data.remote.model.response.PurchasedProductRespons
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
-import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
@@ -130,22 +129,23 @@ import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewM
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
+import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
-import com.mypurchasedproduct.presentation.state.EditPurchasedProductState
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedPurpleGradient
 import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
-import com.mypurchasedproduct.presentation.ui.theme.GreyColor
 import com.mypurchasedproduct.presentation.ui.theme.GreenToYellowGradient
+import com.mypurchasedproduct.presentation.ui.theme.GreyColor
 import com.mypurchasedproduct.presentation.ui.theme.GreyGradient
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
+import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -761,17 +761,15 @@ fun PurchasedProductViewComponent(
                 items(purchasedProducts.value) { purchasedProduct ->
                     val state = rememberDismissState(
                         confirmValueChange = {
-                            scope.launch {
                                 if (it == DismissValue.DismissedToStart) {
                                     viewModel.onSwipeDeletePurchasedProduct(purchasedProduct)
                                 }
                                 if (it == DismissValue.DismissedToEnd) {
                                     onSwipeToEdit(purchasedProduct)
                                 }
-
-                            }
                             false
-                        }
+                        },
+
                     )
                     SwipeToDismiss(
                         state = state,
@@ -1065,7 +1063,9 @@ fun ProductModalBottomSheet(
 fun FormModalBottomSheet(
     openBottomSheet: Boolean,
     setStateBottomSheet: (Boolean) -> Unit,
+    onDismissRequest: () -> Unit = {},
     content: @Composable () -> Unit,
+
 ){
     Log.wtf(TAG, "FormModalBottomSheet")
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
@@ -1076,7 +1076,10 @@ fun FormModalBottomSheet(
     if (openBottomSheet) {
         ModalBottomSheet(
             containerColor = Color.White,
-            onDismissRequest = { setStateBottomSheet(false) },
+            onDismissRequest = {
+                setStateBottomSheet(false)
+                onDismissRequest()
+                               },
             sheetState = bottomSheetState,
             windowInsets = BottomSheetDefaults.windowInsets,
         ) {
@@ -1374,24 +1377,91 @@ fun AddPurchasedProductFormComponent(
     }
 }
 
+
+@Composable
+fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.animateContentSize()){
+    LazyColumn(
+        modifier = modifier.padding(horizontal = lowPadding),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.Start
+    ){
+        items(errors){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ){
+                Icon(
+                    painter = rememberVectorPainter(image = Icons.Filled.Error),
+                    contentDescription = "",
+                    modifier= Modifier
+                        .size(32.dp)
+                        .graphicsLayer(alpha = 0.9f)
+                        .drawWithCache {
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(
+                                            AcidRedColor,
+                                            AcidRedColor
+                                        )
+                                    ), blendMode = BlendMode.SrcIn
+                                )
+                            }
+                        })
+                Text(text = it, fontSize = 16.sp, modifier = Modifier.padding(horizontal = extraLowPadding), color= AcidRedColor)
+            }
+            Spacer(modifier = Modifier.padding(vertical = extraLowPadding))
+
+        }
+    }
+
+}
+
+@Preview
+@Composable
+fun PreviewErrorContainer(){
+    val errors: List<String> = listOf("При добавлении продукта возникла ошибка", "ошибка сети")
+    ErrorListContainer(errors)
+}
+
 @Composable
 fun EditPurchasedProductFormComponent(
     editPurchasedProductVM: EditPurchasedProductFormViewModel,
     productListBottomSheetVM: ProductListBottomSheetViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
-    onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
+    onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
 ){
-
+    val editPurchasedProductState = editPurchasedProductVM.state.collectAsState()
+    val selectedPurchasedProduct = editPurchasedProductVM.purchasedProductToEdit.collectAsState()
+    val errors = editPurchasedProductVM.errors.collectAsState()
+    if(editPurchasedProductState.value.isError){
+        Log.d(TAG, "ERRORS COUNT :${errors.value.size}")
+        ErrorListContainer(errors = errors.value)
+    }
     val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp.value/1.8f
-    val editPurchasedProductState = editPurchasedProductVM.state.collectAsState()
-    val editablePurchasedProduct = editPurchasedProductState.value.purchasedProduct
     val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
     val isOpenMeasurementUnits = remember{mutableStateOf(false)}
     val measurementUnits = measurementUnitsListVM.measurementUnits.collectAsState()
+
+    val newProduct = remember {
+        mutableStateOf(selectedPurchasedProduct.value.product)
+    }
+
+    val newCount = remember {
+        mutableStateOf(selectedPurchasedProduct.value.count.toString())
+    }
+
+    val newMeasurementUnit = remember {
+        mutableStateOf(selectedPurchasedProduct.value.unitMeasurement)
+    }
+
+    val newPrice = remember {
+        mutableStateOf(selectedPurchasedProduct.value.price.toString())
+    }
 
     Column(
         modifier = Modifier
@@ -1404,7 +1474,7 @@ fun EditPurchasedProductFormComponent(
             LinearProgressIndicator()
         } else {
             PrimaryClickableOutlinedTextField(
-                textValue = editablePurchasedProduct?.let { it.product.name } ?: "",
+                textValue = newProduct.value.name,
                 labelValue = "продукт",
                 isExpanded = productState.value.isActive,
                 onClick = {
@@ -1416,7 +1486,7 @@ fun EditPurchasedProductFormComponent(
                 onClickAddProduct = onClickAddProduct,
                 onClickProductItem = {
                     scope.launch {
-                        editPurchasedProductState.setProduct(it)
+                        newProduct.value = it
                         productListBottomSheetVM.setActive(false)
                     }
                 }
@@ -1428,18 +1498,18 @@ fun EditPurchasedProductFormComponent(
                 LinearProgressIndicator()
             } else {
                 PrimaryClickableOutlinedTextField(
-                    textValue = editPurchasedProductState.value.purchasedProduct?.let { it.count.toString() } ?: "",
+                    textValue = newCount.value,
                     labelValue = "количество",
                     isExpanded = isOpenMeasurementUnits.value,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onClick = {
                         isOpenMeasurementUnits.value = it
                     },
-                    onValueChange = {editPurchasedProductVM.setCount(it)},
+                    onValueChange = {newCount.value = it},
                     isReadOnly = false,
                     trailingIconSuffix = {
                         TextButton(onClick = { isOpenMeasurementUnits.value = !isOpenMeasurementUnits.value }) {
-                            Text(text=editPurchasedProductState.value.purchasedProduct?.let{it.unitMeasurement.name} ?: "", fontSize = 16.sp)
+                            Text(text=newMeasurementUnit.value.name, fontSize = 16.sp)
                         }
                     },
                 )
@@ -1447,7 +1517,7 @@ fun EditPurchasedProductFormComponent(
                     MeasurementUnitListComponent(
                         measurementUnits = measurementUnits,
                         onClick = {
-                            editPurchasedProductVM.setMeasurementUnit(it)
+                            newMeasurementUnit.value = it
                             isOpenMeasurementUnits.value = false
                         }
                     )
@@ -1455,14 +1525,15 @@ fun EditPurchasedProductFormComponent(
             }
         }
         PrimaryOutlinedTextField(
-            textValue = editPurchasedProductState.value.price,
+            textValue = newPrice.value,
             labelValue = "цена",
             onValueChange = {
-                addPurchasedProductVM.setPrice(it)
+                newPrice.value = it
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             icon = rememberVectorPainter(image = Icons.Filled.Numbers)
         )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1473,11 +1544,23 @@ fun EditPurchasedProductFormComponent(
             SecondaryGradientButtonComponent(
                 value = "добавить",
                 onClickButton = {
-                    scope.launch {
-                        onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
+                    scope.launch{
+                        editPurchasedProductVM.setLoading(true)
+                        if(editPurchasedProductVM.validate(newProduct.value, newCount.value, newMeasurementUnit.value, newPrice.value)){
+                            // TODO: SEND REQUEST TO EDIT
+                            Log.d(TAG,"VALIDATE SUCCESS IS COMPLETED")
+                            editPurchasedProductVM.setLoading(false)
+                        }
+                        else{
+                            Log.d(TAG,"VALIDATE NOT SUCCESS IS COMPLETED")
+
+                        }
+
+//                        onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
                     }
                 },
-                modifier = Modifier.widthIn(150.dp)
+                modifier = Modifier.widthIn(150.dp),
+                isLoading = editPurchasedProductState.value.isLoading
             )
             SecondaryGradientButtonComponent(
                 value = "отмена",
