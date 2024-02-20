@@ -1,9 +1,7 @@
 package com.mypurchasedproduct.presentation.screens
 
 
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -50,23 +47,18 @@ import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductForm
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
-import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
 import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
-import com.mypurchasedproduct.presentation.ui.components.PrimaryButtonComponent
+import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.observeOn
 import kotlinx.coroutines.launch
-import org.joda.time.Instant
-import kotlin.coroutines.CoroutineContext
 
 
 @Composable
@@ -169,7 +161,7 @@ fun HomeScreen(
             )
             FormModalBottomSheet(
                 openBottomSheet = addPurchasedProductState.value.isActive,
-                setStateButtomSheet = {
+                setStateBottomSheet = {
                     scope.launch {
                         addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
                     }
@@ -218,7 +210,7 @@ fun HomeScreen(
                 )
         },
         bottomBar = {
-            PrimaryButtonComponent(
+            PrimaryGradientButtonComponent(
                 value = "Выйти", onClickButton = {
                     authViewModel.signOut()
                     appRouter.navigateTo(Screen.AuthScreen)

@@ -26,7 +26,8 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF140F1F),
-    secondary = Color(0xFFFEDB71),
+    secondary = SecondaryColor,
+    outline = Color(0xFF18F0BC),
     background = Color.White,
     tertiary = Pink40
 
@@ -53,7 +54,6 @@ fun MyPurchasedProductTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
@@ -65,9 +65,6 @@ fun MyPurchasedProductTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
-
-
 
     MaterialTheme(
         colorScheme = colorScheme,

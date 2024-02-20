@@ -86,7 +86,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -132,14 +131,16 @@ import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedPurpleGradient
+import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
-import com.mypurchasedproduct.presentation.ui.theme.DeepGreyColor
+import com.mypurchasedproduct.presentation.ui.theme.GreyColor
 import com.mypurchasedproduct.presentation.ui.theme.GreenToYellowGradient
+import com.mypurchasedproduct.presentation.ui.theme.GreyGradient
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
+import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
-import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -199,29 +200,6 @@ fun ErrorTextComponent(value: String, fontSize: TextUnit = 12.sp){
 
 
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyOutlinedTextField(textValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled: Boolean = true){
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(componentShapes.small),
-        value = textValue.value ,
-        onValueChange = { it: String -> textValue.value = it },
-        label = { Text(text = labelValue) },
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AcidRedColor,
-            focusedLabelColor = Color.Black,
-            containerColor = LightGreyColor,
-            unfocusedBorderColor = LightGreyColor
-        ),
-        shape = componentShapes.large,
-        keyboardOptions = keyboardOptions,
-        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
-        enabled=enabled
-
-    )
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,7 +220,7 @@ fun PrimaryOutlinedTextField(
         onValueChange = { onValueChange(it)},
         label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AcidRedColor,
+            focusedBorderColor = GreyColor,
             focusedLabelColor = Color.Black,
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
@@ -278,7 +256,7 @@ fun PrimaryClickableOutlinedTextField(
         onValueChange = { onValueChange(it)},
         label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AcidRedColor,
+            focusedBorderColor = GreyColor,
             focusedLabelColor = Color.Black,
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
@@ -322,7 +300,7 @@ fun PrimaryOutlinedTextFieldPassword(password: String, labelValue: String, icon:
         onValueChange = { onValueChange(it)},
         label = { Text(text = labelValue) },
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AcidRedColor,
+            focusedBorderColor = GreyColor,
             focusedLabelColor = Color.Black,
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
@@ -369,61 +347,13 @@ fun MyTextField(textValue: String, labelValue: String,  onValueChange: (String) 
         keyboardOptions = keyboardOptions,
         enabled=enabled,
         colors = TextFieldDefaults.textFieldColors(
-            focusedLabelColor = Color.Black,
+            focusedLabelColor = GreyColor,
             focusedIndicatorColor = Color.Black,
             containerColor = LightGreyColor,
         )
     )
 }
 
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MyOutlinedTextFieldPassword(passwordValue: MutableState<String>, labelValue: String, icon: Painter, keyboardOptions: KeyboardOptions = KeyboardOptions.Default, enabled:Boolean = true){
-
-    val passwordVisibility = remember{ mutableStateOf(false) }
-
-    OutlinedTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(componentShapes.small),
-        value = passwordValue.value ,
-        onValueChange = { it: String -> passwordValue.value = it },
-        label = { Text(text = labelValue) },
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            focusedBorderColor = AcidRedColor,
-            focusedLabelColor = Color.Black,
-            containerColor = LightGreyColor,
-            unfocusedBorderColor = LightGreyColor
-
-        ),
-        shape = componentShapes.large,
-        keyboardOptions = keyboardOptions,
-        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
-        trailingIcon = {
-            var iconImage = if(passwordVisibility.value){
-                Icons.Filled.Visibility
-            }
-            else{
-                Icons.Filled.VisibilityOff
-            }
-            var description = if(passwordVisibility.value){
-                stringResource(id = R.string.hide_password)
-            }else{
-                stringResource(id = R.string.show_password)
-            }
-
-            IconButton(onClick = { passwordVisibility.value = !passwordVisibility.value}) {
-                Icon(imageVector = iconImage, contentDescription=description)
-
-            }
-        },
-        visualTransformation = if(passwordVisibility.value) VisualTransformation.None else PasswordVisualTransformation(),
-        enabled=enabled
-
-    )
-}
 
 @Composable
 fun CheckBoxComponent(checkedState: Boolean, textValue:String, onTextSelected: (String) -> Unit, onChackedChange: (Boolean) -> Unit){
@@ -478,41 +408,7 @@ fun ClickableTextComponent(value:String, onTextSelected: (String) -> Unit){
 }
 
 @Composable
-fun ClickableTextLogInComponent(onTextSelected : (String) -> Unit){
-    val initialText = "Уже есть аккаунт?"
-    val logInText = " войти"
-
-    val annotedString = buildAnnotatedString {
-        append(initialText)
-        withStyle(style=SpanStyle(color= AcidRedColor)){
-            pushStringAnnotation(tag=logInText, annotation = logInText)
-            append(logInText)
-        }
-    }
-
-    ClickableText(
-        text = annotedString,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = 40.dp),
-        style= TextStyle(
-            color = TextColor,
-            fontSize=18.sp,
-            fontWeight = FontWeight.Normal,
-            fontStyle= FontStyle.Normal,
-            textAlign = TextAlign.Center
-        ),
-        onClick = { offset ->
-        annotedString.getStringAnnotations(offset,offset).firstOrNull()?.also{span ->
-            Log.d("ClickableTextComponent", "{$span}")
-            if(span.item == logInText){
-                onTextSelected(span.item)
-            }
-        }
-    })
-}
-@Composable
-fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false, modifier: Modifier = Modifier.fillMaxWidth()){
+fun PrimaryGradientButtonComponent(value: String, onClickButton: () -> Unit, isLoading: Boolean = false, modifier: Modifier = Modifier.fillMaxWidth(), gradientColors: List<Color> = SmoothBlackGradient){
     Button(
         onClick=onClickButton,
         modifier= modifier
@@ -524,7 +420,7 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
             modifier = modifier
                 .heightIn(48.dp)
                 .background(
-                    color = DeepBlackColor,
+                    brush = Brush.horizontalGradient(gradientColors),
                     shape = RoundedCornerShape(50.dp)
                 )
                 .border(
@@ -554,10 +450,11 @@ fun PrimaryButtonComponent(value: String, onClickButton: () -> Unit, isLoading: 
 }
 
 @Composable
-fun SecondaryButtonComponent(
+fun SecondaryGradientButtonComponent(
     value: String,
     onClickButton: () -> Unit,
     isLoading: Boolean = false,
+    gradientColors: List<Color> = AcidRedPurpleGradient,
     modifier: Modifier = Modifier.fillMaxWidth()
 ){
     Button(
@@ -566,23 +463,24 @@ fun SecondaryButtonComponent(
             .heightIn(48.dp),
         contentPadding = PaddingValues(),
         colors = ButtonDefaults.buttonColors(
-            contentColor = DeepBlackColor
+            contentColor = TextColor
         ),
-        border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(listOf(AcidRedColor, AcidPurpleColor)),)
-    ){
+        border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(gradientColors),)
+
+    )
+    {
         Box(
             modifier = modifier
                 .heightIn(48.dp)
                 .background(
-                    Color.White,
-                    shape = RoundedCornerShape(50.dp)
+                    color=BackgroundColor,
+                    shape = componentShapes.large
                 ),
             contentAlignment = Alignment.Center
         ){
             if(isLoading){
                 CircularProgressIndicator(
                     color = Color.White
-
                 )
             }
             else{
@@ -1095,45 +993,6 @@ fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composabl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MyTextFieldClickable(
-    selectedValue: String,
-    isExpanded: Boolean,
-    onClick: (Boolean) -> Unit,
-    labelValue: String = ""
-){
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(0.dp, 10.dp),
-        horizontalArrangement = Arrangement.Center)
-    {
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = selectedValue,
-            label = { Text(text = labelValue) },
-            onValueChange = { },
-            trailingIcon = {
-                IconButton(onClick = { onClick(!isExpanded) })
-                {
-                    if (isExpanded) {
-                        Icon(Icons.Default.KeyboardArrowUp, contentDescription = null)
-                    } else {
-                        Icon(Icons.Default.KeyboardArrowDown, contentDescription = null)
-                    }
-                }
-            },
-            readOnly = true,
-            colors = TextFieldDefaults.textFieldColors(
-                focusedLabelColor = Color.Black,
-                focusedIndicatorColor = Color.Black,
-                containerColor = LightGreyColor,
-            ),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun ProductModalBottomSheet(
     viewModel: ProductListBottomSheetViewModel,
     onClickAddProduct: () -> Unit,
@@ -1200,7 +1059,7 @@ fun ProductModalBottomSheet(
 @Composable
 fun FormModalBottomSheet(
     openBottomSheet: Boolean,
-    setStateButtomSheet: (Boolean) -> Unit,
+    setStateBottomSheet: (Boolean) -> Unit,
     content: @Composable () -> Unit,
 ){
     Log.wtf(TAG, "FormModalBottomSheet")
@@ -1212,11 +1071,11 @@ fun FormModalBottomSheet(
     // Sheet content
     if (openBottomSheet) {
         ModalBottomSheet(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.heightIn(200.dp),
             containerColor = Color.White,
-            onDismissRequest = { setStateButtomSheet(false) },
+            onDismissRequest = { setStateBottomSheet(false) },
             sheetState = bottomSheetState,
-            windowInsets = BottomSheetDefaults.windowInsets
+            windowInsets = BottomSheetDefaults.windowInsets,
         ) {
             content()
         }
@@ -1278,7 +1137,7 @@ fun SuccessMessageDialog(text: String, onDismiss: () -> Unit){
                 )
                 HeadingTextComponent(text)
                 Spacer(modifier=Modifier.height(15.dp))
-                SecondaryButtonComponent(value="супер", onClickButton = onDismiss )
+                SecondaryGradientButtonComponent(value="супер", onClickButton = onDismiss )
             }
         }
     }
@@ -1323,7 +1182,7 @@ fun ErrorMessageDialog(headerText: String, description: String, onDismiss: () ->
                 Spacer(modifier = Modifier.padding(10.dp))
                 NormalTextComponent(value = description)
                 Spacer(modifier=Modifier.height(15.dp))
-                SecondaryButtonComponent(value="окей", onClickButton = onDismiss )
+                SecondaryGradientButtonComponent(value="окей", onClickButton = onDismiss )
             }
         }
     }
@@ -1455,6 +1314,7 @@ fun AddPurchasedProductFormComponent(
                     textValue = addPurchasedProductState.value.count,
                     labelValue = "количество",
                     isExpanded = isOpenMeasurementUnits.value,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     onClick = {
                         isOpenMeasurementUnits.value = it
                     },
@@ -1483,14 +1343,15 @@ fun AddPurchasedProductFormComponent(
             onValueChange = {
                 addPurchasedProductVM.setPrice(it)
             },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            icon = rememberVectorPainter(image = Icons.Filled.Numbers)
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(vertical= lowPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            SecondaryButtonComponent(
+            SecondaryGradientButtonComponent(
                 value = "добавить",
                 onClickButton = {
                     scope.launch {
@@ -1499,9 +1360,10 @@ fun AddPurchasedProductFormComponent(
                 },
                 modifier = Modifier.widthIn(150.dp)
             )
-            SecondaryButtonComponent(
+            SecondaryGradientButtonComponent(
                 value = "отмена",
                 onClickButton = onDismiss,
+                gradientColors = GreyGradient,
                 modifier = Modifier.widthIn(150.dp)
             )
         }
@@ -1619,13 +1481,13 @@ fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: 
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.Bottom
         ) {
-            PrimaryButtonComponent(
+            PrimaryGradientButtonComponent(
                 value ="добавить" ,
                 { onConfirm(categoryName) },
                 isLoading=isLoading,
                 modifier = Modifier.widthIn(64.dp)
             )
-            SecondaryButtonComponent(value = "отмена", onClickButton = {onDismiss(false) }, modifier = Modifier.widthIn(64.dp))
+            SecondaryGradientButtonComponent(value = "отмена", onClickButton = {onDismiss(false) }, modifier = Modifier.widthIn(64.dp))
 
         }
     }
@@ -1667,7 +1529,7 @@ fun SignInFormComponent(
             enabled=!state.value.isLoading
         )
         Spacer(modifier = Modifier.height(20.dp))
-        PrimaryButtonComponent(
+        PrimaryGradientButtonComponent(
             value=stringResource(R.string.login_btn_text),
             onClickButton={ viewModel.toSignIn() },
             isLoading=state.value.isLoading
@@ -1793,7 +1655,7 @@ fun SignUpFormComponent(
             }
         )
         Spacer(modifier = Modifier.height(20.dp))
-        PrimaryButtonComponent(
+        PrimaryGradientButtonComponent(
             value=stringResource(R.string.signup_btn_text),
             onClickButton={ viewModel.toSignUp() },
             isLoading=state.value.isLoading
@@ -1846,7 +1708,7 @@ fun DayComponent(dayItem: DayItem, state: State<DateBoxUIState>, onClick: (day:D
                 .heightIn(36.dp)
                 .widthIn(30.dp)
                 .background(
-                    color = DeepGreyColor.copy(alpha = .1f),
+                    color = GreyColor.copy(alpha = .1f),
                     shape = RoundedCornerShape(
                         topStart = 8.dp,
                         topEnd = 8.dp,
