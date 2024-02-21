@@ -7,12 +7,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.navigation.SystemBackButtonHandler
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.theme.BackgroundColor
 
@@ -24,9 +20,9 @@ fun TermsAndConditionScreen() {
         .padding(16.dp)) {
         HeadingTextComponent(value = stringResource(id = R.string.terms_and_conditions_header))
 
-        SystemBackButtonHandler {
-            PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
-        }
+//        SystemBackButtonHandler {
+//            PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
+//        }
 
     }
 }

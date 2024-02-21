@@ -5,39 +5,25 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.fragment.app.DialogFragment
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mypurchasedproduct.R
+import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
@@ -46,44 +32,40 @@ import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewMod
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.navigation.BottomSheetNavigation
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.navigation.composableHandler
+import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
-import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
 import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
 import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
-import com.mypurchasedproduct.presentation.ui.components.MyTextField
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
-import com.mypurchasedproduct.presentation.ui.components.SelectCategoryButton
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 import kotlinx.coroutines.launch
 
 
 @Composable
+
 fun HomeScreen(
     authViewModel: AuthViewModel,
-    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
-    homeViewModel: HomeViewModel = viewModel(),
-    dateRowListViewModel: DateRowListViewModel = viewModel(),
-    addPurchasedProductFormViewModel: AddPurchasedProductFormViewModel = viewModel(),
-    addProductFormViewModel: AddProductFormViewModel = viewModel(),
-    categoryVM: AddCategoryFormViewModel = viewModel(),
-    categoryListVM: CategoryListViewModel = viewModel(),
-    purchasedProductListVM: PurchasedProductListViewModel = viewModel(),
-    productListBottomSheetVM: ProductListBottomSheetViewModel = viewModel(),
-    measurementUnitsListVM: MeasurementUnitsListViewModel = viewModel(),
-    editPurchasedProductFormVM: EditPurchasedProductFormViewModel = viewModel()
+    screenNavController: NavHostController,
+    homeViewModel: HomeViewModel = hiltViewModel(),
+    dateRowListViewModel: DateRowListViewModel = hiltViewModel(),
+    addPurchasedProductFormViewModel: AddPurchasedProductFormViewModel = hiltViewModel(),
+    addProductFormViewModel: AddProductFormViewModel = hiltViewModel(),
+    categoryVM: AddCategoryFormViewModel = hiltViewModel(),
+    categoryListVM: CategoryListViewModel = hiltViewModel(),
+    purchasedProductListVM: PurchasedProductListViewModel = hiltViewModel(),
+    productListBottomSheetVM: ProductListBottomSheetViewModel = hiltViewModel(),
+    measurementUnitsListVM: MeasurementUnitsListViewModel = hiltViewModel(),
+    editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -92,7 +74,8 @@ fun HomeScreen(
     LaunchedEffect(authState.value.isSignIn){
         Log.d("HomeScreen.LaunchedEffect", "AUTH STATE")
         if(!authState.value.isSignIn){
-            appRouter.navigateTo(Screen.AuthScreen)
+//            appRouter.navigateTo(Screen.AuthScreen)
+            screenNavController.navigate(ScreenNavigation.AuthScreenRoute)
         }
     }
     val dateRowState = dateRowListViewModel.state.collectAsState()
@@ -263,7 +246,7 @@ fun HomeScreen(
             PrimaryGradientButtonComponent(
                 value = "Выйти", onClickButton = {
                     authViewModel.signOut()
-                    appRouter.navigateTo(Screen.AuthScreen)
+                    screenNavController.navigate(ScreenNavigation.AuthScreenRoute)
                 }
             )
         }

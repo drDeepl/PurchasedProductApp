@@ -1,16 +1,9 @@
 package com.mypurchasedproduct.presentation.screens
 
 import android.util.Log
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.DecayAnimation
-import androidx.compose.animation.core.FloatExponentialDecaySpec
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -24,28 +17,29 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
+import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.SelectionTabComponent
 import com.mypurchasedproduct.presentation.ui.components.SignInFormComponent
 import com.mypurchasedproduct.presentation.ui.components.SignUpFormComponent
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
-import kotlinx.coroutines.launch
 
 
 @Composable
 fun AuthScreen(
     authViewModel: AuthViewModel,
-    signUpViewModel: SignUpViewModel = viewModel(),
-    signInViewModel: SignInViewModel = viewModel(),
-    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
+    signUpViewModel: SignUpViewModel = hiltViewModel(),
+    signInViewModel: SignInViewModel = hiltViewModel(),
+    navController: NavHostController,
+
 ){
+//    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     Log.wtf("AuthScreen", "START")
     val authState = authViewModel.state.collectAsState()
     val signInState = signInViewModel.signInState.collectAsState()
@@ -66,7 +60,8 @@ fun AuthScreen(
     LaunchedEffect(signInState.value.isSuccess){
         Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
         if(signInState.value.isSuccess){
-            appRouter.navigateTo(Screen.HomeScreen)
+//            appRouter.navigateTo(Screen.HomeScreen)
+            navController.navigate(route=ScreenNavigation.HomeScreenRoute)
             authViewModel.setSignIn(signInState.value.isSuccess)
             signInViewModel.defaultState()
             authViewModel.setCurrentAction(0)
@@ -113,7 +108,8 @@ fun AuthScreen(
                         SignUpFormComponent(
                             signUpViewModel,
                             onTermsAndConditionText = {
-                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
+//                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
+                                navController.navigate(route=ScreenNavigation.TermsAndCondition)
                             }
                         )
                     }

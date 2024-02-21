@@ -5,21 +5,12 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.FiniteAnimationSpec
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
-import com.mypurchasedproduct.presentation.navigation.Screen
-import com.mypurchasedproduct.presentation.screens.AuthScreen
-import com.mypurchasedproduct.presentation.screens.HomeScreen
-import com.mypurchasedproduct.presentation.screens.TermsAndConditionScreen
+import androidx.navigation.compose.rememberNavController
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.ui.components.LoadScreen
+import com.mypurchasedproduct.presentation.navigation.AppNavHost
+import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.theme.MyPurchasedProductTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -34,36 +25,37 @@ class MainActivity: ComponentActivity() {
         Log.wtf(TAG, "onCreate")
         super.onCreate(savedInstanceState)
         setContent {
+            val navController = rememberNavController()
             val authState = authViewModel.state.collectAsState()
             LaunchedEffect(authState.value.isSignIn){
                 Log.wtf(TAG, "LAUNCHED EFFECT")
                 if(authState.value.isSignIn){
-                    PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
+//                    PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
+                    navController.navigate(route=ScreenNavigation.HomeScreenRoute)
                 }
                 else{
-                    PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
+                    navController.navigate(route=ScreenNavigation.AuthScreenRoute)
+//                    PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
                 }
             }
             MyPurchasedProductTheme {
-                Surface(modifier= Modifier.fillMaxSize(), color = Color.White) {
-                    Crossfade(
-                        targetState = PurchasedProductAppRouter.currentScreen, label = "",
-                    ) { currentState ->
-                        when(currentState.value){
-                            is Screen.TermsAndConditionsScreen ->{
-                                TermsAndConditionScreen()
-                            }
-                            is Screen.HomeScreen ->{
-                                HomeScreen(authViewModel=authViewModel)
-                            }
-                            is Screen.AuthScreen ->{
-                                AuthScreen(authViewModel)
-                            }
-                        }
-
-                    }
-
-                }
+                AppNavHost(navController = navController, authViewModel = authViewModel)
+//                    Crossfade(
+//                        targetState = PurchasedProductAppRouter.currentScreen, label = "",
+//                    ) { currentState ->
+//                        when(currentState.value){
+//                            is Screen.TermsAndConditionsScreen ->{
+//                                TermsAndConditionScreen()
+//                            }
+//                            is Screen.HomeScreen ->{
+//                                HomeScreen(authViewModel=authViewModel)
+//                            }
+//                            is Screen.AuthScreen ->{
+//                                AuthScreen(authViewModel)
+//                            }
+//                        }
+//
+//                    }
             }
         }
     }
