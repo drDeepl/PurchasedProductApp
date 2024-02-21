@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -107,7 +108,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -121,7 +121,9 @@ import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
+import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
+import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
@@ -130,6 +132,7 @@ import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewMod
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
+import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -146,6 +149,7 @@ import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
+import com.mypurchasedproduct.presentation.ui.theme.largePadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -380,7 +384,7 @@ fun CheckBoxComponent(checkedState: Boolean, textValue:String, onTextSelected: (
 }
 
 @Composable
-fun ClickableTextComponent(value:String, onTextSelected: (String) -> Unit){
+fun ClickableTextComponent(value: String, onTextSelected: (String) -> Unit){
     val initialText = "Продолжая, вы соглашаетесь с нашей "
     val privacyPolicyText = " политикой приватности "
     val andText = " и "
@@ -470,7 +474,7 @@ fun SecondaryGradientButtonComponent(
         colors = ButtonDefaults.buttonColors(
             contentColor = TextColor
         ),
-        border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(gradientColors),)
+        border = BorderStroke(width =  2.dp,brush = Brush.horizontalGradient(gradientColors))
 
     )
     {
@@ -507,7 +511,7 @@ fun SuccessButtonIcon(onClick: () -> Unit, isLoading: Boolean = false){
         modifier= Modifier.size(50.dp),  //avoid the oval shape
         shape = CircleShape,
         elevation = ButtonDefaults.buttonElevation(pressedElevation=8.dp),
-        border = BorderStroke(2.dp, brush = Brush.horizontalGradient(listOf(AcidGreenColor, AcidPurpleColor)),),
+        border = BorderStroke(2.dp, brush = Brush.horizontalGradient(listOf(AcidGreenColor, AcidPurpleColor))),
         contentPadding = PaddingValues(0.dp),  //avoid the little icon
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.White
@@ -1261,6 +1265,157 @@ fun MeasurementUnitListComponent(
     }
 }
 
+
+@Composable
+fun CategoryListComponent(
+    categories:  State<MutableList<CategoryResponse>>,
+    onClick: (it: CategoryResponse)-> Unit,
+    categoryListState: State<CategoryListState>,
+    modifier: Modifier = Modifier
+){
+    Log.d(TAG, "CategoryListComponent")
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    if(categoryListState.value.isLoading){
+        LinearProgressIndicator()
+    }
+    else {
+        LazyRow(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(
+                    vertical = lowPadding
+                ),
+            state = listState,
+            userScrollEnabled = true,
+            horizontalArrangement = Arrangement.SpaceAround,
+        ) {
+            itemsIndexed(items = categories.value) { index, item: CategoryResponse ->
+                OutlinedButton(
+                    onClick = {
+                        scope.launch {
+                            onClick(item)
+                        }
+                    }
+                ) {
+                    Text(text = item.name)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.animateContentSize()){
+    LazyColumn(
+        modifier = modifier.padding(horizontal = lowPadding),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.Start
+    ){
+        items(errors){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+            ){
+                Icon(
+                    painter = rememberVectorPainter(image = Icons.Filled.Error),
+                    contentDescription = "",
+                    modifier= Modifier
+                        .size(32.dp)
+                        .graphicsLayer(alpha = 0.9f)
+                        .drawWithCache {
+                            onDrawWithContent {
+                                drawContent()
+                                drawRect(
+                                    brush = Brush.horizontalGradient(
+                                        listOf(
+                                            AcidRedColor,
+                                            AcidRedColor
+                                        )
+                                    ), blendMode = BlendMode.SrcIn
+                                )
+                            }
+                        })
+                Text(text = it, fontSize = 16.sp, modifier = Modifier.padding(horizontal = extraLowPadding), color= AcidRedColor)
+            }
+            Spacer(modifier = Modifier.padding(vertical = extraLowPadding))
+
+        }
+    }
+
+}
+
+@Composable
+fun AddProductFormComponent(
+    addProductFormViewModel: AddProductFormViewModel,
+    categoryListVM: CategoryListViewModel,
+    onDismiss: () -> Unit
+){
+    val formState = addProductFormViewModel.formState.collectAsState()
+    val isOpenCategoryContainer = remember { mutableStateOf(false) }
+    val product = addProductFormViewModel.productItem
+    val productName = remember {
+        mutableStateOf("")
+    }
+    val categoryName = remember {
+        mutableStateOf("")
+    }
+    val categoryId = remember { mutableStateOf(product.value.categoryId) }
+    val categoryListState = categoryListVM.state.collectAsState()
+    val categories = categoryListVM.categories.collectAsState()
+    
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.fillMaxHeight(0.5f).animateContentSize()
+    ){
+        PrimaryClickableOutlinedTextField(
+            textValue = categoryName.value,
+            labelValue = "категория",
+            isExpanded = isOpenCategoryContainer.value,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            onClick = {
+                isOpenCategoryContainer.value = it
+            },
+            onValueChange = {
+                categoryName.value = it
+                            },
+            isReadOnly = true
+        )
+        if(isOpenCategoryContainer.value){
+            CategoryListComponent(
+                categories = categories,
+                onClick = {
+                    categoryName.value = it.name
+                    categoryId.value = it.id
+                },
+                categoryListState = categoryListState
+            )
+        }
+        PrimaryOutlinedTextField(textValue = productName.value, labelValue = "продукт", onValueChange = {productName.value = it})
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = lowPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryGradientButtonComponent(
+                value = "добавить",
+                onClickButton = {
+                    Log.wtf(TAG, "TODO CONFIRM ADD PRODUCT")
+                },
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryGradientButtonComponent(
+                value = "отмена",
+                onClickButton = onDismiss,
+                gradientColors = GreyGradient,
+                modifier = Modifier.widthIn(150.dp)
+            )
+        }
+    }
+
+}
+
 @Composable
 fun AddPurchasedProductFormComponent(
     addPurchasedProductVM: AddPurchasedProductFormViewModel,
@@ -1272,7 +1427,6 @@ fun AddPurchasedProductFormComponent(
 ){
 
     val scope = rememberCoroutineScope()
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp.value/1.8f
     val addPurchasedProductState = addPurchasedProductVM.state.collectAsState()
     val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
@@ -1283,7 +1437,8 @@ fun AddPurchasedProductFormComponent(
     }
     Column(
         modifier = Modifier
-            .heightIn(Dp(screenHeight))
+//            .heightIn(screenHeight.value)
+            .fillMaxHeight(0.5f)
             .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -1326,9 +1481,9 @@ fun AddPurchasedProductFormComponent(
                     onValueChange = {addPurchasedProductVM.setCount(it)},
                     isReadOnly = false,
                     trailingIconSuffix = {
-                            TextButton(onClick = { isOpenMeasurementUnits.value = !isOpenMeasurementUnits.value }) {
-                                Text(text=addPurchasedProductState.value.measurementUnit?.let{it.name} ?: "", fontSize = 16.sp)
-                            }
+                        TextButton(onClick = { isOpenMeasurementUnits.value = !isOpenMeasurementUnits.value }) {
+                            Text(text=addPurchasedProductState.value.measurementUnit?.let{it.name} ?: "", fontSize = 16.sp)
+                        }
                     },
                 )
                 if(isOpenMeasurementUnits.value) {
@@ -1377,52 +1532,6 @@ fun AddPurchasedProductFormComponent(
     }
 }
 
-
-@Composable
-fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.animateContentSize()){
-    LazyColumn(
-        modifier = modifier.padding(horizontal = lowPadding),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.Start
-    ){
-        items(errors){
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-            ){
-                Icon(
-                    painter = rememberVectorPainter(image = Icons.Filled.Error),
-                    contentDescription = "",
-                    modifier= Modifier
-                        .size(32.dp)
-                        .graphicsLayer(alpha = 0.9f)
-                        .drawWithCache {
-                            onDrawWithContent {
-                                drawContent()
-                                drawRect(
-                                    brush = Brush.horizontalGradient(
-                                        listOf(
-                                            AcidRedColor,
-                                            AcidRedColor
-                                        )
-                                    ), blendMode = BlendMode.SrcIn
-                                )
-                            }
-                        })
-                Text(text = it, fontSize = 16.sp, modifier = Modifier.padding(horizontal = extraLowPadding), color= AcidRedColor)
-            }
-            Spacer(modifier = Modifier.padding(vertical = extraLowPadding))
-
-        }
-    }
-
-}
-
-@Preview
-@Composable
-fun PreviewErrorContainer(){
-    val errors: List<String> = listOf("При добавлении продукта возникла ошибка", "ошибка сети")
-    ErrorListContainer(errors)
-}
 
 @Composable
 fun EditPurchasedProductFormComponent(

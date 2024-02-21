@@ -24,7 +24,7 @@ class ProductListBottomSheetViewModel @Inject constructor(
     private val _state = MutableStateFlow(ProductsListState(false,false, false, ""))
     val state = _state.asStateFlow()
 
-    private val _products: MutableStateFlow<List<ProductResponse>> = MutableStateFlow(listOf())
+    private val _products: MutableStateFlow<MutableList<ProductResponse>> = MutableStateFlow(mutableListOf())
     val products = _products.asStateFlow()
 
     init{
@@ -54,12 +54,10 @@ class ProductListBottomSheetViewModel @Inject constructor(
                 )
             }
 
-            val result: NetworkResult<List<ProductResponse>> = productRepository.getProducts()
+            val result: NetworkResult<MutableList<ProductResponse>> = productRepository.getProducts()
             when(result){
                 is NetworkResult.Success ->{
-                    _products.update { products ->
-                        products.plus(result.data ?: listOf())
-                    }
+                    _products.update { result.data ?: mutableListOf()}
                     _state.update { state ->
                         state.copy(isLoading = false)
                     }

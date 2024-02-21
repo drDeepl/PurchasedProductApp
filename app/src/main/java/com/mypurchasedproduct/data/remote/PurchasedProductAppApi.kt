@@ -58,7 +58,7 @@ interface PurchasedProductAppApi {
 
 
     @GET("${PRODUCT_ENDPOINT}/all")
-    suspend fun getProducts(): Response<List<ProductResponse>>
+    suspend fun getProducts(): Response<MutableList<ProductResponse>>
 
     @POST("${PRODUCT_ENDPOINT}/add")
     suspend fun addProduct(@Body addProductRequest: AddProductRequest): Response<ProductResponse>
@@ -70,7 +70,7 @@ interface PurchasedProductAppApi {
     suspend fun getMeasurementUnits(): Response<List<MeasurementUnitResponse>>
 
     @GET("${PRODUCT_ENDPOINT}/category/all")
-    suspend fun getCategories(): Response<List<CategoryResponse>>
+    suspend fun getCategories(): Response<MutableList<CategoryResponse>>
 
     @POST("${PRODUCT_ENDPOINT}/category/add")
     suspend fun addCategory(@Body() addCategoryRequest: AddCategoryRequest): Response<CategoryResponse>

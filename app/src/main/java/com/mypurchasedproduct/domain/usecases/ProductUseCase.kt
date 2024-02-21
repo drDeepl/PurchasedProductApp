@@ -15,7 +15,7 @@ class ProductUseCase @Inject constructor(
 ){
     private val TAG: String = this.javaClass.simpleName
 
-    suspend fun getProducts(): NetworkResult<List<ProductResponse>> = productRepository.getProducts()
+    suspend fun getProducts(): NetworkResult<MutableList<ProductResponse>> = productRepository.getProducts()
 
     suspend fun addProduct(productItem: ProductItem): NetworkResult<ProductResponse>{
         Log.wtf(TAG, "ADD PRODUCT\n ${productItem.categoryId}\t${productItem.productName}")
@@ -32,5 +32,5 @@ class ProductUseCase @Inject constructor(
         }
     }
 
-    suspend fun getCategories(): NetworkResult<List<CategoryResponse>> = productRepository.getCategories()
+    suspend fun getCategories(): NetworkResult<MutableList<CategoryResponse>> = productRepository.getCategories()
 }

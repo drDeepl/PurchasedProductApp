@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -29,21 +28,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.mypurchasedproduct.R
-import com.mypurchasedproduct.presentation.ViewModel.AddProductViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
-import com.mypurchasedproduct.presentation.ViewModel.CategoryViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
+import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
+import com.mypurchasedproduct.presentation.navigation.BottomSheetNavigation
 import com.mypurchasedproduct.presentation.navigation.PurchasedProductAppRouter
 import com.mypurchasedproduct.presentation.navigation.Screen
+import com.mypurchasedproduct.presentation.navigation.composableHandler
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
+import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
@@ -70,13 +77,15 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = viewModel(),
     dateRowListViewModel: DateRowListViewModel = viewModel(),
     addPurchasedProductFormViewModel: AddPurchasedProductFormViewModel = viewModel(),
-    addProductViewModel: AddProductViewModel = viewModel(),
-    categoryVM: CategoryViewModel = viewModel(),
+    addProductFormViewModel: AddProductFormViewModel = viewModel(),
+    categoryVM: AddCategoryFormViewModel = viewModel(),
+    categoryListVM: CategoryListViewModel = viewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = viewModel(),
     productListBottomSheetVM: ProductListBottomSheetViewModel = viewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = viewModel(),
     editPurchasedProductFormVM: EditPurchasedProductFormViewModel = viewModel()
 ) {
+    val navController = rememberNavController()
     val scope = rememberCoroutineScope()
     val homeState = homeViewModel.state.collectAsState()
     val authState = authViewModel.state.collectAsState()
@@ -157,6 +166,7 @@ fun HomeScreen(
         },
         content = {paddingValues: PaddingValues ->
             val addPurchasedProductState = addPurchasedProductFormViewModel.state.collectAsState()
+            val addProductFormState = addProductFormViewModel.formState.collectAsState()
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
@@ -175,44 +185,78 @@ fun HomeScreen(
                 }
             )
             {
-                AddPurchasedProductFormComponent(
-                    addPurchasedProductVM = addPurchasedProductFormViewModel,
-                    productListBottomSheetVM = productListBottomSheetVM,
-                    measurementUnitsListVM = measurementUnitsListVM,
-                    onClickAddProduct = {
-                        addProductViewModel.onClickAddProduct()
-                        addProductViewModel.findCategories()
-                    },
-                    onConfirm = {
-                        scope.launch{
-                            purchasedProductListVM.toAddPurchasedProduct(
-                                it,
-                                dateRowListViewModel.getSelectedDayTimestamp(),
-                                onSuccess = {
-                                    homeViewModel.setSuccessMsgState(
-                                        header=it,
-                                        onConfirm = { addPurchasedProductFormViewModel.setDefaultState() }
-                                    )})
-                        }
+                // TODO: NAV HOST
+                NavHost(navController = navController , startDestination = BottomSheetNavigation.AddPurchasedProductRoute){
+                    composable(route = BottomSheetNavigation.AddPurchasedProductRoute){
+                        AddPurchasedProductFormComponent(
+                            addPurchasedProductVM = addPurchasedProductFormViewModel,
+                            productListBottomSheetVM = productListBottomSheetVM,
+                            measurementUnitsListVM = measurementUnitsListVM,
+                            onClickAddProduct = {
+//                                addProductFormViewModel.setActiveForm(true)
+                                navController.navigate(route=BottomSheetNavigation.AddProductRoute)
+                                categoryListVM.findCategories()
+                            },
+                            onConfirm = {
+                                scope.launch{
+                                    purchasedProductListVM.toAddPurchasedProduct(
+                                        it,
+                                        dateRowListViewModel.getSelectedDayTimestamp(),
+                                        onSuccess = {
+                                            homeViewModel.setSuccessMsgState(
+                                                header=it,
+                                                onConfirm = { addPurchasedProductFormViewModel.setDefaultState() }
+                                            )})
+                                }
 
-                    },
-                    onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)}
-                )
+                            },
+                            onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)}
+                        )
+                    }
+                    composable(route = BottomSheetNavigation.AddProductRoute){
+                        AddProductFormComponent(
+                            addProductFormViewModel = addProductFormViewModel,
+                            categoryListVM = categoryListVM,
+                            onDismiss = {
+                                addProductFormViewModel.setActiveForm(false)
+                                addProductFormViewModel.setDefaultState()
+                            }
+                        )
+                    }
+                    composable(route=BottomSheetNavigation.ProductListRoute){
+
+                    }
+                }
+
+                if (addProductFormState.value.isError) {
+                    ErrorMessageDialog(
+                        headerText = "Что-то пошло не так",
+                        description = "todo",
+                        onDismiss = {
+                            addProductFormViewModel.setDefaultState()
+                        }
+                    )
+                }
+                if (addProductFormState.value.isSuccess) {
+                    SuccessMessageDialog(
+                        text = "Продукт добавлен!",
+                        onDismiss = {
+                            addProductFormViewModel.setDefaultState()
+                        }
+                    )
+                }
+
             }
 
         },
         floatingActionButton = {
             PrimaryFloatingActionButton(
                 painter = painterResource(id = R.drawable.ic_plus),
-                onClick={
-                    Log.wtf("FLOATIONG BUTTON","ON CLICK FLOATIG BUTTTON: [start]")
+                onClick= {
                     rememberCoroutineScope.launch {
                         addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(true)
-
                     }
-                    Log.wtf("FLOATIONG BUTTON","ON CLICK FLOATIG BUTTTON: [END]")
-                },
-
+                         },
                 )
         },
         bottomBar = {
@@ -311,15 +355,16 @@ fun HomeScreen(
 
             if(categoryVM.addCategoryState.isActive){
                 val addCategoryState = categoryVM.addCategoryState
+
                 AddCategoryForm(
                     isLoading=addCategoryState.isLoading,
                     onConfirm = {categoryVM.addCategory(it)},
                     onDismiss = {categoryVM.setActiveAddCategory(it)})
+
                 if(addCategoryState.isSuccess){
                     SuccessMessageDialog(
                         text = "категория добавлена!",
                         onDismiss = {
-                            addProductViewModel.findCategories()
                             categoryVM.setActiveAddCategory(false)
                             categoryVM.setDefaultState()
                         })
@@ -334,76 +379,6 @@ fun HomeScreen(
                         })
                 }
             }
-            if (addProductViewModel.addProductFormState.isActive) {
-                val getCategoriesState = addProductViewModel.getCategoriesState
-//                        val productItem = addProductViewModel.productItem
-                var addedProductName by remember {
-                    mutableStateOf("")
-                }
-                val addProductState = addProductViewModel.addProductState
-                DialogCardComponent(
-                    onDismiss = { addProductViewModel.onClickCloseAddProduct() },
-                    onConfirm = { addProductViewModel.toAddProduct(addedProductName) }
-                ) {
-                    if(addProductViewModel.getCategoriesState.isSuccess) {
-                        val categories = getCategoriesState.categories
-                        if(categories != null){
-                            Row(
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ){
-                                LazyRow(
-                                    modifier = Modifier.fillMaxWidth(.85f),
-                                    userScrollEnabled = true
-                                ) {
-                                    items(categories){categoryResponse ->
-                                        SelectCategoryButton(
-                                            categoryResponse = categoryResponse,
-                                            onClick = {
-                                                addProductViewModel.setProductCategoryId(
-                                                    categoryResponse.id
-                                                )
-                                            }
-                                        )
-                                    }
-                                }
-                                IconButton(onClick = { categoryVM.setActiveAddCategory(true) }) {
-                                    Icon(imageVector = Icons.Filled.Add, contentDescription = null)
-                                }
-                            }
-                        }
-                        else{
-                            LinearProgressIndicator()
-                        }
-                        MyTextField(
-                            textValue = addedProductName,
-                            labelValue = "продукт",
-                            onValueChange = {
-                                addedProductName = it
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-                        )
-                    }
-                    if (addProductViewModel.addProductState.isError) {
-                        ErrorMessageDialog(
-                            headerText = "Что-то пошло не так",
-                            description = addProductViewModel.addProductState.error.toString(),
-                            onDismiss = {addProductViewModel.setDefaultAddProductState()}
-                        )
-                    }
-                    if (addProductState.isSuccess) {
-                        SuccessMessageDialog(
-                            text = "Продукт добавлен!",
-                            onDismiss = {
-                                addProductViewModel.setDefaultProductItem()
-                                addProductViewModel.setDefaultAddProductState()
-                                addProductViewModel.findProducts()
-                            }
-                        )
-                    }
-                }
-            }
-
-
         }
 
 }

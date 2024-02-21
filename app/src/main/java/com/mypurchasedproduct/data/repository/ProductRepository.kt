@@ -15,7 +15,7 @@ class ProductRepository  @Inject constructor(
 
     private val TAG = this.javaClass.simpleName
 
-    suspend fun getProducts(): NetworkResult<List<ProductResponse>> {
+    suspend fun getProducts(): NetworkResult<MutableList<ProductResponse>> {
         Log.i(TAG, "GET PRODUCTS")
         return safeApiCall { remoteDataSource.getProducts() }
     }
@@ -25,7 +25,7 @@ class ProductRepository  @Inject constructor(
         return safeApiCall { remoteDataSource.addProduct(addProductRequest) }
     }
 
-    suspend fun getCategories(): NetworkResult<List<CategoryResponse>>{
+    suspend fun getCategories(): NetworkResult<MutableList<CategoryResponse>>{
         Log.i(TAG, "GET CATEGORIES")
         return safeApiCall { remoteDataSource.getCategories() }
     }
