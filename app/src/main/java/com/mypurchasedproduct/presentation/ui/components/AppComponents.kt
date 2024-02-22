@@ -999,6 +999,52 @@ fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composabl
     }
 }
 
+@Composable
+fun ProductListComponent(
+    viewModel: ProductListBottomSheetViewModel,
+    onClickAddProduct: () -> Unit,
+    onClickProductItem: (product: ProductResponse) -> Unit
+){
+    val scope = rememberCoroutineScope()
+    val state = viewModel.state.collectAsState()
+    val products = viewModel.products.collectAsState()
+    Column(
+        modifier = Modifier.padding(lowPadding),
+        verticalArrangement = Arrangement.SpaceAround
+    )
+    {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = "Нет нужного продукта?")
+            TextButton(
+                onClick = { onClickAddProduct() }
+            ) {
+                Text("добавить", fontSize = 16.sp)
+            }
+        }
+        Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness = 2.dp)
+        LazyColumn(
+            userScrollEnabled = true,
+        ) {
+            items(products.value) { product ->
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { onClickProductItem(product) }) {
+                    Text(
+                        product.name,
+                        fontSize = 16.sp
+                    )
+                }
+                Divider(thickness = 2.dp)
+            }
+        }
+    }
+
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductModalBottomSheet(
@@ -1348,27 +1394,35 @@ fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.anima
 fun AddProductFormComponent(
     addProductFormViewModel: AddProductFormViewModel,
     categoryListVM: CategoryListViewModel,
+    onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ){
     val formState = addProductFormViewModel.formState.collectAsState()
     val isOpenCategoryContainer = remember { mutableStateOf(false) }
-    val product = addProductFormViewModel.productItem
-    val productName = remember {
-        mutableStateOf("")
-    }
-    val categoryName = remember {
-        mutableStateOf("")
-    }
-    val categoryId = remember { mutableStateOf(product.value.categoryId) }
+    val product = addProductFormViewModel.formData.collectAsState()
+//    val productName = remember {
+//        mutableStateOf("")
+//    }
+//    val categoryName = remember {
+//        mutableStateOf("")
+//    }
+//    val categoryId = remember { mutableStateOf(product.value.categoryId) }
     val categoryListState = categoryListVM.state.collectAsState()
     val categories = categoryListVM.categories.collectAsState()
     
     Column(
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxHeight(0.5f).animateContentSize()
+        modifier = Modifier
+            .fillMaxHeight(0.5f)
+            .padding(horizontal = 12.dp)
+            .animateContentSize()
     ){
+        if(formState.value.isError){
+            val errors = addProductFormViewModel.errors.collectAsState()
+            ErrorListContainer(errors = errors.value)
+        }
         PrimaryClickableOutlinedTextField(
-            textValue = categoryName.value,
+            textValue = product.value.category.name,
             labelValue = "категория",
             isExpanded = isOpenCategoryContainer.value,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -1376,7 +1430,8 @@ fun AddProductFormComponent(
                 isOpenCategoryContainer.value = it
             },
             onValueChange = {
-                categoryName.value = it
+//                categoryName.value = it
+                            addProductFormViewModel.setProductName(it)
                             },
             isReadOnly = true
         )
@@ -1384,13 +1439,17 @@ fun AddProductFormComponent(
             CategoryListComponent(
                 categories = categories,
                 onClick = {
-                    categoryName.value = it.name
-                    categoryId.value = it.id
+                    addProductFormViewModel.setProductCategory(it)
+//                    product.value.categoryId = it.name
+//                    categoryId.value = it.id
                 },
                 categoryListState = categoryListState
             )
         }
-        PrimaryOutlinedTextField(textValue = productName.value, labelValue = "продукт", onValueChange = {productName.value = it})
+        PrimaryOutlinedTextField(
+            textValue = product.value.productName,
+            labelValue = "продукт",
+            onValueChange = {addProductFormViewModel.setProductName(it)})
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1400,14 +1459,24 @@ fun AddProductFormComponent(
         ) {
             SecondaryGradientButtonComponent(
                 value = "добавить",
+                isLoading = formState.value.isLoading,
                 onClickButton = {
+                    addProductFormViewModel.setLoading(true)
+                    val validateErrors = addProductFormViewModel.validate()
+                    if(validateErrors.size > 0){
+                        addProductFormViewModel.setErrors(validateErrors)
+                    }
+                    else{
+                        onConfirm(product.value)
+                    }
+                    addProductFormViewModel.setLoading(false)
                     Log.wtf(TAG, "TODO CONFIRM ADD PRODUCT")
                 },
                 modifier = Modifier.widthIn(150.dp)
             )
             SecondaryGradientButtonComponent(
-                value = "отмена",
-                onClickButton = onDismiss,
+                value = "назад",
+                onClickButton = {onDismiss()},
                 gradientColors = GreyGradient,
                 modifier = Modifier.widthIn(150.dp)
             )
@@ -1424,6 +1493,7 @@ fun AddPurchasedProductFormComponent(
     onClickAddProduct: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
+    onSelectedProduct: () -> Unit
 ){
 
     val scope = rememberCoroutineScope()
@@ -1451,19 +1521,20 @@ fun AddPurchasedProductFormComponent(
                 labelValue = "продукт",
                 isExpanded = productState.value.isActive,
                 onClick = {
-                    productListBottomSheetVM.setActive(it)
+//                    productListBottomSheetVM.setActive(it)
+                          onSelectedProduct()
                 },
             )
-            ProductModalBottomSheet(
-                viewModel = productListBottomSheetVM,
-                onClickAddProduct = onClickAddProduct,
-                onClickProductItem = {
-                    scope.launch {
-                        addPurchasedProductVM.setProduct(it)
-                        productListBottomSheetVM.setActive(false)
-                    }
-                }
-            )
+//            ProductModalBottomSheet(
+//                viewModel = productListBottomSheetVM,
+//                onClickAddProduct = onClickAddProduct,
+//                onClickProductItem = {
+//                    scope.launch {
+//                        addPurchasedProductVM.setProduct(it)
+//                        productListBottomSheetVM.setActive(false)
+//                    }
+//                }
+//            )
         }
         Column(modifier = Modifier.animateContentSize())
         {

@@ -1,6 +1,8 @@
 package com.mypurchasedproduct.presentation.ui.item
 
+import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
+
 data class ProductItem(
-    val categoryId: Long = 0,
+    val category: CategoryResponse = CategoryResponse(0, ""),
     val productName: String = "",
 )

@@ -18,18 +18,25 @@ class ProductUseCase @Inject constructor(
     suspend fun getProducts(): NetworkResult<MutableList<ProductResponse>> = productRepository.getProducts()
 
     suspend fun addProduct(productItem: ProductItem): NetworkResult<ProductResponse>{
-        Log.wtf(TAG, "ADD PRODUCT\n ${productItem.categoryId}\t${productItem.productName}")
-        if(productItem.categoryId != null && productItem.productName.isNotEmpty()) {
-            return productRepository.addProduct(
-                AddProductRequest(
-                    productItem.categoryId,
-                    productItem.productName
-                )
+        Log.wtf(TAG, "ADD PRODUCT\n ${productItem.category.id}\t${productItem.productName}")
+        return productRepository.addProduct(
+            AddProductRequest(
+                categoryId=productItem.category.id,
+                name=productItem.productName
             )
-        }
-        else{
-            return NetworkResult.Error<ProductResponse>("есть пустые поля или категория не выбрана")
-        }
+        )
+
+//        if(productItem.categoryId != null && productItem.productName.isNotEmpty()) {
+//            return productRepository.addProduct(
+//                AddProductRequest(
+//                    productItem.categoryId,
+//                    productItem.productName
+//                )
+//            )
+//        }
+//        else{
+//            return NetworkResult.Error<ProductResponse>("есть пустые поля или категория не выбрана")
+//        }
     }
 
     suspend fun getCategories(): NetworkResult<MutableList<CategoryResponse>> = productRepository.getCategories()

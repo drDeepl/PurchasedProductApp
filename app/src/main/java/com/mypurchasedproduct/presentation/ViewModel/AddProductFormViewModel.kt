@@ -3,6 +3,7 @@ package com.mypurchasedproduct.presentation.ViewModel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.domain.usecases.ProductUseCase
 import com.mypurchasedproduct.presentation.state.AddProductFormState
 import com.mypurchasedproduct.presentation.ui.item.ProductItem
@@ -26,22 +27,52 @@ class AddProductFormViewModel @Inject constructor(
     )
     val formState = _formState.asStateFlow()
 
+    private val _formData = MutableStateFlow(ProductItem())
+    val formData = _formData.asStateFlow()
+
     private val _errors = MutableStateFlow<MutableList<String>>(mutableListOf())
     val errors = _errors.asStateFlow()
-
-
-
-    private val _productItem = MutableStateFlow(ProductItem())
-    val productItem = _productItem.asStateFlow()
-
-
 
     fun setProductName(name: String){
         viewModelScope.launch {
             Log.w(TAG, "SET PRODUCT NAME")
-            _productItem.update { productItem ->
-                productItem.copy(
+            _formData.update { formData ->
+                formData.copy(
                     productName = name
+                )
+            }
+        }
+    }
+
+    fun validate(): MutableList<String> {
+            val errors = mutableListOf<String>()
+            if(formData.value.productName.isEmpty()){
+                errors.add("название продукта не может быть пустым")
+            }
+            if(formData.value.category.id <= 0){
+                errors.add("не выбрана категория для продукта")
+            }
+        return errors
+    }
+
+    fun setErrors(errors: MutableList<String>){
+        viewModelScope.launch {
+            Log.d(TAG, "SET ERRORS")
+            _errors.update { errors }
+            _formState.update { formState ->
+                formState.copy(
+                    isError = true
+                )
+            }
+        }
+    }
+    fun clearErrors(){
+        viewModelScope.launch {
+            Log.d(TAG, "CLEAR ERRORS")
+            _errors.update { mutableListOf<String>() }
+            _formState.update { formState ->
+                formState.copy(
+                    isError = false
                 )
             }
         }
@@ -55,7 +86,7 @@ class AddProductFormViewModel @Inject constructor(
             _formState.update { formState ->
                 formState.copy(isLoading = true)
             }
-            productUseCase.addProduct(_productItem.value).let {networkResult ->
+            productUseCase.addProduct(formData.value).let {networkResult ->
                 when(networkResult){
                     is NetworkResult.Success ->{
                         _formState.update { formState ->
@@ -89,21 +120,28 @@ class AddProductFormViewModel @Inject constructor(
     }
 
 
-    fun setProductCategoryId(categoryId: Long){
+    fun setProductCategory(category: CategoryResponse){
         viewModelScope.launch {
             Log.d(TAG, "SET PRODUCT CATEGORY ID")
-            _productItem.update { productItem ->
-                productItem.copy(
-                    categoryId = categoryId
+            _formData.update { formData ->
+                formData.copy(
+                    category = category
                 )
             }
         }
 
     }
+    fun setActiveForm(isActive: Boolean){
+        _formState.update { formState ->
+            formState.copy(isActive=isActive)
+        }
+    }
 
- fun setActiveForm(isActive: Boolean){
-     _formState.update { formState ->
-         formState.copy(isActive=isActive)
-     }
- }
+    fun setLoading(isLoading: Boolean){
+        _formState.update { formState ->
+            formState.copy(
+                isLoading = isLoading
+            )
+        }
+    }
 }

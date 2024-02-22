@@ -31,7 +31,7 @@ import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
-import com.mypurchasedproduct.presentation.navigation.BottomSheetNavigation
+import com.mypurchasedproduct.presentation.navigation.ModalBottomSheetNavigation
 import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
@@ -46,6 +46,7 @@ import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
+import com.mypurchasedproduct.presentation.ui.components.ProductListComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 import kotlinx.coroutines.launch
@@ -169,15 +170,19 @@ fun HomeScreen(
             )
             {
                 // TODO: NAV HOST
-                NavHost(navController = navController , startDestination = BottomSheetNavigation.AddPurchasedProductRoute){
-                    composable(route = BottomSheetNavigation.AddPurchasedProductRoute){
+                NavHost(
+                    navController = navController ,
+                    startDestination = ModalBottomSheetNavigation.AddPurchasedProductRoute,
+                    route = ModalBottomSheetNavigation.NavHostRoute
+                ){
+                    composable(route = ModalBottomSheetNavigation.AddPurchasedProductRoute){
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
                             productListBottomSheetVM = productListBottomSheetVM,
                             measurementUnitsListVM = measurementUnitsListVM,
                             onClickAddProduct = {
 //                                addProductFormViewModel.setActiveForm(true)
-                                navController.navigate(route=BottomSheetNavigation.AddProductRoute)
+                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
                                 categoryListVM.findCategories()
                             },
                             onConfirm = {
@@ -193,41 +198,58 @@ fun HomeScreen(
                                 }
 
                             },
-                            onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)}
+                            onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)},
+                            onSelectedProduct = {
+                                navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
+                            }
                         )
                     }
-                    composable(route = BottomSheetNavigation.AddProductRoute){
+                    composable(route = ModalBottomSheetNavigation.AddProductRoute){
                         AddProductFormComponent(
                             addProductFormViewModel = addProductFormViewModel,
                             categoryListVM = categoryListVM,
+                            onConfirm = {/*TODO: REQUEST TO ADD PRODUCT*/},
                             onDismiss = {
-                                addProductFormViewModel.setActiveForm(false)
+                                navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
                                 addProductFormViewModel.setDefaultState()
                             }
                         )
                     }
-                    composable(route=BottomSheetNavigation.ProductListRoute){
+                    composable(route=ModalBottomSheetNavigation.ProductListRoute){
+                        ProductListComponent(
+                            viewModel = productListBottomSheetVM,
+                            onClickAddProduct = {
+//                                addProductFormViewModel.setActiveForm(true)
+                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
+                                categoryListVM.findCategories()
+                            },
+                            onClickProductItem = {
+                                addPurchasedProductFormViewModel.setProduct(it)
+                                navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
+
+                            }
+                        )
 
                     }
                 }
 
-                if (addProductFormState.value.isError) {
-                    ErrorMessageDialog(
-                        headerText = "Что-то пошло не так",
-                        description = "todo",
-                        onDismiss = {
-                            addProductFormViewModel.setDefaultState()
-                        }
-                    )
-                }
-                if (addProductFormState.value.isSuccess) {
-                    SuccessMessageDialog(
-                        text = "Продукт добавлен!",
-                        onDismiss = {
-                            addProductFormViewModel.setDefaultState()
-                        }
-                    )
-                }
+//                if (addProductFormState.value.isError) {
+//                    ErrorMessageDialog(
+//                        headerText = "Что-то пошло не так",
+//                        description = "todo",
+//                        onDismiss = {
+//                            addProductFormViewModel.setDefaultState()
+//                        }
+//                    )
+//                }
+//                if (addProductFormState.value.isSuccess) {
+//                    SuccessMessageDialog(
+//                        text = "Продукт добавлен!",
+//                        onDismiss = {
+//                            addProductFormViewModel.setDefaultState()
+//                        }
+//                    )
+//                }
 
             }
 
