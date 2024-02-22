@@ -25,37 +25,26 @@ class MainActivity: ComponentActivity() {
         Log.wtf(TAG, "onCreate")
         super.onCreate(savedInstanceState)
         setContent {
-            val navController = rememberNavController()
-            val authState = authViewModel.state.collectAsState()
-            LaunchedEffect(authState.value.isSignIn){
-                Log.wtf(TAG, "LAUNCHED EFFECT")
-                if(authState.value.isSignIn){
-//                    PurchasedProductAppRouter.navigateTo(Screen.HomeScreen)
-                    navController.navigate(route=ScreenNavigation.HomeScreenRoute)
-                }
-                else{
-                    navController.navigate(route=ScreenNavigation.AuthScreenRoute)
-//                    PurchasedProductAppRouter.navigateTo(Screen.AuthScreen)
-                }
-            }
             MyPurchasedProductTheme {
+                val navController = rememberNavController()
+                val authState = authViewModel.state.collectAsState()
+                LaunchedEffect(authState.value.isSignIn){
+                    Log.wtf(TAG, "LAUNCHED EFFECT")
+                    if(authState.value.isSignIn){
+                        navController.navigate(route=ScreenNavigation.HomeScreenRoute){
+                            this.popUpTo(ScreenNavigation.NavHostRoute){
+                                inclusive = false
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                    else{
+                        navController.navigate(route=ScreenNavigation.AuthScreenRoute)
+                    }
+                }
                 AppNavHost(navController = navController, authViewModel = authViewModel)
-//                    Crossfade(
-//                        targetState = PurchasedProductAppRouter.currentScreen, label = "",
-//                    ) { currentState ->
-//                        when(currentState.value){
-//                            is Screen.TermsAndConditionsScreen ->{
-//                                TermsAndConditionScreen()
-//                            }
-//                            is Screen.HomeScreen ->{
-//                                HomeScreen(authViewModel=authViewModel)
-//                            }
-//                            is Screen.AuthScreen ->{
-//                                AuthScreen(authViewModel)
-//                            }
-//                        }
-//
-//                    }
             }
         }
     }

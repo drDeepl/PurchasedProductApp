@@ -4,4 +4,5 @@ object ScreenNavigation {
     const val AuthScreenRoute = "auth_screen"
     const val HomeScreenRoute = "home_screen"
     const val TermsAndCondition = "terms_condition_screen"
+    const val NavHostRoute = "nav_host_screen"
 }

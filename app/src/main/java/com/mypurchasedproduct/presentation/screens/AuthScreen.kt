@@ -61,8 +61,8 @@ fun AuthScreen(
         Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
         if(signInState.value.isSuccess){
 //            appRouter.navigateTo(Screen.HomeScreen)
-            navController.navigate(route=ScreenNavigation.HomeScreenRoute)
             authViewModel.setSignIn(signInState.value.isSuccess)
+            navController.navigate(route=ScreenNavigation.HomeScreenRoute)
             signInViewModel.defaultState()
             authViewModel.setCurrentAction(0)
         }

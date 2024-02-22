@@ -245,8 +245,16 @@ fun HomeScreen(
         bottomBar = {
             PrimaryGradientButtonComponent(
                 value = "Выйти", onClickButton = {
+                    screenNavController.navigate(ScreenNavigation.AuthScreenRoute){
+                        popUpTo(ScreenNavigation.NavHostRoute){
+                            inclusive = false
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
                     authViewModel.signOut()
-                    screenNavController.navigate(ScreenNavigation.AuthScreenRoute)
+
                 }
             )
         }
