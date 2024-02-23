@@ -33,6 +33,12 @@ class ProductListViewModel @Inject constructor(
     val products = _products.asStateFlow()
 
 
+    init{
+        viewModelScope.launch {
+            Log.d(TAG, "INITIALIZER PRODUCT LIST")
+            findProducts()
+        }
+    }
 
     fun findProducts(){
         viewModelScope.launch {
@@ -95,6 +101,4 @@ class ProductListViewModel @Inject constructor(
             }
         }
     }
-
-
 }

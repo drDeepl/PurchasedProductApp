@@ -34,7 +34,6 @@ class ProductListBottomSheetViewModel @Inject constructor(
         }
     }
 
-
     fun setActive(isActive: Boolean){
         viewModelScope.launch {
             Log.d(TAG, "SET ACTIVE")

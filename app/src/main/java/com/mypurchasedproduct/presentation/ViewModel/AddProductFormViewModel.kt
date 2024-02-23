@@ -114,6 +114,7 @@ class AddProductFormViewModel @Inject constructor(
     fun setDefaultState(){
         viewModelScope.launch {
             Log.wtf(TAG, "SET DEFAULT ADD PRODUCT STATE")
+            _formData.update { ProductItem() }
             _formState.update { AddProductFormState(false,false,false,false) }
             _errors.update { mutableListOf() }
         }

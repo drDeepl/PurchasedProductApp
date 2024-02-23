@@ -10,6 +10,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,7 +31,7 @@ import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
-import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
+import com.mypurchasedproduct.presentation.ViewModel.ProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.navigation.ModalBottomSheetNavigation
 import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
@@ -64,7 +66,7 @@ fun HomeScreen(
     categoryVM: AddCategoryFormViewModel = hiltViewModel(),
     categoryListVM: CategoryListViewModel = hiltViewModel(),
     purchasedProductListVM: PurchasedProductListViewModel = hiltViewModel(),
-    productListBottomSheetVM: ProductListBottomSheetViewModel = hiltViewModel(),
+    productListVM: ProductListViewModel = hiltViewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = hiltViewModel(),
     editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel()
 ) {
@@ -75,7 +77,6 @@ fun HomeScreen(
     LaunchedEffect(authState.value.isSignIn){
         Log.d("HomeScreen.LaunchedEffect", "AUTH STATE")
         if(!authState.value.isSignIn){
-//            appRouter.navigateTo(Screen.AuthScreen)
             screenNavController.navigate(ScreenNavigation.AuthScreenRoute)
         }
     }
@@ -141,6 +142,7 @@ fun HomeScreen(
             )
         }
     }
+    val bottomSheetActive = remember {mutableStateOf(false)}
     Scaffold(
         topBar = {
             Column {
@@ -150,21 +152,32 @@ fun HomeScreen(
         },
         content = {paddingValues: PaddingValues ->
             val addPurchasedProductState = addPurchasedProductFormViewModel.state.collectAsState()
-            val addProductFormState = addProductFormViewModel.formState.collectAsState()
+            val startDestination =
+                remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
                 onSwipeToEdit = {
-                    editPurchasedProductFormVM.setActive(true)
-                    editPurchasedProductFormVM.setPurchasedProduct(it)
+
+
+
+//                    editPurchasedProductFormVM.setActive(true)
+                    scope.launch {
+                        startDestination.value = ModalBottomSheetNavigation.EditPurhcasedProductRoute
+                        editPurchasedProductFormVM.setPurchasedProduct(it)
+                        bottomSheetActive.value = !bottomSheetActive.value }
+
                 }
             )
+//            addPurchasedProductState.value.isActive,
             FormModalBottomSheet(
-                openBottomSheet = addPurchasedProductState.value.isActive,
+                openBottomSheet = bottomSheetActive.value,
                 setStateBottomSheet = {
-                    scope.launch {
-                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
-                    }
+                    bottomSheetActive.value = it
+//                    scope.launch {
+//                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
+//
+//                    }
 
                 }
             )
@@ -172,18 +185,21 @@ fun HomeScreen(
                 // TODO: NAV HOST
                 NavHost(
                     navController = navController ,
-                    startDestination = ModalBottomSheetNavigation.AddPurchasedProductRoute,
+                    startDestination = startDestination.value,
                     route = ModalBottomSheetNavigation.NavHostRoute
                 ){
                     composable(route = ModalBottomSheetNavigation.AddPurchasedProductRoute){
+                        productListVM.state
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
-                            productListBottomSheetVM = productListBottomSheetVM,
                             measurementUnitsListVM = measurementUnitsListVM,
                             onClickAddProduct = {
-//                                addProductFormViewModel.setActiveForm(true)
                                 navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
-                                categoryListVM.findCategories()
+                                scope.launch{
+//                                    productListVM.findProducts()
+//                                    categoryListVM.findCategories()
+                                }
+
                             },
                             onConfirm = {
                                 scope.launch{
@@ -198,28 +214,22 @@ fun HomeScreen(
                                 }
 
                             },
-                            onDismiss = {addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(false)},
-                            onSelectedProduct = {
-                                navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
-                            }
-                        )
-                    }
-                    composable(route = ModalBottomSheetNavigation.AddProductRoute){
-                        AddProductFormComponent(
-                            addProductFormViewModel = addProductFormViewModel,
-                            categoryListVM = categoryListVM,
-                            onConfirm = {/*TODO: REQUEST TO ADD PRODUCT*/},
                             onDismiss = {
-                                navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
-                                addProductFormViewModel.setDefaultState()
+                                scope.launch{
+                                    bottomSheetActive.value = false
+                                    addPurchasedProductFormViewModel.setDefaultState()
+                                }
+
+                                        },
+                            onSelectProduct = {
+                                navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
                             }
                         )
                     }
                     composable(route=ModalBottomSheetNavigation.ProductListRoute){
                         ProductListComponent(
-                            viewModel = productListBottomSheetVM,
+                            viewModel = productListVM,
                             onClickAddProduct = {
-//                                addProductFormViewModel.setActiveForm(true)
                                 navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
                                 categoryListVM.findCategories()
                             },
@@ -230,6 +240,50 @@ fun HomeScreen(
                             }
                         )
 
+                    }
+                    composable(route = ModalBottomSheetNavigation.AddProductRoute){
+                        AddProductFormComponent(
+                            addProductFormViewModel = addProductFormViewModel,
+                            categoryListVM = categoryListVM,
+                            onConfirm = {
+                                        productListVM.toAddProduct(it)
+                            },
+                            onDismiss = {
+                                scope.launch {
+                                    navController.navigate(startDestination.value)
+                                    addProductFormViewModel.setDefaultState()
+                                }
+
+                            },
+                            categories=categoryListVM.categories.collectAsState()
+                        )
+                    }
+                    composable(route=ModalBottomSheetNavigation.EditPurhcasedProductRoute){
+                        EditPurchasedProductFormComponent(
+                            editPurchasedProductVM = editPurchasedProductFormVM,
+                            measurementUnitsListVM = measurementUnitsListVM,
+                            onConfirm = {editPurchasedProductModel ->
+                                purchasedProductListVM.toEditPurchasedProduct(
+                                    editPurchasedProductModel,
+                                    onError = {
+                                        homeViewModel.setErrorMsgState("что-то пошло не так", it, onConfirm = {homeViewModel.setDefaultMsgState()}, onDismiss={}) }
+                                )
+                            },
+                            onClickAddProduct = {
+                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
+
+                            },
+                            onDismiss = {
+                                scope.launch {
+                                    bottomSheetActive.value = false
+                                    startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
+                                    editPurchasedProductFormVM.setDefaultState()
+                                    editPurchasedProductFormVM.clearErrors()
+                                }
+
+                            }
+
+                        )
                     }
                 }
 
@@ -258,9 +312,10 @@ fun HomeScreen(
             PrimaryFloatingActionButton(
                 painter = painterResource(id = R.drawable.ic_plus),
                 onClick= {
-                    rememberCoroutineScope.launch {
-                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(true)
-                    }
+                    bottomSheetActive.value = !bottomSheetActive.value
+//                    rememberCoroutineScope.launch {
+//                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(true)
+//                    }
                          },
                 )
         },
@@ -292,28 +347,18 @@ fun HomeScreen(
             val editPurchasedProductState = editPurchasedProductFormVM.state.collectAsState()
 
 //            TODO("EDIT PURCHASED PRODUCT")
-        FormModalBottomSheet(
-            openBottomSheet = editPurchasedProductState.value.isActive,
-            setStateBottomSheet = {
-                editPurchasedProductFormVM.setActive(it)
-            },
-            onDismissRequest = {
-                editPurchasedProductFormVM.setDefaultState()
-                editPurchasedProductFormVM.clearErrors()
-            }
-        ){
-            EditPurchasedProductFormComponent(
-                editPurchasedProductVM = editPurchasedProductFormVM,
-                productListBottomSheetVM = productListBottomSheetVM,
-                measurementUnitsListVM = measurementUnitsListVM,
-                onConfirm = {},
-                onClickAddProduct = {},
-                onDismiss = {
-                    editPurchasedProductFormVM.setDefaultState()
-                    editPurchasedProductFormVM.clearErrors()
-                }
-            )
-        }
+//        FormModalBottomSheet(
+//            openBottomSheet = editPurchasedProductState.value.isActive,
+//            setStateBottomSheet = {
+//                editPurchasedProductFormVM.setActive(it)
+//            },
+//            onDismissRequest = {
+//                editPurchasedProductFormVM.setDefaultState()
+//                editPurchasedProductFormVM.clearErrors()
+//            }
+//        ){
+//
+//        }
 
 //            if(editPurchasedProductState.isActive){
 //                FormModalBottomSheet(

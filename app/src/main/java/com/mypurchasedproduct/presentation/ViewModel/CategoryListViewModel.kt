@@ -36,6 +36,12 @@ class CategoryListViewModel @Inject constructor(
     val errors = _errors.asStateFlow()
 
 
+    init{
+        viewModelScope.launch {
+            Log.d(TAG, "INITIALIZE CATEGORIES")
+            findCategories()
+        }
+    }
 
 
     fun findCategories(){

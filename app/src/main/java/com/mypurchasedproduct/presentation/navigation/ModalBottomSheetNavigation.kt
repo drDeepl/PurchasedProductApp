@@ -7,4 +7,5 @@ object ModalBottomSheetNavigation {
     const val AddCategoryRoute = "add_category_modal_bottom_sheet"
     const val AddMeasurementUnitRoute = "add_measurement_unit_modal_bottom_sheet"
     const val ProductListRoute = "product_list_modal_bottom_sheet"
+    const val EditPurhcasedProductRoute = "edit_purchased_product_bottom_sheet"
 }

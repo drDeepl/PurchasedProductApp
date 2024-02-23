@@ -34,32 +34,38 @@ class EditPurchasedProductFormViewModel @Inject constructor(
     val purchasedProductToEdit = _purchasedProductToEdit.asStateFlow()
 
 
-    fun validate(newProduct: ProductResponse, newCount: String, newMeasurementUnit: MeasurementUnitResponse, newPrice: String): Boolean{
+    fun validate(
+        newProduct: ProductResponse,
+        newCount: String,
+        newMeasurementUnit: MeasurementUnitResponse,
+        newPrice: String
+    ): MutableList<String> {
         Log.d(TAG, "VALIDATE")
         val validateErrors: MutableList<String> = mutableListOf()
         if(newProduct.id <= 0){
             validateErrors.add("продукт не найден")
         }
-        if(newCount.isNotEmpty() && TextUtils.isDigitsOnly(newCount)){
+        if(newCount.isEmpty() && !TextUtils.isDigitsOnly(newCount)){
             validateErrors.add("не заполено поле с количеством")
         }
         if(newMeasurementUnit.id <= 0){
             validateErrors.add("единица измерения не найдена")
         }
-        if(newPrice.isNotEmpty() && TextUtils.isDigitsOnly(newPrice)){
+        if(newPrice.isEmpty() && !TextUtils.isDigitsOnly(newPrice)){
             validateErrors.add("не заполено поле с ценой")
         }
-        if(validateErrors.size > 0){
-            Log.d(TAG, "VALIDATE. ERRORS: SIZE: ${validateErrors.size}")
-            _errors.value.addAll(validateErrors)
-            _state.update {
-                it.copy(
+        return validateErrors
+    }
+
+    fun setErrors(errors: MutableList<String>){
+        viewModelScope.launch {
+            _errors.update{errors}
+            _state.update { state ->
+                state.copy(
                     isError = true
                 )
             }
-            return false
         }
-        return true
     }
 
     fun setLoading(isLoading: Boolean){

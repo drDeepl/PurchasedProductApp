@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +35,7 @@ import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Abc
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
@@ -128,12 +128,14 @@ import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
+import com.mypurchasedproduct.presentation.ViewModel.ProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
+import com.mypurchasedproduct.presentation.ui.item.ProductItem
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
@@ -149,7 +151,6 @@ import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
-import com.mypurchasedproduct.presentation.ui.theme.largePadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -208,6 +209,45 @@ fun ErrorTextComponent(value: String, fontSize: TextUnit = 12.sp){
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PrimaryCustomClickableOutlinedTextField(
+    textValue: String,
+    labelValue: String,
+    enabled: Boolean = true,
+    icon: Painter = rememberVectorPainter(image = Icons.Filled.Abc),
+    onValueChange: (String) -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    readOnly: Boolean = true,
+    trailingIcon: Painter = rememberVectorPainter(image = Icons.Filled.Add),
+    onClickIcon: () -> Unit,
+){
+    OutlinedTextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = lowPadding)
+            .clip(componentShapes.small),
+        value = textValue,
+        onValueChange = { onValueChange(it)},
+        label = { Text(text = labelValue) },
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            focusedBorderColor = GreyColor,
+            focusedLabelColor = Color.Black,
+            containerColor = LightGreyColor,
+            unfocusedBorderColor = LightGreyColor
+        ),
+        shape = componentShapes.large,
+        keyboardOptions = keyboardOptions,
+        leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
+        enabled=enabled,
+        trailingIcon = {
+            IconButton(onClick = { onClickIcon() }) {
+                Icon(painter = trailingIcon, contentDescription = "")
+            }
+        }
+
+    )
+}
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -237,8 +277,7 @@ fun PrimaryOutlinedTextField(
         shape = componentShapes.large,
         keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
-        enabled=enabled
-
+        enabled=enabled,
     )
 }
 
@@ -1001,7 +1040,7 @@ fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composabl
 
 @Composable
 fun ProductListComponent(
-    viewModel: ProductListBottomSheetViewModel,
+    viewModel: ProductListViewModel,
     onClickAddProduct: () -> Unit,
     onClickProductItem: (product: ProductResponse) -> Unit
 ){
@@ -1394,8 +1433,9 @@ fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.anima
 fun AddProductFormComponent(
     addProductFormViewModel: AddProductFormViewModel,
     categoryListVM: CategoryListViewModel,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    onConfirm: (ProductItem) -> Unit,
+    onDismiss: () -> Unit,
+    categories: State<MutableList<CategoryResponse>>,
 ){
     val formState = addProductFormViewModel.formState.collectAsState()
     val isOpenCategoryContainer = remember { mutableStateOf(false) }
@@ -1408,12 +1448,12 @@ fun AddProductFormComponent(
 //    }
 //    val categoryId = remember { mutableStateOf(product.value.categoryId) }
     val categoryListState = categoryListVM.state.collectAsState()
-    val categories = categoryListVM.categories.collectAsState()
+//    val categories = categoryListVM.categories.collectAsState()
     
     Column(
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
-            .fillMaxHeight(0.5f)
+            .heightIn(450.dp)
             .padding(horizontal = 12.dp)
             .animateContentSize()
     ){
@@ -1488,17 +1528,15 @@ fun AddProductFormComponent(
 @Composable
 fun AddPurchasedProductFormComponent(
     addPurchasedProductVM: AddPurchasedProductFormViewModel,
-    productListBottomSheetVM: ProductListBottomSheetViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    onSelectedProduct: () -> Unit
+    onSelectProduct: () -> Unit
 ){
 
     val scope = rememberCoroutineScope()
     val addPurchasedProductState = addPurchasedProductVM.state.collectAsState()
-    val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
     val isOpenMeasurementUnits = remember{mutableStateOf(false)}
     val measurementUnits = measurementUnitsListVM.measurementUnits.collectAsState()
@@ -1507,35 +1545,19 @@ fun AddPurchasedProductFormComponent(
     }
     Column(
         modifier = Modifier
-//            .heightIn(screenHeight.value)
-            .fillMaxHeight(0.5f)
+            .heightIn(450.dp)
             .padding(horizontal = 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (productState.value.isLoading) {
-            LinearProgressIndicator()
-        } else {
-            PrimaryClickableOutlinedTextField(
-                textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
-                labelValue = "продукт",
-                isExpanded = productState.value.isActive,
-                onClick = {
-//                    productListBottomSheetVM.setActive(it)
-                          onSelectedProduct()
-                },
-            )
-//            ProductModalBottomSheet(
-//                viewModel = productListBottomSheetVM,
-//                onClickAddProduct = onClickAddProduct,
-//                onClickProductItem = {
-//                    scope.launch {
-//                        addPurchasedProductVM.setProduct(it)
-//                        productListBottomSheetVM.setActive(false)
-//                    }
-//                }
-//            )
-        }
+        PrimaryCustomClickableOutlinedTextField(
+            textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
+            labelValue = "продукт",
+            onValueChange ={},
+            onClickIcon = {
+                onSelectProduct()
+            },
+        )
         Column(modifier = Modifier.animateContentSize())
         {
             if (measurementUnitState.value.isLoading) {
@@ -1607,7 +1629,6 @@ fun AddPurchasedProductFormComponent(
 @Composable
 fun EditPurchasedProductFormComponent(
     editPurchasedProductVM: EditPurchasedProductFormViewModel,
-    productListBottomSheetVM: ProductListBottomSheetViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
     onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
@@ -1622,7 +1643,6 @@ fun EditPurchasedProductFormComponent(
     }
     val scope = rememberCoroutineScope()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp.value/1.8f
-    val productState = productListBottomSheetVM.state.collectAsState()
     val measurementUnitState = measurementUnitsListVM.state.collectAsState()
     val isOpenMeasurementUnits = remember{mutableStateOf(false)}
     val measurementUnits = measurementUnitsListVM.measurementUnits.collectAsState()
@@ -1650,28 +1670,14 @@ fun EditPurchasedProductFormComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (productState.value.isLoading) {
-            LinearProgressIndicator()
-        } else {
-            PrimaryClickableOutlinedTextField(
-                textValue = newProduct.value.name,
-                labelValue = "продукт",
-                isExpanded = productState.value.isActive,
-                onClick = {
-                    productListBottomSheetVM.setActive(it)
-                },
-            )
-            ProductModalBottomSheet(
-                viewModel = productListBottomSheetVM,
-                onClickAddProduct = onClickAddProduct,
-                onClickProductItem = {
-                    scope.launch {
-                        newProduct.value = it
-                        productListBottomSheetVM.setActive(false)
-                    }
-                }
-            )
-        }
+        PrimaryClickableOutlinedTextField(
+            textValue = newProduct.value.name,
+            labelValue = "продукт",
+            isExpanded = false,
+            onClick = {
+                onClickAddProduct()
+            },
+        )
         Column(modifier = Modifier.animateContentSize())
         {
             if (measurementUnitState.value.isLoading) {
@@ -1726,16 +1732,26 @@ fun EditPurchasedProductFormComponent(
                 onClickButton = {
                     scope.launch{
                         editPurchasedProductVM.setLoading(true)
-                        if(editPurchasedProductVM.validate(newProduct.value, newCount.value, newMeasurementUnit.value, newPrice.value)){
+                        val validateErrors = editPurchasedProductVM.validate(newProduct.value, newCount.value, newMeasurementUnit.value, newPrice.value)
+                        if(validateErrors.size > 0){
                             // TODO: SEND REQUEST TO EDIT
-                            Log.d(TAG,"VALIDATE SUCCESS IS COMPLETED")
-                            editPurchasedProductVM.setLoading(false)
+                            Log.d(TAG,"VALIDATE SUCCESS IS NOT SUCCESS")
+                            editPurchasedProductVM.setErrors(validateErrors)
                         }
                         else{
-                            Log.d(TAG,"VALIDATE NOT SUCCESS IS COMPLETED")
-
+                            Log.d(TAG,"VALIDATE IS SUCCESS")
+                            onConfirm(
+                                EditPurchasedProductModel(
+                                id = selectedPurchasedProduct.value.id,
+                                product = newProduct.value,
+                                count = newCount.value,
+                                price = newPrice.value,
+                                userId = selectedPurchasedProduct.value.userId,
+                                unitMeasurement = newMeasurementUnit.value.id,
+                                purchaseDate = selectedPurchasedProduct.value.purchaseDate
+                            ))
                         }
-
+                        editPurchasedProductVM.setLoading(false)
 //                        onConfirm(addPurchasedProductVM.getAddPurchasedProductModel())
                     }
                 },
