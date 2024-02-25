@@ -1239,9 +1239,9 @@ fun SuccessMessageDialog(text: String, onDismiss: () -> Unit){
 }
 
 @Composable
-fun ErrorMessageDialog(headerText: String, description: String, onDismiss: () -> Unit){
+fun ErrorMessageDialog(header: String, errors: MutableList<String>, onDismiss: () -> Unit){
     Dialog(
-        onDismissRequest = {onDismiss},
+        onDismissRequest = {onDismiss()},
         properties = DialogProperties(dismissOnBackPress = false,dismissOnClickOutside = false, usePlatformDefaultWidth = false, decorFitsSystemWindows=true),
     ){
         Surface(shape= componentShapes.medium)
@@ -1273,9 +1273,9 @@ fun ErrorMessageDialog(headerText: String, description: String, onDismiss: () ->
                     painter = painterResource(id = R.drawable.ic_x_circle),
                     contentDescription = null
                 )
-                HeadingTextComponent(headerText)
+                HeadingTextComponent(header)
                 Spacer(modifier = Modifier.padding(10.dp))
-                NormalTextComponent(value = description)
+                ErrorListContainer(errors = errors)
                 Spacer(modifier=Modifier.height(15.dp))
                 SecondaryGradientButtonComponent(value="окей", onClickButton = onDismiss )
             }

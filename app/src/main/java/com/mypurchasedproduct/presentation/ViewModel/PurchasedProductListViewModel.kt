@@ -62,7 +62,8 @@ class PurchasedProductListViewModel @Inject constructor(
     fun toAddPurchasedProduct(
         addPurchasedProductModel: AddPurchasedProductModel,
         timestamp:Long,
-        onSuccess: (header:String) -> Unit,
+        onSuccess: (header: String)-> Unit,
+        onError: (header: String, errors: MutableList<String>) -> Unit,
         ){
         viewModelScope.launch {
             _state.update { state ->
@@ -88,6 +89,7 @@ class PurchasedProductListViewModel @Inject constructor(
                             isError = true,
                             error = result.message.toString())
                     }
+                    onError("Ошибка рпи добавлении записи", mutableListOf(result.message.toString()))
                 }
             }
         }
@@ -163,7 +165,10 @@ class PurchasedProductListViewModel @Inject constructor(
         }
     }
 
-    fun toEditPurchasedProduct(editPurchasedProductModel: EditPurchasedProductModel, onError: (String) -> Unit){
+    fun toEditPurchasedProduct(editPurchasedProductModel: EditPurchasedProductModel,
+                               onSuccess: (header: String)-> Unit,
+                               onError: (header: String, errors: MutableList<String>) -> Unit,
+    ){
         Log.wtf(TAG, "TO EDIT PURCHASED PRODUCT MODEL")
         viewModelScope.launch {
             _editPurchasedProductState.update { editPurchasedProductState ->
@@ -182,6 +187,7 @@ class PurchasedProductListViewModel @Inject constructor(
                         _purchasedProducts.value[index]= purchasedProductResponse
 
                     }
+                    onSuccess("Запись успешно изменена!")
                     _editPurchasedProductState.update { editPurchasedProductState ->
                         editPurchasedProductState.copy(
                             isSuccess = true,
@@ -198,7 +204,7 @@ class PurchasedProductListViewModel @Inject constructor(
                             isLoading = false,
                         )
                     }
-                    onError(result.message.toString())
+                    onError("ошибка при изменении записи", mutableListOf(result.message.toString()))
                 }
             }
         }

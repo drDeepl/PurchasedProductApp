@@ -28,6 +28,7 @@ import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormView
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
+import com.mypurchasedproduct.presentation.ViewModel.DialogMessageViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.HomeViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
@@ -68,7 +69,8 @@ fun HomeScreen(
     purchasedProductListVM: PurchasedProductListViewModel = hiltViewModel(),
     productListVM: ProductListViewModel = hiltViewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = hiltViewModel(),
-    editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel()
+    editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel(),
+    dialogMessageVM : DialogMessageViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
@@ -85,31 +87,34 @@ fun HomeScreen(
         val mills = dateRowListViewModel.getSelectedDayTimestamp()
         Log.wtf("HomeScreen.LaunchedEffect", "selected date: ${mills}\t")
         purchasedProductListVM.getPurchasedProductCurrentUserByDate(mills)
-    }
 
-    val rememberCoroutineScope = rememberCoroutineScope()
+
+    }
 
     val totalCosts = purchasedProductListVM.totalCosts.collectAsState()
     LoadScreen(isActive=homeState.value.isLoading)
-    val msgState = homeViewModel.msgState.collectAsState()
-    if(msgState.value.isSuccess){
+    val successDialogState = dialogMessageVM.successDialogState.collectAsState()
+    if(successDialogState.value.isActive){
         SuccessMessageDialog(
-            text = msgState.value.header,
+            text = successDialogState.value.header,
             onDismiss = {
                 scope.launch{
-                    msgState.value.onConfirm()
-                    homeViewModel.setDefaultMsgState()
+                    successDialogState.value.onConfirm()
+                    dialogMessageVM.setDefaultSuccessState()
                 }
             }
         )
     }
-    if(msgState.value.isError){
+    val errorDialogState = dialogMessageVM.errorDialogState.collectAsState()
+    if(errorDialogState.value.isActive){
         ErrorMessageDialog(
-            headerText = msgState.value.header,
-            description = msgState.value.description,
+            header = errorDialogState.value.header,
+            errors = errorDialogState.value.errors,
             onDismiss = {
-                homeViewModel.setDefaultMsgState()
-                addPurchasedProductFormViewModel.setDefaultState()
+                scope.launch {
+                    dialogMessageVM.errorDialogState.value.onConfirm()
+                    dialogMessageVM.setDefaultErrorState()
+                }
             })
     }
     val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
@@ -131,16 +136,6 @@ fun HomeScreen(
                 }
             )
         }
-        if(deletePurchasedProductState.value.isError){
-            ErrorMessageDialog(
-                headerText = "Что-то пошло не так",
-                description = deletePurchasedProductState.value.error.toString(),
-                onDismiss = {
-                    purchasedProductListVM.setDefaultDeletePurchasedProductState()
-                    homeViewModel.setLoadingState(false)
-                }
-            )
-        }
     }
     val bottomSheetActive = remember {mutableStateOf(false)}
     Scaffold(
@@ -151,16 +146,12 @@ fun HomeScreen(
             }
         },
         content = {paddingValues: PaddingValues ->
-            val addPurchasedProductState = addPurchasedProductFormViewModel.state.collectAsState()
             val startDestination =
                 remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
                 onSwipeToEdit = {
-
-
-
 //                    editPurchasedProductFormVM.setActive(true)
                     scope.launch {
                         startDestination.value = ModalBottomSheetNavigation.EditPurhcasedProductRoute
@@ -207,10 +198,17 @@ fun HomeScreen(
                                         it,
                                         dateRowListViewModel.getSelectedDayTimestamp(),
                                         onSuccess = {
-                                            homeViewModel.setSuccessMsgState(
+                                            dialogMessageVM.setSuccessDialogState(
                                                 header=it,
                                                 onConfirm = { addPurchasedProductFormViewModel.setDefaultState() }
-                                            )})
+                                            )},
+                                        onError = { header, errors ->
+                                            dialogMessageVM.setErrorDialogState(
+                                                header=header,
+                                                errors = errors,
+                                                onConfirm = {})
+                                        }
+                                    )
                                 }
 
                             },
@@ -265,8 +263,22 @@ fun HomeScreen(
                             onConfirm = {editPurchasedProductModel ->
                                 purchasedProductListVM.toEditPurchasedProduct(
                                     editPurchasedProductModel,
-                                    onError = {
-                                        homeViewModel.setErrorMsgState("что-то пошло не так", it, onConfirm = {homeViewModel.setDefaultMsgState()}, onDismiss={}) }
+                                    onError = {header, errors ->
+                                    dialogMessageVM.setErrorDialogState(
+                                        header=header,
+                                        errors =errors,
+                                        onConfirm = {})
+                                    },
+                                    onSuccess = {header ->
+                                        purchasedProductListVM.getPurchasedProductCurrentUserByDate(dateRowListViewModel.getSelectedDayTimestamp())
+                                        dialogMessageVM.setSuccessDialogState(
+                                            header=header,
+                                            onConfirm = {
+                                                bottomSheetActive.value = false
+                                                editPurchasedProductFormVM.setDefaultState()
+                                            }
+                                        )
+                                    }
                                 )
                             },
                             onClickAddProduct = {
@@ -343,9 +355,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-            val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
-            val editPurchasedProductState = editPurchasedProductFormVM.state.collectAsState()
-
 //            TODO("EDIT PURCHASED PRODUCT")
 //        FormModalBottomSheet(
 //            openBottomSheet = editPurchasedProductState.value.isActive,
@@ -389,15 +398,6 @@ fun HomeScreen(
 //                }
 //
 //            }
-
-            if(editPurchasedProductState.value.isSuccess){
-                SuccessMessageDialog(
-                    text ="купленный продукт изменен",
-                    onDismiss = {
-                        purchasedProductListVM.setDefaultEditPurchasedProductState()
-//                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
-                    })
-            }
 //            if(editPurchasedProductState.value.isError){
 //                ErrorMessageDialog(
 //                    headerText ="Что-то пошло не так" ,
@@ -418,24 +418,6 @@ fun HomeScreen(
                     isLoading=addCategoryState.isLoading,
                     onConfirm = {categoryVM.addCategory(it)},
                     onDismiss = {categoryVM.setActiveAddCategory(it)})
-
-                if(addCategoryState.isSuccess){
-                    SuccessMessageDialog(
-                        text = "категория добавлена!",
-                        onDismiss = {
-                            categoryVM.setActiveAddCategory(false)
-                            categoryVM.setDefaultState()
-                        })
-                }
-                if(addCategoryState.isError){
-                    ErrorMessageDialog(
-                        headerText = "Что-то пошло не так",
-                        description = addCategoryState.error.toString(),
-                        onDismiss = {
-                            categoryVM.setActiveAddCategory(false)
-                            categoryVM.setDefaultState()
-                        })
-                }
             }
         }
 
