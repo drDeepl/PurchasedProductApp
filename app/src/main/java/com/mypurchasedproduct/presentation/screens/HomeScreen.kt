@@ -38,6 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
+import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
@@ -52,6 +53,7 @@ import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewMod
 import com.mypurchasedproduct.presentation.navigation.ModalBottomSheetNavigation
 import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
+import com.mypurchasedproduct.presentation.ui.components.AddMeasurementUnitFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogFrozen
@@ -137,7 +139,7 @@ fun HomeScreen(
     val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
     if(deletePurchasedProductState.value.isActive){
         DialogCardComponent(
-            headerText="Удалить купленный продукт?",
+
             onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
             onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
         )
@@ -203,8 +205,8 @@ fun HomeScreen(
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
                             measurementUnitsListVM = measurementUnitsListVM,
-                            onClickAddProduct = {
-                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
+                            onClickAddMeasurementUnit = {
+                                navController.navigate(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute)
 
                             },
                             onConfirm = {
@@ -307,10 +309,6 @@ fun HomeScreen(
                                 }
                             )
                         }
-
-
-
-
                     }
                     composable(route = ModalBottomSheetNavigation.AddProductRoute){
                         val addProductFormViewModel: AddProductFormViewModel = hiltViewModel()
@@ -388,30 +386,45 @@ fun HomeScreen(
                                     editPurchasedProductFormVM.clearErrors()
                                 }
 
-                            }
+                            },
+                            onClickAddMeasurementUnit = {
+                                navController.navigate(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute)
 
+                            }
                         )
                     }
+                    composable(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute){
+                        val addMeasurementUnitVM = hiltViewModel<AddMeasurementUnitViewModel>()
+                        AddMeasurementUnitFormComponent(
+                            viewModel = addMeasurementUnitVM,
+                            onConfirm = {
+                                measurementUnitsListVM.toAddMeasurementUnit(
+                                    it,
+                                    onSuccess = { header ->
+                                        dialogMessageVM.setSuccessDialogState(
+                                            header=header,
+                                            onConfirm = {
+                                                bottomSheetActive.value = false
+                                                addMeasurementUnitVM.setDefaultState()
+                                                startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
+                                            }
+                                        )
+                                    },
+                                    onError = {header, errors ->
+                                        dialogMessageVM.setErrorDialogState(
+                                            header=header,
+                                            errors =errors,
+                                            onConfirm = {})
+                                    },
+                                )
+                            },
+                            onDismiss = {
+                                navController.navigate(route=ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                            }
+                        )
+
+                    }
                 }
-
-//                if (addProductFormState.value.isError) {
-//                    ErrorMessageDialog(
-//                        headerText = "Что-то пошло не так",
-//                        description = "todo",
-//                        onDismiss = {
-//                            addProductFormViewModel.setDefaultState()
-//                        }
-//                    )
-//                }
-//                if (addProductFormState.value.isSuccess) {
-//                    SuccessMessageDialog(
-//                        text = "Продукт добавлен!",
-//                        onDismiss = {
-//                            addProductFormViewModel.setDefaultState()
-//                        }
-//                    )
-//                }
-
             }
 
         },
@@ -450,60 +463,6 @@ fun HomeScreen(
             verticalArrangement = Arrangement.Center
         ) {
 
-//            TODO("EDIT PURCHASED PRODUCT")
-//        FormModalBottomSheet(
-//            openBottomSheet = editPurchasedProductState.value.isActive,
-//            setStateBottomSheet = {
-//                editPurchasedProductFormVM.setActive(it)
-//            },
-//            onDismissRequest = {
-//                editPurchasedProductFormVM.setDefaultState()
-//                editPurchasedProductFormVM.clearErrors()
-//            }
-//        ){
-//
-//        }
-
-//            if(editPurchasedProductState.isActive){
-//                FormModalBottomSheet(
-//                    openBottomSheet = editPurchasedProductState.isActive,
-//                    setStateButtomSheet = {
-//                        purchasedProductListVM.setActiveEditPurchasedProduct(it)
-//                    }
-//                )
-//                {
-//                    if (editPurchasedProductState.purchasedProduct != null) {
-//                        EditPurchasedProductFormComponent(
-//                            products = addProductViewModel.getProductsState.products,
-//                            measurementUnits = measurementUnits,
-//                            onClickAddProduct = {
-//                                addProductViewModel.onClickAddProduct()
-//                                addProductViewModel.findCategories()
-//                            },
-//                            onConfirm = {
-//                                purchasedProductListVM.toEditPurchasedProduct(it)
-//                                        },
-//                            onDismiss = {
-//                                purchasedProductListVM.setActiveEditPurchasedProduct(false)
-//                                purchasedProductListVM.setDefaultEditPurchasedProductState()
-//                            },
-//                            purchasedProduct = editPurchasedProductState.purchasedProduct
-//                        )
-//                    }
-//                }
-//
-//            }
-//            if(editPurchasedProductState.value.isError){
-//                ErrorMessageDialog(
-//                    headerText ="Что-то пошло не так" ,
-//                    description = editPurchasedProductState.value.error.toString(),
-//                    onDismiss = {
-////                        purchasedProductListVM.setActiveEditPurchasedProduct(false)
-//                        purchasedProductListVM.setDefaultEditPurchasedProductState()
-//
-//                    }
-//                )
-//            }
 
 
             if(categoryVM.addCategoryState.isActive){

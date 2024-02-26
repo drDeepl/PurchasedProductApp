@@ -122,6 +122,8 @@ import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
+import com.mypurchasedproduct.domain.model.MeasurementUnitModel
+import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
@@ -134,6 +136,7 @@ import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewMod
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
+import com.mypurchasedproduct.presentation.state.AddMeasurementUnitState
 import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.animations.shimmerLoadingAnimation
@@ -1269,6 +1272,7 @@ fun DialogCardComponent(
     headerText: String,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
+    onClickAddMeasurementUnit: () -> Unit,
     modifier: Modifier = Modifier.padding(bottom=50.dp),
     content: @Composable () -> Unit,
 ){
@@ -1312,20 +1316,20 @@ fun DialogCardComponent(
 fun MeasurementUnitListComponent(
     measurementUnits:  State<List<MeasurementUnitResponse>>,
     onClick: (it: MeasurementUnitResponse)-> Unit,
-    modifier: Modifier = Modifier
+    onClickAddMeasurementUnit: () -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth(0.9f)
 ){
     Log.d(TAG, "MeasurementUnitListComponent")
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     LazyRow(
         modifier = modifier
-            .fillMaxWidth()
             .padding(
                 vertical = lowPadding
             ),
         state = listState,
         userScrollEnabled = true,
-        horizontalArrangement = Arrangement.SpaceAround,
+        horizontalArrangement = Arrangement.Center,
     ){
         itemsIndexed(items=measurementUnits.value){
             index, item: MeasurementUnitResponse ->
@@ -1339,6 +1343,9 @@ fun MeasurementUnitListComponent(
                 Text(text=item.name)
             }
         }
+    }
+    IconButton(onClick = { onClickAddMeasurementUnit() }) {
+        Icon(painter= rememberVectorPainter(image = Icons.Filled.Add), contentDescription = "")
     }
 }
 
@@ -1515,12 +1522,11 @@ fun AddProductFormComponent(
     }
 
 }
-
 @Composable
 fun AddPurchasedProductFormComponent(
     addPurchasedProductVM: AddPurchasedProductFormViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
-    onClickAddProduct: () -> Unit,
+    onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
     onSelectProduct: () -> Unit
@@ -1571,13 +1577,23 @@ fun AddPurchasedProductFormComponent(
                     },
                 )
                 if(isOpenMeasurementUnits.value) {
-                    MeasurementUnitListComponent(
-                        measurementUnits = measurementUnits,
-                        onClick = {
-                            addPurchasedProductVM.setMeasurementUnit(it)
-                            isOpenMeasurementUnits.value = false
-                        }
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment =  Alignment.CenterVertically
                     )
+                    {
+                        MeasurementUnitListComponent(
+                            measurementUnits = measurementUnits,
+                            onClick = {
+                                addPurchasedProductVM.setMeasurementUnit(it)
+                                isOpenMeasurementUnits.value = false
+                            },
+                            onClickAddMeasurementUnit = onClickAddMeasurementUnit
+                        )
+//                        IconButton(onClick = { onClickAddMeasurementUnit() }) {
+//                            Icon(painter= rememberVectorPainter(image = Icons.Filled.Add), contentDescription = "")
+//                        }
+                    }
                 }
             }
         }
@@ -1622,6 +1638,7 @@ fun EditPurchasedProductFormComponent(
     editPurchasedProductVM: EditPurchasedProductFormViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
     onClickAddProduct: () -> Unit,
+    onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
 ){
@@ -1696,7 +1713,8 @@ fun EditPurchasedProductFormComponent(
                         onClick = {
                             newMeasurementUnit.value = it
                             isOpenMeasurementUnits.value = false
-                        }
+                         },
+                        onClickAddMeasurementUnit = onClickAddMeasurementUnit
                     )
                 }
             }
@@ -1757,6 +1775,69 @@ fun EditPurchasedProductFormComponent(
             )
         }
     }
+}
+
+@Composable
+fun AddMeasurementUnitFormComponent(
+    viewModel: AddMeasurementUnitViewModel,
+    onConfirm: (MeasurementUnitModel) -> Unit,
+    onDismiss: () -> Unit,
+){
+    val formState = viewModel.state.collectAsState()
+        val measurementUnitName = remember {
+        mutableStateOf("")
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .heightIn(450.dp)
+            .padding(horizontal = 12.dp)
+            .animateContentSize()
+    ){
+        if(formState.value.isError){
+            val errors = viewModel.errors.collectAsState()
+            ErrorListContainer(errors = errors.value)
+        }
+        PrimaryOutlinedTextField(
+            textValue = measurementUnitName.value,
+            labelValue = "название",
+            onValueChange = {measurementUnitName.value = it})
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = lowPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryGradientButtonComponent(
+                value = "добавить",
+                isLoading = formState.value.isLoading,
+                onClickButton = {
+                    viewModel.setLoading(true)
+                    viewModel.setMeasurementUnitName(measurementUnitName.value)
+                    val validateErrors = viewModel.validate()
+                    if(validateErrors.size > 0){
+                        viewModel.setErrors(validateErrors)
+                        Log.d("ADD MEASUREMENT UNIT", "VALIDATE : NOT SUCCESS")
+                    }
+                    else{
+                        Log.d("ADD MEASUREMENT UNIT", "VALIDATE : SUCCESS")
+                        onConfirm(viewModel.getMeasurementUnitModel())
+                    }
+                    viewModel.setLoading(false)
+                },
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryGradientButtonComponent(
+                value = "назад",
+                onClickButton = {onDismiss()},
+                gradientColors = GreyGradient,
+                modifier = Modifier.widthIn(150.dp)
+            )
+        }
+    }
+
 }
 
 

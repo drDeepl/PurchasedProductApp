@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
+import com.mypurchasedproduct.domain.model.MeasurementUnitModel
 import com.mypurchasedproduct.domain.usecases.MeasurementUnitUseCase
 import com.mypurchasedproduct.presentation.state.MeasurementUnitsListState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
@@ -24,9 +25,13 @@ class MeasurementUnitsListViewModel @Inject constructor(
     private val _state = MutableStateFlow(MeasurementUnitsListState(false,false, "", null))
     val state = _state.asStateFlow()
 
-    private val _measurementUnits: MutableStateFlow<List<MeasurementUnitResponse>> = MutableStateFlow(listOf())
+    private val _measurementUnits: MutableStateFlow<MutableList<MeasurementUnitResponse>> = MutableStateFlow(mutableListOf())
 
     val measurementUnits = _measurementUnits.asStateFlow()
+
+    private val _errors = MutableStateFlow(mutableListOf<String>())
+    val errors = _errors.asStateFlow()
+
 
 
     init{
@@ -54,10 +59,10 @@ class MeasurementUnitsListViewModel @Inject constructor(
                 state.copy(isLoading = true)
             }
 
-            val result: NetworkResult<List<MeasurementUnitResponse>> = measurementUnitUseCase.getMeasurementUnits()
+            val result: NetworkResult<MutableList<MeasurementUnitResponse>> = measurementUnitUseCase.getMeasurementUnits()
             when(result){
                 is NetworkResult.Success -> {
-                    _measurementUnits.update { result.data ?: listOf() }
+                    _measurementUnits.update { result.data ?: mutableListOf() }
                     _state.update {state ->
                         state.copy(isLoading = false)
                     }
@@ -74,4 +79,42 @@ class MeasurementUnitsListViewModel @Inject constructor(
             }
         }
     }
+
+    fun toAddMeasurementUnit(
+        measurementUnitModel: MeasurementUnitModel,
+        onSuccess: (header: String)-> Unit,
+        onError: (header: String, errors: MutableList<String>) -> Unit
+    ){
+        viewModelScope.launch {
+            Log.d(TAG, "TO ADD MEASUREMENT UNIT ")
+            _state.update { state ->
+                state.copy(isLoading = true)
+            }
+            val result = measurementUnitUseCase.toAddMeasurementUnit(measurementUnitModel)
+            when(result){
+                is NetworkResult.Success ->{
+                    result.data?.let{
+                        _measurementUnits.value.add(it)
+                    }
+                    onSuccess("Еденица измерения успешно добавлена!")
+                    _state.update { state ->
+                        state.copy(isLoading = false)
+                    }
+                }
+                is NetworkResult.Error ->{
+                    _state.update { state ->
+                        onError("ошибка при добавлении единицы измерения", errors.value)
+                        state.copy(
+                            isError = true,
+                            isLoading = false
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
+
+
+
+

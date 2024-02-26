@@ -1,6 +1,7 @@
 package com.mypurchasedproduct.data.remote
 
 import com.mypurchasedproduct.data.remote.model.request.AddCategoryRequest
+import com.mypurchasedproduct.data.remote.model.request.AddMeasurementUnitRequest
 import com.mypurchasedproduct.data.remote.model.request.AddProductRequest
 import com.mypurchasedproduct.data.remote.model.request.AddPurchasedProductRequest
 import com.mypurchasedproduct.data.remote.model.request.EditPurchasedProductRequest
@@ -26,6 +27,8 @@ class RemoteDataSource @Inject constructor(private val api: PurchasedProductAppA
     suspend fun getProducts() = api.getProducts()
 
     suspend fun getMeasurementUnits() = api.getMeasurementUnits()
+
+    suspend fun toAddMeasurementUnit(addMeasurementUnitRequest: AddMeasurementUnitRequest) = api.createMeasurementUnit(addMeasurementUnitRequest)
 
     suspend fun addProduct(addProductRequest: AddProductRequest) = api.addProduct(addProductRequest)
 
