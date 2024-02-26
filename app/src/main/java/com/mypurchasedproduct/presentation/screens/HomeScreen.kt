@@ -5,8 +5,19 @@ import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowCircleLeft
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,7 +26,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -39,7 +54,8 @@ import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
 import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
-import com.mypurchasedproduct.presentation.ui.components.AlertDialogComponent
+import com.mypurchasedproduct.presentation.ui.components.AlertDialogFrozen
+import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
 import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
@@ -50,8 +66,10 @@ import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.ProductListComponent
+import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItemLoading
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
+import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.launch
 
 
@@ -63,18 +81,15 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     dateRowListViewModel: DateRowListViewModel = hiltViewModel(),
     addPurchasedProductFormViewModel: AddPurchasedProductFormViewModel = hiltViewModel(),
-    addProductFormViewModel: AddProductFormViewModel = hiltViewModel(),
     categoryVM: AddCategoryFormViewModel = hiltViewModel(),
-    categoryListVM: CategoryListViewModel = hiltViewModel(),
-    purchasedProductListVM: PurchasedProductListViewModel = hiltViewModel(),
     productListVM: ProductListViewModel = hiltViewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = hiltViewModel(),
     editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel(),
-    dialogMessageVM : DialogMessageViewModel = hiltViewModel()
+
 ) {
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
-    val homeState = homeViewModel.state.collectAsState()
+
     val authState = authViewModel.state.collectAsState()
     LaunchedEffect(authState.value.isSignIn){
         Log.d("HomeScreen.LaunchedEffect", "AUTH STATE")
@@ -82,6 +97,8 @@ fun HomeScreen(
             screenNavController.navigate(ScreenNavigation.AuthScreenRoute)
         }
     }
+    val purchasedProductListVM = hiltViewModel<PurchasedProductListViewModel>()
+    val homeState = homeViewModel.state.collectAsState()
     val dateRowState = dateRowListViewModel.state.collectAsState()
     LaunchedEffect(dateRowState.value.selectedDate){
         val mills = dateRowListViewModel.getSelectedDayTimestamp()
@@ -90,7 +107,7 @@ fun HomeScreen(
 
 
     }
-
+    val dialogMessageVM = hiltViewModel<DialogMessageViewModel>()
     val totalCosts = purchasedProductListVM.totalCosts.collectAsState()
     LoadScreen(isActive=homeState.value.isLoading)
     val successDialogState = dialogMessageVM.successDialogState.collectAsState()
@@ -119,7 +136,7 @@ fun HomeScreen(
     }
     val deletePurchasedProductState = purchasedProductListVM.deletePurchasedProductState.collectAsState()
     if(deletePurchasedProductState.value.isActive){
-        AlertDialogComponent(
+        DialogCardComponent(
             headerText="Удалить купленный продукт?",
             onDismiss = {purchasedProductListVM.onDismissDeletePurchasedProduct()},
             onConfirm = {purchasedProductListVM.deletePurchasedProduct()},
@@ -146,17 +163,20 @@ fun HomeScreen(
             }
         },
         content = {paddingValues: PaddingValues ->
+            val scaffoldScope = rememberCoroutineScope()
             val startDestination =
                 remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
+            val categoryListVM: CategoryListViewModel = hiltViewModel()
             PurchasedProductViewComponent(
                 purchasedProductListVM,
                 paddingValues=paddingValues,
                 onSwipeToEdit = {
 //                    editPurchasedProductFormVM.setActive(true)
-                    scope.launch {
+                    scaffoldScope.launch {
                         startDestination.value = ModalBottomSheetNavigation.EditPurhcasedProductRoute
                         editPurchasedProductFormVM.setPurchasedProduct(it)
-                        bottomSheetActive.value = !bottomSheetActive.value }
+                        bottomSheetActive.value = true
+                    }.invokeOnCompletion { purchasedProductListVM.setLoading(true) }
 
                 }
             )
@@ -165,12 +185,12 @@ fun HomeScreen(
                 openBottomSheet = bottomSheetActive.value,
                 setStateBottomSheet = {
                     bottomSheetActive.value = it
+                    purchasedProductListVM.setLoading(it)
 //                    scope.launch {
 //                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
 //
 //                    }
-
-                }
+                },
             )
             {
                 // TODO: NAV HOST
@@ -180,16 +200,11 @@ fun HomeScreen(
                     route = ModalBottomSheetNavigation.NavHostRoute
                 ){
                     composable(route = ModalBottomSheetNavigation.AddPurchasedProductRoute){
-                        productListVM.state
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
                             measurementUnitsListVM = measurementUnitsListVM,
                             onClickAddProduct = {
                                 navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
-                                scope.launch{
-//                                    productListVM.findProducts()
-//                                    categoryListVM.findCategories()
-                                }
 
                             },
                             onConfirm = {
@@ -225,26 +240,103 @@ fun HomeScreen(
                         )
                     }
                     composable(route=ModalBottomSheetNavigation.ProductListRoute){
-                        ProductListComponent(
-                            viewModel = productListVM,
-                            onClickAddProduct = {
-                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
-                                categoryListVM.findCategories()
-                            },
-                            onClickProductItem = {
-                                addPurchasedProductFormViewModel.setProduct(it)
-                                navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                        val products = productListVM.products.collectAsState()
+                        AlertDialogFrozen(){
+                            Scaffold(
+                                content = {
+                                    ProductListComponent(
+                                        products= products,
+                                        onClickProductItem = {
+                                            addPurchasedProductFormViewModel.setProduct(it)
+                                            navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                                        },
+                                        modifier = Modifier.padding(it)
+                                    )
+                                },
+                                bottomBar = {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
 
-                            }
-                        )
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(text = "Нет нужного продукта?")
+                                        }
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.Center,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            TextButton(
+                                                onClick = {
+                                                    navController.navigate(route = ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = rememberVectorPainter(image = Icons.Filled.ArrowCircleLeft),
+                                                    contentDescription = ""
+                                                )
+                                                Spacer(modifier = Modifier.padding(lowPadding))
+                                                Text("назад", fontSize = 16.sp)
+
+                                            }
+                                            Divider(
+                                                modifier = Modifier
+                                                    .rotate(90f)
+                                                    .width(25.dp), thickness = 2.dp
+                                            )
+                                            TextButton(
+                                                onClick = {
+                                                    navController.navigate(route = ModalBottomSheetNavigation.AddProductRoute)
+                                                }
+                                            ) {
+                                                Text("добавить", fontSize = 16.sp)
+                                            }
+
+                                        }
+                                        Divider(
+                                            modifier = Modifier.padding(5.dp, 10.dp),
+                                            thickness = 2.dp
+                                        )
+                                    }
+
+                                }
+                            )
+                        }
+
+
+
 
                     }
                     composable(route = ModalBottomSheetNavigation.AddProductRoute){
+                        val addProductFormViewModel: AddProductFormViewModel = hiltViewModel()
                         AddProductFormComponent(
                             addProductFormViewModel = addProductFormViewModel,
                             categoryListVM = categoryListVM,
                             onConfirm = {
-                                        productListVM.toAddProduct(it)
+                                        productListVM.toAddProduct(
+                                            it,
+                                            onSuccess = {
+                                                dialogMessageVM.setSuccessDialogState(
+                                                    header=it,
+                                                    onConfirm = {
+                                                        addProductFormViewModel.setDefaultState()
+                                                        navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
+                                                    }
+                                                )
+                                                        },
+                                            onError = { header, errors ->
+                                                dialogMessageVM.setErrorDialogState(
+                                                    header=header,
+                                                    errors = errors,
+                                                    onConfirm = {}
+                                                )
+                                            })
+                                purchasedProductListVM.setLoading(false)
                             },
                             onDismiss = {
                                 scope.launch {
@@ -270,12 +362,14 @@ fun HomeScreen(
                                         onConfirm = {})
                                     },
                                     onSuccess = {header ->
-                                        purchasedProductListVM.getPurchasedProductCurrentUserByDate(dateRowListViewModel.getSelectedDayTimestamp())
+//                                        purchasedProductListVM.getPurchasedProductCurrentUserByDate(dateRowListViewModel.getSelectedDayTimestamp())
                                         dialogMessageVM.setSuccessDialogState(
                                             header=header,
                                             onConfirm = {
                                                 bottomSheetActive.value = false
                                                 editPurchasedProductFormVM.setDefaultState()
+                                                startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
+                                                purchasedProductListVM.setLoading(false)
                                             }
                                         )
                                     }
@@ -286,7 +380,8 @@ fun HomeScreen(
 
                             },
                             onDismiss = {
-                                scope.launch {
+                                scaffoldScope.launch {
+                                    purchasedProductListVM.setLoading(false)
                                     bottomSheetActive.value = false
                                     startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
                                     editPurchasedProductFormVM.setDefaultState()

@@ -40,7 +40,7 @@ class ProductListViewModel @Inject constructor(
         }
     }
 
-    fun findProducts(){
+    private fun findProducts(){
         viewModelScope.launch {
             Log.wtf(TAG, "GET PRODUCTS")
             _state.update { state ->
@@ -71,7 +71,11 @@ class ProductListViewModel @Inject constructor(
     }
 
 
-    fun toAddProduct(productItem: ProductItem){
+    fun toAddProduct(
+        productItem: ProductItem,
+        onSuccess: (header: String)-> Unit,
+        onError: (header: String, errors: MutableList<String>) -> Unit
+    ){
         Log.i(TAG,"ADD PRODUCT REQUEST")
         viewModelScope.launch {
 
@@ -87,6 +91,11 @@ class ProductListViewModel @Inject constructor(
                                 isSuccess = true,
                             )
                         }
+                        networkResult.data?.let{product ->
+                            _products.value.add(0, product)
+                        }
+                        onSuccess("Продукт успешно добалвен!")
+
                     }
                     is NetworkResult.Error ->{
                         _state.update { state ->
@@ -95,7 +104,7 @@ class ProductListViewModel @Inject constructor(
                                 isError = true,
                             )
                         }
-                        errors.value.add(networkResult.message.toString())
+                        onError("что-то пошло не так", mutableListOf<String>(networkResult.message.toString()))
                     }
                 }
             }

@@ -65,6 +65,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
@@ -135,6 +136,7 @@ import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
+import com.mypurchasedproduct.presentation.ui.animations.shimmerLoadingAnimation
 import com.mypurchasedproduct.presentation.ui.item.ProductItem
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -594,6 +596,11 @@ fun SuccessButtonIcon(onClick: () -> Unit, isLoading: Boolean = false){
 }
 
 @Composable
+fun PrimaryTextButton(){
+    // TODO:
+}
+
+@Composable
 fun DismissButtonIcon(onClick: () -> Unit, isLoading: Boolean = false){
     Button(onClick = onClick,
         modifier= Modifier.size(50.dp),  //avoid the oval shape
@@ -642,60 +649,6 @@ fun DismissButtonIcon(onClick: () -> Unit, isLoading: Boolean = false){
     }
 }
 
-
-@Composable
-fun SuccessButtonComponent(value: String, onClickButton: () -> Unit, icon:Painter = painterResource(
-    id =R.drawable.arrow_circle_right_fill_icon
-), isLoading: Boolean = false){
-    Button(
-        onClick=onClickButton,
-        modifier= Modifier
-            .fillMaxWidth()
-            .heightIn(48.dp),
-        contentPadding = PaddingValues(10.dp,5.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = DeepBlackColor
-        ),
-        border = null
-    ){
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(listOf(DeepBlackColor, DeepBlackColor)),
-                    shape = RoundedCornerShape(50.dp),
-                ),
-            contentAlignment = Alignment.Center
-        ){
-            if(isLoading){
-                CircularProgressIndicator(
-                    color = Color.White
-                )
-            }
-            else{
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(48.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-
-                ) {
-                    Text(
-                        text=value,
-                        fontSize=18.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Icon(painter =icon, contentDescription = "", modifier = Modifier.height(36.dp))
-
-                }
-            }
-
-        }
-    }
-}
-
 @Composable
 fun DeviderTextComponent(value:String){
     Row(
@@ -718,6 +671,20 @@ fun DeviderTextComponent(value:String){
             color= TextColor,
             thickness = 1.dp)
     }
+}
+
+@Composable
+fun PurchasedProductItemLoading(padding: PaddingValues){
+    Box(
+        modifier= Modifier
+            .padding(padding)
+            .clip(componentShapes.medium)
+            .background(color = Color.LightGray.copy(alpha = 0.7f))
+            .fillMaxWidth()
+            .height(65.dp)
+            .shimmerLoadingAnimation()
+
+    )
 }
 
 @Composable
@@ -787,33 +754,38 @@ fun PurchasedProductViewComponent(
     val purchasedProducts = viewModel.purchasedProducts.collectAsState()
     val scope = rememberCoroutineScope()
     Box(
-        modifier =modifier.padding(paddingValues),
+        modifier = modifier
+            .padding(paddingValues)
+            .padding(lowPadding),
+
     ) {
 
-        if(listState.value.isLoading){
-            LoadScreen()
-        }
-        else{
-            LazyColumn(
-                state = rememberLazyListState(),
-                userScrollEnabled = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(5.dp),
-            ) {
+        LazyColumn(
+            state = rememberLazyListState(),
+            userScrollEnabled = true,
+            modifier = Modifier
+                .fillMaxWidth()
+
+        ) {
+            if(listState.value.isLoading) {
+                items(10) {
+                    PurchasedProductItemLoading(PaddingValues(vertical = lowPadding))
+                }
+            }
+            else {
                 items(purchasedProducts.value) { purchasedProduct ->
                     val state = rememberDismissState(
                         confirmValueChange = {
-                                if (it == DismissValue.DismissedToStart) {
-                                    viewModel.onSwipeDeletePurchasedProduct(purchasedProduct)
-                                }
-                                if (it == DismissValue.DismissedToEnd) {
-                                    onSwipeToEdit(purchasedProduct)
-                                }
+                            if (it == DismissValue.DismissedToStart) {
+                                viewModel.onSwipeDeletePurchasedProduct(purchasedProduct)
+                            }
+                            if (it == DismissValue.DismissedToEnd) {
+                                onSwipeToEdit(purchasedProduct)
+                            }
                             false
                         },
 
-                    )
+                        )
                     SwipeToDismiss(
                         state = state,
                         background = {
@@ -1040,31 +1012,17 @@ fun DialogCardComponentWithoutActionBtns(textHeader: String, content: @Composabl
 
 @Composable
 fun ProductListComponent(
-    viewModel: ProductListViewModel,
-    onClickAddProduct: () -> Unit,
-    onClickProductItem: (product: ProductResponse) -> Unit
+    products: State<MutableList<ProductResponse>>,
+    onClickProductItem: (product: ProductResponse) -> Unit,
+    modifier: Modifier = Modifier.padding(lowPadding)
 ){
     val scope = rememberCoroutineScope()
-    val state = viewModel.state.collectAsState()
-    val products = viewModel.products.collectAsState()
     Column(
-        modifier = Modifier.padding(lowPadding),
+        modifier = modifier,
         verticalArrangement = Arrangement.SpaceAround
     )
     {
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Нет нужного продукта?")
-            TextButton(
-                onClick = { onClickAddProduct() }
-            ) {
-                Text("добавить", fontSize = 16.sp)
-            }
-        }
-        Divider(modifier = Modifier.padding(5.dp, 10.dp), thickness = 2.dp)
+
         LazyColumn(
             userScrollEnabled = true,
         ) {
@@ -1159,15 +1117,20 @@ fun FormModalBottomSheet(
     Log.wtf(TAG, "FormModalBottomSheet")
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val bottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = skipPartiallyExpanded
+        skipPartiallyExpanded = skipPartiallyExpanded,
+        confirmValueChange = {true},
     )
+    val scope = rememberCoroutineScope()
 
     if (openBottomSheet) {
         ModalBottomSheet(
             containerColor = Color.White,
             onDismissRequest = {
-                setStateBottomSheet(false)
-                onDismissRequest()
+                scope.launch{
+                    setStateBottomSheet(false)
+                    onDismissRequest()
+                }
+
                                },
             sheetState = bottomSheetState,
             windowInsets = BottomSheetDefaults.windowInsets,
@@ -1282,12 +1245,35 @@ fun ErrorMessageDialog(header: String, errors: MutableList<String>, onDismiss: (
         }
     }
 }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AlertDialogFrozen(
+    content: @Composable () -> Unit
+){
+    AlertDialog(
+        onDismissRequest = {},
+        properties = DialogProperties(
+            dismissOnBackPress = false,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows=true)
+    ){
+        content()
+    }
+
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: () -> Unit, content: @Composable () -> Unit){
+fun DialogCardComponent(
+    headerText: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier.padding(bottom=50.dp),
+    content: @Composable () -> Unit,
+){
     AlertDialog(
-        modifier= Modifier.padding(horizontal = 20.dp),
+        modifier= modifier,
         onDismissRequest = onDismiss,
         properties = DialogProperties(
             dismissOnBackPress = false,
@@ -1295,13 +1281,19 @@ fun AlertDialogComponent(headerText: String, onDismiss: () -> Unit, onConfirm: (
             usePlatformDefaultWidth = false,
             decorFitsSystemWindows=true)
     ){
-        Card {
+        Column(
+            modifier= modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Spacer(modifier = Modifier.padding(vertical = 10.dp))
             HeadingTextComponent(value=headerText)
             Spacer(modifier = Modifier.padding(vertical = 10.dp))
             Divider(thickness=2.dp)
-            content()
-            Spacer(modifier = Modifier.padding(vertical = 15.dp))
+            Row(modifier=modifier)
+            {
+                content()
+            }
             Row(
                 horizontalArrangement= Arrangement.SpaceAround,
             ){
@@ -1468,6 +1460,7 @@ fun AddProductFormComponent(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             onClick = {
                 isOpenCategoryContainer.value = it
+
             },
             onValueChange = {
 //                categoryName.value = it
@@ -1480,8 +1473,7 @@ fun AddProductFormComponent(
                 categories = categories,
                 onClick = {
                     addProductFormViewModel.setProductCategory(it)
-//                    product.value.categoryId = it.name
-//                    categoryId.value = it.id
+                    isOpenCategoryContainer.value = false
                 },
                 categoryListState = categoryListState
             )
@@ -1510,7 +1502,6 @@ fun AddProductFormComponent(
                         onConfirm(product.value)
                     }
                     addProductFormViewModel.setLoading(false)
-                    Log.wtf(TAG, "TODO CONFIRM ADD PRODUCT")
                 },
                 modifier = Modifier.widthIn(150.dp)
             )
@@ -1728,7 +1719,7 @@ fun EditPurchasedProductFormComponent(
             horizontalArrangement = Arrangement.SpaceAround
         ) {
             SecondaryGradientButtonComponent(
-                value = "добавить",
+                value = "изменить",
                 onClickButton = {
                     scope.launch{
                         editPurchasedProductVM.setLoading(true)

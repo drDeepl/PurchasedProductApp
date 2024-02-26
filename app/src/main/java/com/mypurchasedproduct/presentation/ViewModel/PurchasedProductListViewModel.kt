@@ -187,6 +187,7 @@ class PurchasedProductListViewModel @Inject constructor(
                         _purchasedProducts.value[index]= purchasedProductResponse
 
                     }
+                    calculateTotalCosts(purchasedProducts.value)
                     onSuccess("Запись успешно изменена!")
                     _editPurchasedProductState.update { editPurchasedProductState ->
                         editPurchasedProductState.copy(
@@ -233,8 +234,17 @@ class PurchasedProductListViewModel @Inject constructor(
         }
     }
 
+    fun setLoading(isLoading: Boolean){
+        viewModelScope.launch {
+            Log.d(TAG, "SET LOADING")
+            _state.update { state ->
+                state.copy(isLoading = isLoading)
+            }
+        }
+    }
 
-    fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
+
+    private fun calculateTotalCosts(purchasedProducts: List<PurchasedProductResponse>){
         Log.wtf(TAG, "CALCULATE TOTAL COSTS")
         viewModelScope.launch {
             _totalCosts.value = DoubleAccumulator(DoubleBinaryOperator { left, right ->  left + right},(0.0))

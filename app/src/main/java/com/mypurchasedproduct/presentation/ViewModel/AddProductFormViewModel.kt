@@ -78,39 +78,6 @@ class AddProductFormViewModel @Inject constructor(
         }
     }
 
-    // TODO: REFACTOR
-    fun toAddProduct(productName: String){
-        Log.i(TAG,"ADD PRODUCT REQUEST")
-        viewModelScope.launch {
-
-            _formState.update { formState ->
-                formState.copy(isLoading = true)
-            }
-            productUseCase.addProduct(formData.value).let {networkResult ->
-                when(networkResult){
-                    is NetworkResult.Success ->{
-                        _formState.update { formState ->
-                            formState.copy(
-                                isLoading = false,
-                                isSuccess = true,
-                            )
-                        }
-                    }
-                    is NetworkResult.Error ->{
-                        _formState.update { formState ->
-                            formState.copy(
-                                isLoading = false,
-                                isError = true,
-                            )
-                        }
-                        errors.value.add(networkResult.message.toString())
-                    }
-                }
-            }
-        }
-    }
-
-
     fun setDefaultState(){
         viewModelScope.launch {
             Log.wtf(TAG, "SET DEFAULT ADD PRODUCT STATE")
