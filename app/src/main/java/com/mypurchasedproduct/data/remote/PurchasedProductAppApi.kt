@@ -71,7 +71,7 @@ interface PurchasedProductAppApi {
     suspend fun getMeasurementUnits(): Response<MutableList<MeasurementUnitResponse>>
 
     @POST("${MEASUREMENT_ENDPOINT}/add")
-    suspend fun createMeasurementUnit(request: AddMeasurementUnitRequest): Response<MeasurementUnitResponse>
+    suspend fun createMeasurementUnit(@Body() request: AddMeasurementUnitRequest): Response<MeasurementUnitResponse>
 
     @GET("${PRODUCT_ENDPOINT}/category/all")
     suspend fun getCategories(): Response<MutableList<CategoryResponse>>
