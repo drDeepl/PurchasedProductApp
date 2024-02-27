@@ -52,7 +52,7 @@ import com.mypurchasedproduct.presentation.ViewModel.ProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.navigation.ModalBottomSheetNavigation
 import com.mypurchasedproduct.presentation.navigation.ScreenNavigation
-import com.mypurchasedproduct.presentation.ui.components.AddCategoryForm
+import com.mypurchasedproduct.presentation.ui.components.AddCategoryFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddMeasurementUnitFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
@@ -83,7 +83,6 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = hiltViewModel(),
     dateRowListViewModel: DateRowListViewModel = hiltViewModel(),
     addPurchasedProductFormViewModel: AddPurchasedProductFormViewModel = hiltViewModel(),
-    categoryVM: AddCategoryFormViewModel = hiltViewModel(),
     productListVM: ProductListViewModel = hiltViewModel(),
     measurementUnitsListVM: MeasurementUnitsListViewModel = hiltViewModel(),
     editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel(),
@@ -207,7 +206,6 @@ fun HomeScreen(
                             measurementUnitsListVM = measurementUnitsListVM,
                             onClickAddMeasurementUnit = {
                                 navController.navigate(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute)
-
                             },
                             onConfirm = {
                                 scope.launch{
@@ -315,6 +313,7 @@ fun HomeScreen(
                         AddProductFormComponent(
                             addProductFormViewModel = addProductFormViewModel,
                             categoryListVM = categoryListVM,
+                            onClickAddCategory = {navController.navigate(route=ModalBottomSheetNavigation.AddCategoryRoute)},
                             onConfirm = {
                                         productListVM.toAddProduct(
                                             it,
@@ -393,7 +392,7 @@ fun HomeScreen(
                             }
                         )
                     }
-                    composable(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute){navBackStack ->
+                    composable(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute){
                         val addMeasurementUnitVM = hiltViewModel<AddMeasurementUnitViewModel>()
                         AddMeasurementUnitFormComponent(
                             viewModel = addMeasurementUnitVM,
@@ -428,6 +427,35 @@ fun HomeScreen(
                         )
 
                     }
+                    composable(route = ModalBottomSheetNavigation.AddCategoryRoute){
+                        val addCategoryFormVM = hiltViewModel<AddCategoryFormViewModel>()
+                        AddCategoryFormComponent(
+                            viewModel = addCategoryFormVM,
+                            onConfirm = {
+                                categoryListVM.toAddCategory(
+                                    it,
+                                    onSuccess = { header ->
+                                        dialogMessageVM.setSuccessDialogState(
+                                            header=header,
+                                            onConfirm = {
+                                                bottomSheetActive.value = false
+                                                addCategoryFormVM.setDefaultState()
+                                            }
+                                        )
+                                        navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
+                                    },
+                                    onError = {header, errors ->
+                                        dialogMessageVM.setErrorDialogState(
+                                            header=header,
+                                            errors =errors,
+                                            onConfirm = {})
+                                    }
+                                )
+                                        },
+                            onDismiss = {navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)}
+
+                        )
+                    }
                 }
             }
 
@@ -460,23 +488,4 @@ fun HomeScreen(
             )
         }
     )
-    Column(
-            modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-
-
-
-            if(categoryVM.addCategoryState.isActive){
-                val addCategoryState = categoryVM.addCategoryState
-
-                AddCategoryForm(
-                    isLoading=addCategoryState.isLoading,
-                    onConfirm = {categoryVM.addCategory(it)},
-                    onDismiss = {categoryVM.setActiveAddCategory(it)})
-            }
-        }
-
 }

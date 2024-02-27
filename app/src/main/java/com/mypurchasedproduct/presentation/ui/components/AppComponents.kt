@@ -65,7 +65,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
@@ -121,8 +120,10 @@ import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
 import com.mypurchasedproduct.data.remote.model.response.ProductResponse
 import com.mypurchasedproduct.data.remote.model.response.PurchasedProductResponse
 import com.mypurchasedproduct.domain.model.AddPurchasedProductModel
+import com.mypurchasedproduct.domain.model.CategoryModel
 import com.mypurchasedproduct.domain.model.EditPurchasedProductModel
 import com.mypurchasedproduct.domain.model.MeasurementUnitModel
+import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
@@ -131,12 +132,10 @@ import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.MeasurementUnitsListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.ProductListBottomSheetViewModel
-import com.mypurchasedproduct.presentation.ViewModel.ProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.PurchasedProductListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignInViewModel
 import com.mypurchasedproduct.presentation.ViewModel.SignUpViewModel
 import com.mypurchasedproduct.presentation.item.DayItem
-import com.mypurchasedproduct.presentation.state.AddMeasurementUnitState
 import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.animations.shimmerLoadingAnimation
@@ -1354,8 +1353,9 @@ fun MeasurementUnitListComponent(
 fun CategoryListComponent(
     categories:  State<MutableList<CategoryResponse>>,
     onClick: (it: CategoryResponse)-> Unit,
+    onClickAddCategory: () -> Unit,
     categoryListState: State<CategoryListState>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.fillMaxWidth(0.9f)
 ){
     Log.d(TAG, "CategoryListComponent")
     val listState = rememberLazyListState()
@@ -1364,26 +1364,36 @@ fun CategoryListComponent(
         LinearProgressIndicator()
     }
     else {
-        LazyRow(
-            modifier = modifier
-                .fillMaxWidth()
-                .padding(
-                    vertical = lowPadding
-                ),
-            state = listState,
-            userScrollEnabled = true,
-            horizontalArrangement = Arrangement.SpaceAround,
-        ) {
-            itemsIndexed(items = categories.value) { index, item: CategoryResponse ->
-                OutlinedButton(
-                    onClick = {
-                        scope.launch {
-                            onClick(item)
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        )
+        {
+            LazyRow(
+                modifier = modifier
+                    .padding(
+                        vertical = lowPadding
+                    ),
+                state = listState,
+                userScrollEnabled = true,
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+                itemsIndexed(items = categories.value) { index, item: CategoryResponse ->
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                onClick(item)
+                            }
                         }
+                    ) {
+                        Text(text = item.name)
                     }
-                ) {
-                    Text(text = item.name)
                 }
+            }
+            IconButton(onClick = { onClickAddCategory() }) {
+                Icon(
+                    painter = rememberVectorPainter(image = Icons.Filled.Add),
+                    contentDescription = ""
+                )
             }
         }
     }
@@ -1432,6 +1442,7 @@ fun ErrorListContainer(errors: List<String>, modifier: Modifier = Modifier.anima
 fun AddProductFormComponent(
     addProductFormViewModel: AddProductFormViewModel,
     categoryListVM: CategoryListViewModel,
+    onClickAddCategory: () -> Unit,
     onConfirm: (ProductItem) -> Unit,
     onDismiss: () -> Unit,
     categories: State<MutableList<CategoryResponse>>,
@@ -1482,6 +1493,7 @@ fun AddProductFormComponent(
                     addProductFormViewModel.setProductCategory(it)
                     isOpenCategoryContainer.value = false
                 },
+                onClickAddCategory = {onClickAddCategory()},
                 categoryListState = categoryListState
             )
         }
@@ -1840,37 +1852,67 @@ fun AddMeasurementUnitFormComponent(
 
 }
 
-
-
 @Composable
-fun AddCategoryForm(isLoading: Boolean, onConfirm: (String) -> Unit, onDismiss: (isActive:Boolean) -> Unit) {
-    var categoryName by remember {
+fun AddCategoryFormComponent(
+    viewModel: AddCategoryFormViewModel,
+    onConfirm: (CategoryModel) -> Unit,
+    onDismiss: () -> Unit,
+){
+    val formState = viewModel.state.collectAsState()
+    val categoryName = remember {
         mutableStateOf("")
     }
-    DialogCardComponentWithoutActionBtns("Добавление категории") {
-        MyTextField(
-            textValue = categoryName,
-            labelValue = "название",
-            onValueChange = {
-                categoryName = it
-            },
-            enabled = !isLoading
-        )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            PrimaryGradientButtonComponent(
-                value ="добавить" ,
-                { onConfirm(categoryName) },
-                isLoading=isLoading,
-                modifier = Modifier.widthIn(64.dp)
-            )
-            SecondaryGradientButtonComponent(value = "отмена", onClickButton = {onDismiss(false) }, modifier = Modifier.widthIn(64.dp))
 
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .heightIn(450.dp)
+            .padding(horizontal = 12.dp)
+            .animateContentSize()
+    ){
+        if(formState.value.isError){
+            val errors = viewModel.errors.collectAsState()
+            ErrorListContainer(errors = errors.value)
+        }
+        PrimaryOutlinedTextField(
+            textValue = categoryName.value,
+            labelValue = "название",
+            onValueChange = {categoryName.value = it})
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = lowPadding),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            SecondaryGradientButtonComponent(
+                value = "добавить",
+                isLoading = formState.value.isLoading,
+                onClickButton = {
+                    viewModel.setLoading(true)
+                    viewModel.setCategoryName(categoryName.value)
+                    val validateErrors = viewModel.validate()
+                    if(validateErrors.size > 0){
+                        viewModel.setErrors(validateErrors)
+                        Log.d("ADD CATEGORY", "VALIDATE : NOT SUCCESS")
+                    }
+                    else{
+                        Log.d("ADD CATEGORY", "VALIDATE : SUCCESS")
+                        onConfirm(viewModel.getCategoryModel())
+                    }
+                    viewModel.setLoading(false)
+                },
+                modifier = Modifier.widthIn(150.dp)
+            )
+            SecondaryGradientButtonComponent(
+                value = "назад",
+                onClickButton = {onDismiss()},
+                gradientColors = GreyGradient,
+                modifier = Modifier.widthIn(150.dp)
+            )
         }
     }
+
 }
 
 @Composable
