@@ -393,7 +393,7 @@ fun HomeScreen(
                             }
                         )
                     }
-                    composable(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute){
+                    composable(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute){navBackStack ->
                         val addMeasurementUnitVM = hiltViewModel<AddMeasurementUnitViewModel>()
                         AddMeasurementUnitFormComponent(
                             viewModel = addMeasurementUnitVM,
@@ -406,9 +406,13 @@ fun HomeScreen(
                                             onConfirm = {
                                                 bottomSheetActive.value = false
                                                 addMeasurementUnitVM.setDefaultState()
-                                                startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
                                             }
                                         )
+                                        navController.navigate(route=ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                                        startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
+
+
+
                                     },
                                     onError = {header, errors ->
                                         dialogMessageVM.setErrorDialogState(
