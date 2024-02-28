@@ -24,10 +24,11 @@ fun CheckLocalAuthScreen(
     LoadScreen()
     val tokenState = authViewModel.tokenState.collectAsState()
     LaunchedEffect(tokenState.value.isComplete){
+        val tokenState = tokenState.value
+        var nextRoute = ScreenNavigation.AuthScreenRoute
         authViewModel.checkAccessToken()
-        if(tokenState.value.isComplete){
+        if(tokenState.isComplete){
             val isSignIn = authViewModel.state.value.isSignIn
-            var nextRoute = ScreenNavigation.AuthScreenRoute
             if(isSignIn){
                 nextRoute = ScreenNavigation.HomeScreenRoute
             }
@@ -39,6 +40,17 @@ fun CheckLocalAuthScreen(
                 launchSingleTop = true
                 restoreState = true
             }
+        }
+        if(tokenState.isError){
+            navController.navigate(route=nextRoute){
+                this.popUpTo(ScreenNavigation.NavHostRoute){
+                    inclusive = false
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+
         }
     }
 }

@@ -97,6 +97,7 @@ class AuthViewModel  @Inject constructor(
                             tokenState.copy(
                                 isActive = false,
                                 isError = true,
+                                isComplete = true,
                                 error =  networkResult.message
                             )
                         }
