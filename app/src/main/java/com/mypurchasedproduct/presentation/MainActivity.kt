@@ -27,23 +27,6 @@ class MainActivity: ComponentActivity() {
         setContent {
             MyPurchasedProductTheme {
                 val navController = rememberNavController()
-                val authState = authViewModel.state.collectAsState()
-                LaunchedEffect(authState.value.isSignIn){
-                    Log.wtf(TAG, "LAUNCHED EFFECT")
-                    if(authState.value.isSignIn){
-                        navController.navigate(route=ScreenNavigation.HomeScreenRoute){
-                            this.popUpTo(ScreenNavigation.NavHostRoute){
-                                inclusive = false
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                    else{
-                        navController.navigate(route=ScreenNavigation.AuthScreenRoute)
-                    }
-                }
                 AppNavHost(navController = navController, authViewModel = authViewModel)
             }
         }

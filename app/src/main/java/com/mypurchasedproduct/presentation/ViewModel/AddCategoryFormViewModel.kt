@@ -27,7 +27,7 @@ class AddCategoryFormViewModel @Inject constructor(
     val errors  = _errors.asStateFlow()
 
     private val _categoryModel = MutableStateFlow(CategoryModel())
-    val categoryModel = _categoryModel.asStateFlow()
+    private val categoryModel = _categoryModel.asStateFlow()
 
 
 
@@ -46,11 +46,21 @@ class AddCategoryFormViewModel @Inject constructor(
         }
     }
 
+    fun setDefaultErrors(){
+        viewModelScope.launch {
+            Log.d(TAG,"SET DEFAULT ERRORS")
+            _state.update { state ->
+                state.copy(isError = false)
+            }
+            _errors.update { mutableListOf() }
+        }
+    }
+
     fun setLoading(isLoading: Boolean){
         viewModelScope.launch {
             Log.d(TAG, "SET LOADING")
             _state.update{state ->
-                state.copy(isLoading = true)
+                state.copy(isLoading = isLoading)
             }
         }
     }
@@ -67,8 +77,15 @@ class AddCategoryFormViewModel @Inject constructor(
     }
 
     fun setErrors(errors: MutableList<String>){
-            Log.d(TAG, "SET ERRORS")
-            _errors.update { errors }
+        Log.d(TAG, "SET ERRORS")
+        _errors.update { errors }
+    }
+
+    fun setErrorState(isError: Boolean){
+        Log.d(TAG, "SET ERROR STATE")
+        _state.update { state ->
+            state.copy(isError = true)
+        }
     }
 
     fun validate(): MutableList<String>{

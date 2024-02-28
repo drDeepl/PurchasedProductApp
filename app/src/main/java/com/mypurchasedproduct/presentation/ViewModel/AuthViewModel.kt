@@ -15,6 +15,7 @@ import com.mypurchasedproduct.presentation.state.SignInState
 import com.mypurchasedproduct.presentation.state.SignUpState
 import com.mypurchasedproduct.presentation.utils.NetworkResult
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +28,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel  @Inject constructor(
-    private val signInUseCase: SignInUseCase,
-    private val signUpUseCase: SignUpUseCase,
     private val tokenUseCase: TokenUseCase,
 ): ViewModel(){
 
@@ -58,7 +57,7 @@ class AuthViewModel  @Inject constructor(
     init{
         viewModelScope.launch {
             Log.wtf(TAG, "INIT VIEW MODEL")
-            checkAccessToken()
+//            checkAccessToken()
         }
     }
 

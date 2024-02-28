@@ -39,7 +39,6 @@ fun AuthScreen(
     navController: NavHostController,
 
 ){
-//    appRouter: PurchasedProductAppRouter = PurchasedProductAppRouter,
     Log.wtf("AuthScreen", "START")
     val authState = authViewModel.state.collectAsState()
     val signInState = signInViewModel.signInState.collectAsState()
@@ -60,9 +59,15 @@ fun AuthScreen(
     LaunchedEffect(signInState.value.isSuccess){
         Log.wtf("AuthScreen", "SIGN IN STATE ${signInState.value.isSuccess}")
         if(signInState.value.isSuccess){
-//            appRouter.navigateTo(Screen.HomeScreen)
             authViewModel.setSignIn(signInState.value.isSuccess)
-            navController.navigate(route=ScreenNavigation.HomeScreenRoute)
+            navController.navigate(route= ScreenNavigation.HomeScreenRoute){
+                this.popUpTo(ScreenNavigation.NavHostRoute){
+                    inclusive = false
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
             signInViewModel.defaultState()
             authViewModel.setCurrentAction(0)
         }
@@ -109,7 +114,7 @@ fun AuthScreen(
                             signUpViewModel,
                             onTermsAndConditionText = {
 //                                appRouter.navigateTo(Screen.TermsAndConditionsScreen)
-                                navController.navigate(route=ScreenNavigation.TermsAndCondition)
+                                navController.navigate(route=ScreenNavigation.TermsAndConditionRoute)
                             }
                         )
                     }

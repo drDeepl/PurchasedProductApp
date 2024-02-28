@@ -438,11 +438,10 @@ fun HomeScreen(
                                         dialogMessageVM.setSuccessDialogState(
                                             header=header,
                                             onConfirm = {
-                                                bottomSheetActive.value = false
+                                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
                                                 addCategoryFormVM.setDefaultState()
                                             }
                                         )
-                                        navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
                                     },
                                     onError = {header, errors ->
                                         dialogMessageVM.setErrorDialogState(

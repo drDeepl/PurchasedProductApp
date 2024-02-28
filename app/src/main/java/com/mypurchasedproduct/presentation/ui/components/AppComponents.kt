@@ -62,6 +62,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -150,6 +151,7 @@ import com.mypurchasedproduct.presentation.ui.theme.GreenToYellowGradient
 import com.mypurchasedproduct.presentation.ui.theme.GreyColor
 import com.mypurchasedproduct.presentation.ui.theme.GreyGradient
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
+import com.mypurchasedproduct.presentation.ui.theme.MyPurchasedProductTheme
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
@@ -531,9 +533,7 @@ fun SecondaryGradientButtonComponent(
             contentAlignment = Alignment.Center
         ){
             if(isLoading){
-                CircularProgressIndicator(
-                    color = Color.White
-                )
+                CircularProgressIndicator(color=TextColor)
             }
             else{
                 Text(
@@ -1450,15 +1450,7 @@ fun AddProductFormComponent(
     val formState = addProductFormViewModel.formState.collectAsState()
     val isOpenCategoryContainer = remember { mutableStateOf(false) }
     val product = addProductFormViewModel.formData.collectAsState()
-//    val productName = remember {
-//        mutableStateOf("")
-//    }
-//    val categoryName = remember {
-//        mutableStateOf("")
-//    }
-//    val categoryId = remember { mutableStateOf(product.value.categoryId) }
     val categoryListState = categoryListVM.state.collectAsState()
-//    val categories = categoryListVM.categories.collectAsState()
     
     Column(
         verticalArrangement = Arrangement.Center,
@@ -1858,6 +1850,7 @@ fun AddCategoryFormComponent(
     onConfirm: (CategoryModel) -> Unit,
     onDismiss: () -> Unit,
 ){
+    val scope = rememberCoroutineScope()
     val formState = viewModel.state.collectAsState()
     val categoryName = remember {
         mutableStateOf("")
@@ -1877,7 +1870,9 @@ fun AddCategoryFormComponent(
         PrimaryOutlinedTextField(
             textValue = categoryName.value,
             labelValue = "название",
-            onValueChange = {categoryName.value = it})
+            onValueChange = {categoryName.value = it},
+            enabled = formState.value.isLoading.not()
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1889,18 +1884,22 @@ fun AddCategoryFormComponent(
                 value = "добавить",
                 isLoading = formState.value.isLoading,
                 onClickButton = {
-                    viewModel.setLoading(true)
-                    viewModel.setCategoryName(categoryName.value)
-                    val validateErrors = viewModel.validate()
-                    if(validateErrors.size > 0){
-                        viewModel.setErrors(validateErrors)
-                        Log.d("ADD CATEGORY", "VALIDATE : NOT SUCCESS")
+                    scope.launch{
+                        viewModel.setLoading(true)
+                        viewModel.setCategoryName(categoryName.value)
+                        val validateErrors = viewModel.validate()
+                        if (validateErrors.size > 0) {
+                            viewModel.setErrorState(true)
+                            viewModel.setErrors(validateErrors)
+                            Log.d("ADD CATEGORY", "VALIDATE : NOT SUCCESS")
+                        } else {
+                            viewModel.setDefaultErrors()
+                            Log.d("ADD CATEGORY", "VALIDATE : SUCCESS")
+                            onConfirm(viewModel.getCategoryModel())
+                        }
+                    }.invokeOnCompletion {
+                        viewModel.setLoading(false)
                     }
-                    else{
-                        Log.d("ADD CATEGORY", "VALIDATE : SUCCESS")
-                        onConfirm(viewModel.getCategoryModel())
-                    }
-                    viewModel.setLoading(false)
                 },
                 modifier = Modifier.widthIn(150.dp)
             )
