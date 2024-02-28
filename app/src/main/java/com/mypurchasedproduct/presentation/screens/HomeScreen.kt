@@ -2,15 +2,17 @@ package com.mypurchasedproduct.presentation.screens
 
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleLeft
 import androidx.compose.material3.Divider
@@ -27,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -36,6 +39,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.kizitonwose.calendar.compose.VerticalCalendar
+import com.kizitonwose.calendar.compose.rememberCalendarState
+import com.kizitonwose.calendar.core.CalendarDay
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
@@ -57,6 +63,7 @@ import com.mypurchasedproduct.presentation.ui.components.AddMeasurementUnitFormC
 import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogFrozen
+import com.mypurchasedproduct.presentation.ui.components.CalendarComponent
 import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
 import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
@@ -68,11 +75,20 @@ import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.ProductListComponent
-import com.mypurchasedproduct.presentation.ui.components.PurchasedProductItemLoading
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
+import com.mypurchasedproduct.presentation.ui.item.CalendarDayItem
+import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
+import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.launch
+import org.joda.time.DateTime
+import org.joda.time.Instant
+import org.joda.time.format.DateTimeFormat
+import org.joda.time.format.DateTimeFormatter
+import java.time.DayOfWeek
+import java.time.YearMonth
+import java.util.Date
 
 
 @Composable
@@ -105,7 +121,6 @@ fun HomeScreen(
         val mills = dateRowListViewModel.getSelectedDayTimestamp()
         Log.wtf("HomeScreen.LaunchedEffect", "selected date: ${mills}\t")
         purchasedProductListVM.getPurchasedProductCurrentUserByDate(mills)
-
 
     }
     val dialogMessageVM = hiltViewModel<DialogMessageViewModel>()
@@ -157,44 +172,67 @@ fun HomeScreen(
     }
     val bottomSheetActive = remember {mutableStateOf(false)}
     Scaffold(
+
         topBar = {
-            Column {
-                DaysRowComponent(dateRowListViewModel)
-                HeadingTextComponent(value = "Потрачено сегодня: ${totalCosts.value} ₽")
+            // TODO: ADD CALENDAR
+            Column(
+                modifier = Modifier
+                    .background(
+                        color = DeepBlackColor,
+                        shape = componentShapes.medium.copy(
+                            topStart = CornerSize(0.dp),
+                            topEnd = CornerSize(0.dp)
+                        )
+                    )
+                    .fillMaxHeight(0.27f),
+                verticalArrangement = Arrangement.Center
+            ) {
+
+                HeadingTextComponent(value = "Потрачено сегодня:", textColor= Color.White)
+                HeadingTextComponent(value = "${totalCosts.value} ₽", textColor= Color.White)
             }
         },
         content = {paddingValues: PaddingValues ->
+
             val scaffoldScope = rememberCoroutineScope()
             val startDestination =
                 remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
             val categoryListVM: CategoryListViewModel = hiltViewModel()
-            PurchasedProductViewComponent(
-                purchasedProductListVM,
-                paddingValues=paddingValues,
-                onSwipeToEdit = {
-//                    editPurchasedProductFormVM.setActive(true)
-                    scaffoldScope.launch {
-                        startDestination.value = ModalBottomSheetNavigation.EditPurhcasedProductRoute
-                        editPurchasedProductFormVM.setPurchasedProduct(it)
-                        bottomSheetActive.value = true
-                    }.invokeOnCompletion { purchasedProductListVM.setLoading(true) }
-
-                }
+            Column(
+                modifier= Modifier.padding(paddingValues)
             )
+            {
+                DaysRowComponent(
+                    viewModel=dateRowListViewModel,
+                    onClickViewCalendar= {
+                        scaffoldScope.launch {
+                            startDestination.value = ModalBottomSheetNavigation.CalendarRoute
+                        }.invokeOnCompletion { bottomSheetActive.value = true }
+
+                    }
+                    )
+                PurchasedProductViewComponent(
+                    purchasedProductListVM,
+                    onSwipeToEdit = {
+                        scaffoldScope.launch {
+                            startDestination.value =
+                                ModalBottomSheetNavigation.EditPurhcasedProductRoute
+                            editPurchasedProductFormVM.setPurchasedProduct(it)
+                            bottomSheetActive.value = true
+                        }.invokeOnCompletion { purchasedProductListVM.setLoading(true) }
+
+                    }
+                )
+            }
 //            addPurchasedProductState.value.isActive,
             FormModalBottomSheet(
                 openBottomSheet = bottomSheetActive.value,
                 setStateBottomSheet = {
                     bottomSheetActive.value = it
                     purchasedProductListVM.setLoading(it)
-//                    scope.launch {
-//                        addPurchasedProductFormViewModel.setActiveAddPurchasedProductForm(it)
-//
-//                    }
                 },
             )
             {
-                // TODO: NAV HOST
                 NavHost(
                     navController = navController ,
                     startDestination = startDestination.value,
@@ -454,6 +492,9 @@ fun HomeScreen(
                             onDismiss = {navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)}
 
                         )
+                    }
+                    composable(route=ModalBottomSheetNavigation.CalendarRoute){
+                        CalendarComponent(dateRowListViewModel)
                     }
                 }
             }

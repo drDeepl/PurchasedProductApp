@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 import org.joda.time.Instant
+import org.joda.time.format.DateTimeFormat
+import java.time.YearMonth
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,6 +59,14 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
         val selectedDay = state.value.selectedDate
         return Instant.parse("${selectedDay.year}-${selectedDay.month}-${selectedDay.dayOfMonth}").millis
     }
+
+    fun getYearMonthSelectedDate(): YearMonth {
+        Log.d(TAG, "GET YEAR MONTH DATE")
+        val todayInstant = Instant.ofEpochMilli(getSelectedDayTimestamp())
+        val dtf = DateTimeFormat.forPattern("yyyy-MM")
+        return YearMonth.parse(dtf.print(todayInstant))
+    }
+
     fun onSelectDay(day:DayItem){
         viewModelScope.launch {
             Log.v(TAG, "onSelectDay")

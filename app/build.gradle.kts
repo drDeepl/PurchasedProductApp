@@ -65,6 +65,12 @@ dependencies {
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
     implementation ("androidx.compose.foundation:foundation:1.4.3")
 
+    // Calendar
+    implementation("com.kizitonwose.calendar:compose:2.3.0")
+
+
+
+
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
     // Retrofit

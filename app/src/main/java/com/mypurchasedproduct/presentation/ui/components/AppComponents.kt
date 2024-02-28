@@ -36,10 +36,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Visibility
@@ -115,6 +119,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.kizitonwose.calendar.compose.HorizontalCalendar
+import com.kizitonwose.calendar.compose.VerticalCalendar
+import com.kizitonwose.calendar.compose.rememberCalendarState
+import com.kizitonwose.calendar.core.CalendarMonth
+import com.kizitonwose.calendar.core.daysOfWeek
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
@@ -140,6 +149,7 @@ import com.mypurchasedproduct.presentation.item.DayItem
 import com.mypurchasedproduct.presentation.state.CategoryListState
 import com.mypurchasedproduct.presentation.state.DateBoxUIState
 import com.mypurchasedproduct.presentation.ui.animations.shimmerLoadingAnimation
+import com.mypurchasedproduct.presentation.ui.item.CalendarDayItem
 import com.mypurchasedproduct.presentation.ui.item.ProductItem
 import com.mypurchasedproduct.presentation.ui.theme.AcidGreenColor
 import com.mypurchasedproduct.presentation.ui.theme.AcidPurpleColor
@@ -158,8 +168,13 @@ import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.internal.notify
+import java.time.DayOfWeek
+import java.time.YearMonth
+import java.util.Locale
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
 private val TAG = "AppComponent"
@@ -181,7 +196,7 @@ fun NormalTextComponent(value: String, textAlign: TextAlign = androidx.compose.u
 }
 
 @Composable
-fun HeadingTextComponent(value: String, textAlign: TextAlign = TextAlign.Center){
+fun HeadingTextComponent(value: String, textAlign: TextAlign = TextAlign.Center, textColor: Color = TextColor){
     Text(
         text = value,
         modifier = Modifier
@@ -192,7 +207,7 @@ fun HeadingTextComponent(value: String, textAlign: TextAlign = TextAlign.Center)
             fontWeight = FontWeight.Bold,
             fontStyle= FontStyle.Normal
         ),
-        color = TextColor,
+        color = textColor,
         textAlign = textAlign)
 }
 
@@ -748,7 +763,6 @@ fun PurchasedProductViewComponent(
     viewModel: PurchasedProductListViewModel,
     modifier: Modifier = Modifier
         .fillMaxSize(),
-    paddingValues: PaddingValues,
     onSwipeToEdit: (PurchasedProductResponse) -> Unit
 )
 {
@@ -757,7 +771,6 @@ fun PurchasedProductViewComponent(
     val scope = rememberCoroutineScope()
     Box(
         modifier = modifier
-            .padding(paddingValues)
             .padding(lowPadding),
 
     ) {
@@ -2140,7 +2153,11 @@ fun DayComponent(dayItem: DayItem, state: State<DateBoxUIState>, onClick: (day:D
 }
 
 @Composable
-fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modifier){
+fun DaysRowComponent(
+    viewModel: DateRowListViewModel,
+    onClickViewCalendar: () -> Unit,
+    modifier: Modifier = Modifier,
+){
     Log.wtf("DaysRowComponent", "start")
     Column(
         modifier = Modifier
@@ -2155,24 +2172,122 @@ fun DaysRowComponent(viewModel: DateRowListViewModel, modifier: Modifier = Modif
 
         val listState = rememberLazyListState(initialFirstVisibleItemIndex=state.value.selectedDate.dayOfMonth-3)
         val scope = rememberCoroutineScope()
-
-        LazyRow(
-            modifier = modifier.fillMaxWidth(0.95f),
-            state = listState,
-            userScrollEnabled = true,
-            horizontalArrangement = Arrangement.SpaceAround,
-        ){
-            itemsIndexed(items=days.value){index: Int, it: DayItem ->
-                Spacer(modifier = Modifier.padding(2.dp))
-                DayComponent(
-                    it,
-                    state,
-                    onClick = {
-                        scope.launch {
-                            viewModel.onSelectDay(it)
-                        }
-                    })
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        )
+        {
+            LazyRow(
+                modifier = modifier.fillMaxWidth(0.9f),
+                state = listState,
+                userScrollEnabled = true,
+                horizontalArrangement = Arrangement.SpaceAround,
+            ) {
+                itemsIndexed(items = days.value) { index: Int, it: DayItem ->
+                    Spacer(modifier = Modifier.padding(2.dp))
+                    DayComponent(
+                        it,
+                        state,
+                        onClick = {
+                            scope.launch {
+                                viewModel.onSelectDay(it)
+                            }
+                        })
+                }
             }
+            IconButton(onClick = { onClickViewCalendar() }) {
+                Icon(
+                    painter = rememberVectorPainter(image = Icons.Filled.CalendarMonth),
+                    contentDescription = ""
+                )
+            }
+        }
+
+    }
+}
+
+@Composable
+fun CalendarComponent(
+    viewModel: DateRowListViewModel,
+    countMonthToView: Long = 0,
+    firstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY
+){
+    val startMonth = remember {
+        mutableStateOf(YearMonth.now())
+    }
+    val isLoading = remember{ mutableStateOf(false) }
+    val calendarScope = rememberCoroutineScope()
+    val state = viewModel.state.collectAsState()
+
+    val calendarState = rememberCalendarState(
+        startMonth =  startMonth.value,
+        endMonth = startMonth.value.plusMonths(countMonthToView),
+        firstVisibleMonth = startMonth.value,
+        firstDayOfWeek = firstDayOfWeek,
+    )
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.background(color=Color.White, shape = componentShapes.medium)
+    ){
+
+        if(isLoading.value){
+            LoadScreen()
+        }
+        else{
+            VerticalCalendar(
+                state=calendarState,
+                monthHeader = {month ->
+                    MonthHeader(
+                        calendarMonth = month,
+                        onNextMonth = {
+                            calendarState.endMonth = startMonth.value.plusMonths(1)
+                            calendarState.startMonth = startMonth.value.plusMonths(1)
+                        },
+                        onPrevMonth = { calendarScope.launch { calendarState.animateScrollToMonth(month.yearMonth.minusMonths(1)) } },
+                    )
+                },
+                dayContent = {
+                    CalendarDayItem(it)
+                },
+            )
+        }
+
+    }
+}
+
+@Composable
+private fun MonthHeader(
+    calendarMonth: CalendarMonth,
+    onNextMonth: () -> Unit,
+    onPrevMonth: () -> Unit,
+    ) {
+    val currentMonth = remember{ mutableStateOf( calendarMonth.yearMonth.month) }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        horizontalArrangement = Arrangement.SpaceAround,
+    verticalAlignment = Alignment.CenterVertically,
+    ) {
+        IconButton(
+            onClick = {onPrevMonth()}
+        ) {
+            Icon(
+                modifier = Modifier.size(64.dp),
+                painter=rememberVectorPainter(image = Icons.Filled.KeyboardArrowLeft), contentDescription = "")
+        }
+        Text(
+            textAlign = TextAlign.Center,
+            text = currentMonth.value.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()),
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        IconButton(
+            onClick = {onNextMonth() }
+        ) {
+            Icon(
+                modifier = Modifier.size(64.dp),
+                painter=rememberVectorPainter(image = Icons.Filled.KeyboardArrowRight), contentDescription = "")
         }
     }
 }
