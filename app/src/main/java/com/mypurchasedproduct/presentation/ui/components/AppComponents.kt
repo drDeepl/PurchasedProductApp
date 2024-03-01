@@ -9,7 +9,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -38,7 +37,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -68,7 +66,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -122,11 +119,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kizitonwose.calendar.compose.ContentHeightMode
-import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.VerticalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
 import com.kizitonwose.calendar.core.CalendarMonth
-import com.kizitonwose.calendar.core.daysOfWeek
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.data.remote.model.response.CategoryResponse
 import com.mypurchasedproduct.data.remote.model.response.MeasurementUnitResponse
@@ -165,19 +160,16 @@ import com.mypurchasedproduct.presentation.ui.theme.GreenToYellowGradient
 import com.mypurchasedproduct.presentation.ui.theme.GreyColor
 import com.mypurchasedproduct.presentation.ui.theme.GreyGradient
 import com.mypurchasedproduct.presentation.ui.theme.LightGreyColor
-import com.mypurchasedproduct.presentation.ui.theme.MyPurchasedProductTheme
 import com.mypurchasedproduct.presentation.ui.theme.SecondaryColor
 import com.mypurchasedproduct.presentation.ui.theme.SmoothBlackGradient
 import com.mypurchasedproduct.presentation.ui.theme.TextColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
-import kotlinx.coroutines.async
+import com.mypurchasedproduct.presentation.ui.theme.mediumPadding
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.internal.notify
 import java.time.DayOfWeek
-import java.time.YearMonth
 import java.util.Locale
 import com.mypurchasedproduct.presentation.ui.components.PrimaryOutlinedTextFieldPassword as PrimaryOutlinedTextFieldPassword1
 
@@ -992,17 +984,32 @@ fun DialogCardComponent(
                 containerColor = Color.White
             )
         ) {
-            CardHeaderComponent(value = "Добавить продукт")
             Divider(modifier = Modifier.padding(vertical = 20.dp))
             content()
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(mediumPadding),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.Bottom
             ){
-                SuccessButtonIcon(onClick=onConfirm)
-                DismissButtonIcon(onClick=onDismiss)
+
+                SecondaryGradientButtonComponent(
+                    value = "удалить",
+                    onClickButton = onConfirm,
+                    gradientColors = listOf(AcidRedColor.copy(alpha=0.8f), AcidRedColor.copy(alpha=0.8f)),
+                    modifier = Modifier.widthIn(128.dp)
+                )
+                PrimaryGradientButtonComponent(
+                    value = "отмена",
+                    onClickButton = onDismiss,
+                    modifier = Modifier.widthIn(128.dp)
+                )
+
+//                SuccessButtonIcon(onClick=onConfirm)
+//                DismissButtonIcon(onClick=onDismiss)
                 }
+
 
 
         }
@@ -2163,19 +2170,37 @@ fun DaysRowComponent(
     modifier: Modifier = Modifier,
 ){
     Log.wtf("DaysRowComponent", "start")
+    val state = viewModel.state.collectAsState()
+    val days = viewModel.listDates.collectAsState()
+    Log.wtf("DaysRowComponent", "count days: ${days.value.size}")
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex=state.value.selectedDate.dayOfMonth-1)
+//    val month = remember { mutableStateOf(if (state.value.selectedDate.month / 10 > 0) state.value.selectedDate.month.toString() else "0${state.value.selectedDate.month}") }
+    val scope = rememberCoroutineScope()
+    Row(
+        modifier = modifier.padding(start=lowPadding, top= lowPadding),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        // TODO: NAME OF MONTH
+        Text(
+            text="${state.value.selectedDate.dayOfMonth} ${state.value.selectedDate.monthName} ${state.value.selectedDate.year} г.",
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold
+        )
+        IconButton(onClick = { onClickViewCalendar() }) {
+            Icon(
+                painter = rememberVectorPainter(image = Icons.Filled.CalendarMonth),
+                contentDescription = ""
+            )
+        }
+    }
     Column(
         modifier = Modifier
             .padding(vertical = 16.dp)
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ){
-        val state = viewModel.state.collectAsState()
         LoadScreen(isActive = state.value.isLoading)
-        val days = viewModel.listDates.collectAsState()
-        Log.wtf("DaysRowComponent", "count days: ${days.value.size}")
-
-        val listState = rememberLazyListState(initialFirstVisibleItemIndex=state.value.selectedDate.dayOfMonth-3)
-        val scope = rememberCoroutineScope()
         Row(
             verticalAlignment = Alignment.CenterVertically
         )
@@ -2198,22 +2223,20 @@ fun DaysRowComponent(
                         })
                 }
             }
-            IconButton(onClick = { onClickViewCalendar() }) {
-                Icon(
-                    painter = rememberVectorPainter(image = Icons.Filled.CalendarMonth),
-                    contentDescription = ""
-                )
-            }
+
         }
 
     }
+    Log.wtf("DaysRowComponent", "end")
 }
 
 @Composable
 fun CalendarComponent(
     viewModel: CalendarViewModel,
+    onClickDay: (DayItem) -> Unit,
     firstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY
 ){
+    Log.wtf("CalendarComponent", "START")
     val state = viewModel.state.collectAsState()
 
     val currentMonth = remember { mutableStateOf(state.value.currentMonth) }
@@ -2264,7 +2287,17 @@ fun CalendarComponent(
                     )
                 },
                 dayContent = {
-                    CalendarDayItem(it, selectedDay=state.value.currentDay)
+                    CalendarDayItem(it, selectedDay=state.value.currentDay, onClickDay={day ->
+
+                        onClickDay(
+                            DayItem(
+                                dayWeekName=day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()),
+                                month=day.date.monthValue,
+                                dayOfMonth = day.date.dayOfMonth,
+                                year = day.date.year,
+                                monthName = day.date.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())
+                                ))
+                    })
                 },
             )
         }

@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowCircleLeft
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,15 +42,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.kizitonwose.calendar.compose.VerticalCalendar
-import com.kizitonwose.calendar.compose.rememberCalendarState
-import com.kizitonwose.calendar.core.CalendarDay
 import com.mypurchasedproduct.R
 import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AuthViewModel
+import com.mypurchasedproduct.presentation.ViewModel.CalendarViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DialogMessageViewModel
@@ -64,8 +65,8 @@ import com.mypurchasedproduct.presentation.ui.components.AddProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AddPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.AlertDialogFrozen
 import com.mypurchasedproduct.presentation.ui.components.CalendarComponent
-import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.DaysRowComponent
+import com.mypurchasedproduct.presentation.ui.components.DialogCardComponent
 import com.mypurchasedproduct.presentation.ui.components.EditPurchasedProductFormComponent
 import com.mypurchasedproduct.presentation.ui.components.ErrorMessageDialog
 import com.mypurchasedproduct.presentation.ui.components.FormModalBottomSheet
@@ -73,26 +74,15 @@ import com.mypurchasedproduct.presentation.ui.components.HeadingTextComponent
 import com.mypurchasedproduct.presentation.ui.components.LoadScreen
 import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
-import com.mypurchasedproduct.presentation.ui.components.PrimaryGradientButtonComponent
 import com.mypurchasedproduct.presentation.ui.components.ProductListComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
-import com.mypurchasedproduct.presentation.ui.item.CalendarDayItem
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import kotlinx.coroutines.launch
-import org.joda.time.DateTime
-import org.joda.time.Instant
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.format.DateTimeFormatter
-import java.time.DayOfWeek
-import java.time.YearMonth
-import java.util.Date
-
 
 @Composable
-
 fun HomeScreen(
     authViewModel: AuthViewModel,
     screenNavController: NavHostController,
@@ -104,6 +94,7 @@ fun HomeScreen(
     editPurchasedProductFormVM: EditPurchasedProductFormViewModel = hiltViewModel(),
 
 ) {
+    Log.d("HomeScreen", "START")
     val navController = rememberNavController()
     val scope = rememberCoroutineScope()
 
@@ -187,8 +178,34 @@ fun HomeScreen(
                     .fillMaxHeight(0.27f),
                 verticalArrangement = Arrangement.Center
             ) {
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    IconButton(
+                        onClick = {
+                            screenNavController.navigate(ScreenNavigation.AuthScreenRoute){
+                                popUpTo(ScreenNavigation.NavHostRoute){
+                                    inclusive = false
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                            authViewModel.signOut()
+                        }
+                        ,
+                        modifier = Modifier.background(Color.White, shape= RoundedCornerShape(64.dp))
+                    ) {
+                        Icon(
+                            painter = rememberVectorPainter(image = Icons.Filled.ExitToApp),
+                            contentDescription = ""
+                        )
+                    }
 
-                HeadingTextComponent(value = "Потрачено сегодня:", textColor= Color.White)
+                }
+                HeadingTextComponent(value = "Потрачено за день:", textColor= Color.White)
                 HeadingTextComponent(value = "${totalCosts.value} ₽", textColor= Color.White)
             }
         },
@@ -230,9 +247,11 @@ fun HomeScreen(
                 setStateBottomSheet = {
                     bottomSheetActive.value = it
                     purchasedProductListVM.setLoading(it)
+                    startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
+
                 },
-            )
-            {
+            ){
+                Log.wtf("FormModalBottomSheetContent", "START")
                 NavHost(
                     navController = navController ,
                     startDestination = startDestination.value,
@@ -494,7 +513,10 @@ fun HomeScreen(
                         )
                     }
                     composable(route=ModalBottomSheetNavigation.CalendarRoute){
-                        CalendarComponent(dateRowListViewModel)
+                        val calendarVM = hiltViewModel<CalendarViewModel>()
+                        CalendarComponent(calendarVM, onClickDay = {
+                            dateRowListViewModel.onSelectDay(it)
+                        })
                     }
                 }
             }
@@ -510,22 +532,6 @@ fun HomeScreen(
 //                    }
                          },
                 )
-        },
-        bottomBar = {
-            PrimaryGradientButtonComponent(
-                value = "Выйти", onClickButton = {
-                    screenNavController.navigate(ScreenNavigation.AuthScreenRoute){
-                        popUpTo(ScreenNavigation.NavHostRoute){
-                            inclusive = false
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
-                    authViewModel.signOut()
-
-                }
-            )
         }
     )
 }

@@ -5,4 +5,5 @@ data class DayItem(
     val dayOfMonth: Int,
     val month: Int,
     val year: Int,
+    val monthName: String,
 )

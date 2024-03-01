@@ -25,12 +25,24 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
     private val now: DateTime = Instant.now().toDateTime()
 
 
-    private val _state = MutableStateFlow(DateBoxUIState(false, DayItem(now.dayOfWeek().asShortText,now.dayOfMonth,now.monthOfYear, now.year)))
+    private val _state = MutableStateFlow(
+        DateBoxUIState(
+            false,
+            DayItem(
+                now.dayOfWeek().asShortText,
+                now.dayOfMonth,
+                now.monthOfYear,
+                now.year,
+                now.monthOfYear().asShortText
+            )
+        )
+    )
     val state = _state.asStateFlow()
 
     private val _listDates = MutableStateFlow<List<DayItem>>(listOf())
     val listDates =_listDates.asStateFlow()
     init{
+        // TODO: MOVE TO CalendarListViewModel
         viewModelScope.launch{
             Log.wtf(TAG, "INIT")
             _state.update { state ->
@@ -41,12 +53,41 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
             val listDays:MutableList<DayItem> = mutableListOf()
             for(i in 1..maximumDayInMonth){
                 val day: DateTime = now.dayOfMonth().setCopy(i)
-                listDays.add(i-1,DayItem(dayWeekName = day.dayOfWeek().asShortText, dayOfMonth = day.dayOfMonth, month=day.monthOfYear,year=day.year) )
+                listDays.add(i-1,DayItem(dayWeekName = day.dayOfWeek().asShortText, dayOfMonth = day.dayOfMonth, month=day.monthOfYear,year=day.year, day.monthOfYear().asShortText) )
 
             }
             _listDates.update{ listDates ->
                 listDates.plus(listDays)
             }
+            _state.update { state ->
+                Log.d(TAG, "LOADING END")
+                state.copy(isLoading = false)
+            }
+
+        }
+    }
+
+    fun createListDaysMonth(dayItem: DayItem){
+        val month = if (dayItem.month / 10 > 0) dayItem.month.toString() else "0${dayItem.month}"
+        val datetime = DateTime.parse("${dayItem.year}-${month}")
+
+
+
+        viewModelScope.launch{
+            Log.wtf(TAG, "INIT")
+            _state.update { state ->
+                Log.d(TAG, "LOADING START")
+                state.copy(isLoading = true)
+            }
+
+            val maximumDayInMonth = datetime.dayOfMonth().withMaximumValue().dayOfMonth
+            val listDays:MutableList<DayItem> = mutableListOf()
+            for(i in 1..maximumDayInMonth){
+                val day: DateTime = datetime.dayOfMonth().setCopy(i)
+                listDays.add(i-1,DayItem(dayWeekName = day.dayOfWeek().asShortText, dayOfMonth = day.dayOfMonth, month=day.monthOfYear,year=day.year, day.monthOfYear().asShortText) )
+
+            }
+            _listDates.update{ listDays}
             _state.update { state ->
                 Log.d(TAG, "LOADING END")
                 state.copy(isLoading = false)
@@ -68,6 +109,7 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
     }
 
     fun onSelectDay(day:DayItem){
+        createListDaysMonth(day)
         viewModelScope.launch {
             Log.v(TAG, "onSelectDay")
             _state.update { state ->
@@ -77,8 +119,4 @@ class DateRowListViewModel @Inject constructor() : ViewModel() {
             }
         }
     }
-
-
-
-
 }
