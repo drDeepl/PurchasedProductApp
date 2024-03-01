@@ -27,7 +27,7 @@ val BackgroundColor = Color.White
 
 
 // TEXT ===============================
-val TextColor = Color(0xFF383838)
+val TextColor = Color(0xFF475467)
 // ====================================
 
 

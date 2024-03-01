@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -119,6 +121,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.kizitonwose.calendar.compose.ContentHeightMode
 import com.kizitonwose.calendar.compose.HorizontalCalendar
 import com.kizitonwose.calendar.compose.VerticalCalendar
 import com.kizitonwose.calendar.compose.rememberCalendarState
@@ -137,6 +140,7 @@ import com.mypurchasedproduct.presentation.ViewModel.AddCategoryFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddMeasurementUnitViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddProductFormViewModel
 import com.mypurchasedproduct.presentation.ViewModel.AddPurchasedProductFormViewModel
+import com.mypurchasedproduct.presentation.ViewModel.CalendarViewModel
 import com.mypurchasedproduct.presentation.ViewModel.CategoryListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.DateRowListViewModel
 import com.mypurchasedproduct.presentation.ViewModel.EditPurchasedProductFormViewModel
@@ -2207,26 +2211,31 @@ fun DaysRowComponent(
 
 @Composable
 fun CalendarComponent(
-    viewModel: DateRowListViewModel,
-    countMonthToView: Long = 0,
+    viewModel: CalendarViewModel,
     firstDayOfWeek: DayOfWeek = DayOfWeek.MONDAY
 ){
+    val state = viewModel.state.collectAsState()
+
+    val currentMonth = remember { mutableStateOf(state.value.currentMonth) }
     val startMonth = remember {
-        mutableStateOf(YearMonth.now())
+        mutableStateOf(currentMonth.value.minusMonths(50))
+    }
+    val endMonth = remember {
+        mutableStateOf(currentMonth.value.plusMonths(50))
     }
     val isLoading = remember{ mutableStateOf(false) }
     val calendarScope = rememberCoroutineScope()
-    val state = viewModel.state.collectAsState()
-
     val calendarState = rememberCalendarState(
         startMonth =  startMonth.value,
-        endMonth = startMonth.value.plusMonths(countMonthToView),
-        firstVisibleMonth = startMonth.value,
+        endMonth = endMonth.value,
+        firstVisibleMonth = currentMonth.value,
         firstDayOfWeek = firstDayOfWeek,
     )
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.background(color=Color.White, shape = componentShapes.medium)
+        modifier = Modifier
+            .background(color = Color.White, shape = componentShapes.medium)
+            .fillMaxHeight(0.4f)
     ){
 
         if(isLoading.value){
@@ -2235,18 +2244,27 @@ fun CalendarComponent(
         else{
             VerticalCalendar(
                 state=calendarState,
+                userScrollEnabled = false,
+                contentHeightMode = ContentHeightMode.Wrap,
                 monthHeader = {month ->
                     MonthHeader(
                         calendarMonth = month,
                         onNextMonth = {
-                            calendarState.endMonth = startMonth.value.plusMonths(1)
-                            calendarState.startMonth = startMonth.value.plusMonths(1)
+                            isLoading.value = true
+                            calendarScope.launch {
+                                calendarState.scrollToMonth(month.yearMonth.plusMonths(1))
+                            }.invokeOnCompletion { isLoading.value = false }
                         },
-                        onPrevMonth = { calendarScope.launch { calendarState.animateScrollToMonth(month.yearMonth.minusMonths(1)) } },
+                        onPrevMonth = {
+                            isLoading.value = true
+                            calendarScope.launch {
+                                calendarState.scrollToMonth(month.yearMonth.minusMonths(1))
+                            }.invokeOnCompletion { isLoading.value = false }
+                        },
                     )
                 },
                 dayContent = {
-                    CalendarDayItem(it)
+                    CalendarDayItem(it, selectedDay=state.value.currentDay)
                 },
             )
         }
@@ -2279,6 +2297,12 @@ private fun MonthHeader(
         Text(
             textAlign = TextAlign.Center,
             text = currentMonth.value.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()),
+            fontSize = 21.sp,
+            fontWeight = FontWeight.Bold,
+        )
+        Text(
+            textAlign = TextAlign.Center,
+            text = "${calendarMonth.yearMonth.year} г.",
             fontSize = 21.sp,
             fontWeight = FontWeight.Bold,
         )

@@ -1,5 +1,6 @@
 package com.mypurchasedproduct.presentation.ui.item
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.size
@@ -18,7 +19,8 @@ import com.kizitonwose.calendar.core.DayPosition
 import com.mypurchasedproduct.presentation.ui.theme.AcidRedColor
 
 @Composable
-fun CalendarDayItem(day:CalendarDay, onClickDay: () -> Unit = {}) {
+fun CalendarDayItem(day:CalendarDay, selectedDay: CalendarDay, onClickDay: () -> Unit = {}) {
+    // TODO: HIGHLIHGT SELECTED DAY
     Box(
         modifier = Modifier
             .aspectRatio(1f),
@@ -26,7 +28,9 @@ fun CalendarDayItem(day:CalendarDay, onClickDay: () -> Unit = {}) {
     ) {
         TextButton(
             modifier = Modifier.size(48.dp),
-            onClick= {},
+            onClick= {
+                     Log.d("CALENDAR DAY ITEM", day.equals(selectedDay).toString())
+            },
             colors =  ButtonDefaults.textButtonColors(
                 contentColor = AcidRedColor
             ),
