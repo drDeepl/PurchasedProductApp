@@ -2246,7 +2246,9 @@ fun CalendarComponent(
     val endMonth = remember {
         mutableStateOf(currentMonth.value.plusMonths(50))
     }
-    val isLoading = remember{ mutableStateOf(false) }
+    val selectedDay = remember {
+        mutableStateOf(state.value.currentDay)
+    }
     val calendarScope = rememberCoroutineScope()
     val calendarState = rememberCalendarState(
         startMonth =  startMonth.value,
@@ -2260,35 +2262,32 @@ fun CalendarComponent(
             .background(color = Color.White, shape = componentShapes.medium)
             .fillMaxHeight(0.4f)
     ){
+        VerticalCalendar(
+            state=calendarState,
+            userScrollEnabled = false,
+            contentHeightMode = ContentHeightMode.Wrap,
+            monthHeader = {month ->
+                MonthHeader(
+                    calendarMonth = month,
+                    onNextMonth = {
 
-        if(isLoading.value){
-            LoadScreen()
-        }
-        else{
-            VerticalCalendar(
-                state=calendarState,
-                userScrollEnabled = false,
-                contentHeightMode = ContentHeightMode.Wrap,
-                monthHeader = {month ->
-                    MonthHeader(
-                        calendarMonth = month,
-                        onNextMonth = {
-                            isLoading.value = true
-                            calendarScope.launch {
-                                calendarState.scrollToMonth(month.yearMonth.plusMonths(1))
-                            }.invokeOnCompletion { isLoading.value = false }
-                        },
-                        onPrevMonth = {
-                            isLoading.value = true
-                            calendarScope.launch {
-                                calendarState.scrollToMonth(month.yearMonth.minusMonths(1))
-                            }.invokeOnCompletion { isLoading.value = false }
-                        },
-                    )
-                },
-                dayContent = {
-                    CalendarDayItem(it, selectedDay=state.value.currentDay, onClickDay={day ->
+                        calendarScope.launch {
+                            calendarState.scrollToMonth(month.yearMonth.plusMonths(1))
+                        }
+                    },
+                    onPrevMonth = {
 
+                        calendarScope.launch {
+                            calendarState.scrollToMonth(month.yearMonth.minusMonths(1))
+                        }
+                    },
+                )
+            },
+            dayContent = {
+                CalendarDayItem(
+                    it,
+                    selectedDay=selectedDay.value,
+                    onClickDay = {day ->
                         onClickDay(
                             DayItem(
                                 dayWeekName=day.date.dayOfWeek.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault()),
@@ -2296,11 +2295,13 @@ fun CalendarComponent(
                                 dayOfMonth = day.date.dayOfMonth,
                                 year = day.date.year,
                                 monthName = day.date.month.getDisplayName(java.time.format.TextStyle.SHORT, Locale.getDefault())
-                                ))
-                    })
-                },
-            )
-        }
+                            )
+                        )
+                        selectedDay.value = day
+                    }
+                )
+            }
+        )
 
     }
 }

@@ -28,9 +28,7 @@ private val LightColorScheme = lightColorScheme(
     primary = Color(0xFF140F1F),
     onPrimary = Color(0xFF140F1F),
     secondary = SecondaryColor,
-    outline = Color(0xFF18F0BC),
-    background = Color.White,
-    onBackground =Color.White,
+    outline = AcidRedColor,
     tertiary = Pink40
 
     /* Other default colors to override
@@ -51,14 +49,7 @@ fun MyPurchasedProductTheme(
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if(darkTheme) DarkColorScheme else LightColorScheme
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
@@ -67,7 +58,6 @@ fun MyPurchasedProductTheme(
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
-
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
