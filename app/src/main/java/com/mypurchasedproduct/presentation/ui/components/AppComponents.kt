@@ -69,6 +69,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
@@ -112,6 +113,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -2348,4 +2350,34 @@ private fun MonthHeader(
                 painter=rememberVectorPainter(image = Icons.Filled.KeyboardArrowRight), contentDescription = "")
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SearchBarProductComponent(){
+    Log.d(TAG, "SEARCH BAR PRODUCT COMPONENT")
+    var text by remember {mutableStateOf("")}
+    var active by remember {mutableStateOf(false)}
+
+    SearchBar(
+        placeholder = { Text("ищу продукт...", )},
+        query = text,
+        onQueryChange = {
+                        text = it
+        },
+        onSearch = {
+                   active = false
+        },
+        active = active,
+        onActiveChange = {
+            active = it
+        },
+        trailingIcon = {
+            CircularProgressIndicator(modifier = Modifier.size(10.dp))
+        }){}
+}
+@Preview
+@Composable
+fun PreviewSearchBarProductComponent(){
+    SearchBarProductComponent()
 }
