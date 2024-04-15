@@ -76,6 +76,7 @@ import com.mypurchasedproduct.presentation.ui.components.NormalTextComponent
 import com.mypurchasedproduct.presentation.ui.components.PrimaryFloatingActionButton
 import com.mypurchasedproduct.presentation.ui.components.ProductListComponent
 import com.mypurchasedproduct.presentation.ui.components.PurchasedProductViewComponent
+import com.mypurchasedproduct.presentation.ui.components.SearchBarProductComponent
 import com.mypurchasedproduct.presentation.ui.components.SuccessMessageDialog
 import com.mypurchasedproduct.presentation.ui.theme.DeepBlackColor
 import com.mypurchasedproduct.presentation.ui.theme.componentShapes
@@ -258,9 +259,16 @@ fun HomeScreen(
                     route = ModalBottomSheetNavigation.NavHostRoute
                 ){
                     composable(route = ModalBottomSheetNavigation.AddPurchasedProductRoute){
+                        val products = productListVM.products.collectAsState()
+//                        products= products,
+//                        onClickProductItem = {
+//                            addPurchasedProductFormViewModel.setProduct(it)
+//                            navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
+//                        },
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
                             measurementUnitsListVM = measurementUnitsListVM,
+                            products = products,
                             onClickAddMeasurementUnit = {
                                 navController.navigate(route=ModalBottomSheetNavigation.AddMeasurementUnitRoute)
                             },
@@ -293,6 +301,9 @@ fun HomeScreen(
                                         },
                             onSelectProduct = {
                                 navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
+                            },
+                            onClickProduct = {
+                                addPurchasedProductFormViewModel.setProduct(it)
                             }
                         )
                     }
@@ -403,9 +414,14 @@ fun HomeScreen(
                         )
                     }
                     composable(route=ModalBottomSheetNavigation.EditPurhcasedProductRoute){
+                        val products = productListVM.products.collectAsState()
                         EditPurchasedProductFormComponent(
                             editPurchasedProductVM = editPurchasedProductFormVM,
                             measurementUnitsListVM = measurementUnitsListVM,
+                            products = products,
+                            onClickProduct = {
+                                addPurchasedProductFormViewModel.setProduct(it)
+                            },
                             onConfirm = {editPurchasedProductModel ->
                                 purchasedProductListVM.toEditPurchasedProduct(
                                     editPurchasedProductModel,

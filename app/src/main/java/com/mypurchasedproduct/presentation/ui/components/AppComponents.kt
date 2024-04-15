@@ -9,18 +9,24 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.imeAnimationSource
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -62,6 +68,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DismissDirection
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,6 +77,8 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarColors
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
@@ -80,6 +89,7 @@ import androidx.compose.material3.rememberDismissState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -101,6 +111,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -112,6 +123,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -169,6 +181,8 @@ import com.mypurchasedproduct.presentation.ui.theme.componentShapes
 import com.mypurchasedproduct.presentation.ui.theme.extraLowPadding
 import com.mypurchasedproduct.presentation.ui.theme.lowPadding
 import com.mypurchasedproduct.presentation.ui.theme.mediumPadding
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -240,7 +254,16 @@ fun PrimaryCustomClickableOutlinedTextField(
     readOnly: Boolean = true,
     trailingIcon: Painter = rememberVectorPainter(image = Icons.Filled.Add),
     onClickIcon: () -> Unit,
+    onPressed: () -> Unit = {}
 ){
+    var interactionSource = remember{ MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    LaunchedEffect(isPressed){
+
+        if(isPressed){
+            this.launch { onPressed() }
+        }
+    }
     OutlinedTextField(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,6 +278,7 @@ fun PrimaryCustomClickableOutlinedTextField(
             containerColor = LightGreyColor,
             unfocusedBorderColor = LightGreyColor
         ),
+        interactionSource = interactionSource,
         shape = componentShapes.large,
         keyboardOptions = keyboardOptions,
         leadingIcon = { Icon(painter =icon, contentDescription = "", modifier = Modifier.height(32.dp))},
@@ -1146,7 +1170,8 @@ fun FormModalBottomSheet(
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
-        confirmValueChange = {true},
+        confirmValueChange = {false},
+
     )
     val scope = rememberCoroutineScope()
 
@@ -1162,6 +1187,7 @@ fun FormModalBottomSheet(
                                },
             sheetState = bottomSheetState,
             windowInsets = BottomSheetDefaults.windowInsets,
+
         ) {
             content()
         }
@@ -1559,7 +1585,9 @@ fun AddPurchasedProductFormComponent(
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    onSelectProduct: () -> Unit
+    onSelectProduct: () -> Unit,
+    onClickProduct: (product: ProductResponse) -> Unit,
+    products:  State<MutableList<ProductResponse>>,
 ){
 
     val scope = rememberCoroutineScope()
@@ -1570,6 +1598,9 @@ fun AddPurchasedProductFormComponent(
     if(addPurchasedProductState.value.measurementUnit == null) {
         addPurchasedProductVM.setMeasurementUnit(measurementUnits.value[0])
     }
+    val currentProductName = remember {
+        mutableStateOf(addPurchasedProductState.value.product?.let{it.name} ?: "")
+    }
     Column(
         modifier = Modifier
             .heightIn(450.dp)
@@ -1577,13 +1608,21 @@ fun AddPurchasedProductFormComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        PrimaryCustomClickableOutlinedTextField(
-            textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
-            labelValue = "продукт",
-            onValueChange ={},
-            onClickIcon = {
-                onSelectProduct()
+//        PrimaryCustomClickableOutlinedTextField(
+//            textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
+//            labelValue = "продукт",
+//            onValueChange = {},
+//            onClickIcon = {
+//                onSelectProduct()
+//            },
+//            onPressed = {onSelectProduct()}
+//        )
+        SearchBarProductComponent(
+            products = products,
+            onClickProduct = {
+                onClickProduct(it)
             },
+            currentProductName=currentProductName
         )
         Column(modifier = Modifier.animateContentSize())
         {
@@ -1653,7 +1692,7 @@ fun AddPurchasedProductFormComponent(
                 modifier = Modifier.widthIn(150.dp)
             )
             SecondaryGradientButtonComponent(
-                value = "отмена",
+                value = "закрыть",
                 onClickButton = onDismiss,
                 gradientColors = GreyGradient,
                 modifier = Modifier.widthIn(150.dp)
@@ -1671,6 +1710,8 @@ fun EditPurchasedProductFormComponent(
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
+    onClickProduct: (product: ProductResponse) -> Unit,
+    products:  State<MutableList<ProductResponse>>,
 ){
     val editPurchasedProductState = editPurchasedProductVM.state.collectAsState()
     val selectedPurchasedProduct = editPurchasedProductVM.purchasedProductToEdit.collectAsState()
@@ -1701,6 +1742,8 @@ fun EditPurchasedProductFormComponent(
         mutableStateOf(selectedPurchasedProduct.value.price.toString())
     }
 
+    val newProductName =remember { mutableStateOf(newProduct.value.name) }
+
     Column(
         modifier = Modifier
             .heightIn(Dp(screenHeight))
@@ -1708,13 +1751,20 @@ fun EditPurchasedProductFormComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        PrimaryClickableOutlinedTextField(
-            textValue = newProduct.value.name,
-            labelValue = "продукт",
-            isExpanded = false,
-            onClick = {
-                onClickAddProduct()
+//        PrimaryClickableOutlinedTextField(
+//            textValue = newProduct.value.name,
+//            labelValue = "продукт",
+//            isExpanded = false,
+//            onClick = {
+//                onClickAddProduct()
+//            },
+//        )
+        SearchBarProductComponent(
+            products = products,
+            onClickProduct = {
+                onClickProduct(it)
             },
+            currentProductName=newProductName
         )
         Column(modifier = Modifier.animateContentSize())
         {
@@ -2352,32 +2402,85 @@ private fun MonthHeader(
     }
 }
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBarProductComponent(){
+fun SearchBarProductComponent(
+    onClickProduct: (product: ProductResponse) -> Unit,
+    products:  State<MutableList<ProductResponse>>,
+    currentProductName: MutableState<String>,
+    modifier: Modifier = Modifier.fillMaxWidth()
+){
     Log.d(TAG, "SEARCH BAR PRODUCT COMPONENT")
-    var text by remember {mutableStateOf("")}
+    var placeholder by remember {mutableStateOf("продукт")}
+    var isSearch by remember{ mutableStateOf(false) }
+    var text by remember {mutableStateOf(currentProductName.value)}
     var active by remember {mutableStateOf(false)}
-
-    SearchBar(
-        placeholder = { Text("ищу продукт...", )},
-        query = text,
+    val foundedItems = remember {
+        mutableStateOf(listOf<ProductResponse>())
+    }
+    val scope = rememberCoroutineScope()
+    DockedSearchBar(
+        placeholder = { Text(placeholder) },
+        query = text.lowercase(),
         onQueryChange = {
-                        text = it
+            Log.d("SearchBarProductComponent", "onQueryChange: ${text}")
+            text = it
         },
         onSearch = {
-                   active = false
+            scope.launch {
+                foundedItems.value = products.value.filter {product -> text in product.name.lowercase()}
+            }.invokeOnCompletion {
+                isSearch = false
+            }
+            active = true
+            isSearch = true
+
+
+
         },
         active = active,
-        onActiveChange = {
-            active = it
-        },
+        onActiveChange = {        },
         trailingIcon = {
-            CircularProgressIndicator(modifier = Modifier.size(10.dp))
-        }){}
-}
-@Preview
-@Composable
-fun PreviewSearchBarProductComponent(){
-    SearchBarProductComponent()
+            if (isSearch) {
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            }
+            else{
+                IconButton(
+                    onClick = { active=false; text = "" }
+                ) {
+                    Icon(Icons.Filled.Close, contentDescription= "",  modifier = Modifier.size(20.dp))
+                }
+            }
+
+        },
+        modifier = modifier,
+
+        colors = SearchBarDefaults.colors(
+            containerColor = LightGreyColor,
+        )
+
+    ){
+        LazyColumn(
+            userScrollEnabled = true,
+            verticalArrangement = Arrangement.SpaceAround
+        ) {
+            items(foundedItems.value) { product ->
+                TextButton(
+                    onClick = {
+                        active = false
+                        text = product.name
+                        scope.launch {
+                            onClickProduct(product)
+                        }
+                              },
+                    modifier = modifier.padding(15.dp)
+                )
+                {
+                    Text(product.name, fontSize = 18.sp)
+                }
+
+            }
+        }
+    }
 }
