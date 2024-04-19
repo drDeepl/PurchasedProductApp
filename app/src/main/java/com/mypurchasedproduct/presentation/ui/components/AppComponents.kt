@@ -1170,7 +1170,7 @@ fun FormModalBottomSheet(
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
-        confirmValueChange = {false},
+        confirmValueChange = {true},
 
     )
     val scope = rememberCoroutineScope()
