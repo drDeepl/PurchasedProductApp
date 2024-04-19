@@ -299,11 +299,12 @@ fun HomeScreen(
                                 }
 
                                         },
-                            onSelectProduct = {
-                                navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
-                            },
+
                             onClickProduct = {
                                 addPurchasedProductFormViewModel.setProduct(it)
+                            },
+                            onClickAddProduct = {
+                                navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
                             }
                         )
                     }
@@ -390,7 +391,7 @@ fun HomeScreen(
                                                     header=it,
                                                     onConfirm = {
                                                         addProductFormViewModel.setDefaultState()
-                                                        navController.navigate(route=ModalBottomSheetNavigation.ProductListRoute)
+                                                        navController.navigate(route=ModalBottomSheetNavigation.AddPurchasedProductRoute)
                                                     }
                                                 )
                                                         },
@@ -497,6 +498,7 @@ fun HomeScreen(
                             onDismiss = {
                                 navController.navigate(route=ModalBottomSheetNavigation.AddPurchasedProductRoute)
                             }
+
                         )
 
                     }

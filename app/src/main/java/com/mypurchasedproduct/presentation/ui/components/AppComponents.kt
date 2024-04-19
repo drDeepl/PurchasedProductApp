@@ -1585,7 +1585,7 @@ fun AddPurchasedProductFormComponent(
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    onSelectProduct: () -> Unit,
+    onClickAddProduct: () -> Unit,
     onClickProduct: (product: ProductResponse) -> Unit,
     products:  State<MutableList<ProductResponse>>,
 ){
@@ -1622,6 +1622,7 @@ fun AddPurchasedProductFormComponent(
             onClickProduct = {
                 onClickProduct(it)
             },
+            onClickAddProduct = {onClickAddProduct()},
             currentProductName=currentProductName
         )
         Column(modifier = Modifier.animateContentSize())
@@ -1764,6 +1765,7 @@ fun EditPurchasedProductFormComponent(
             onClickProduct = {
                 onClickProduct(it)
             },
+            onClickAddProduct = {onClickAddProduct()},
             currentProductName=newProductName
         )
         Column(modifier = Modifier.animateContentSize())
@@ -2407,6 +2409,7 @@ private fun MonthHeader(
 @Composable
 fun SearchBarProductComponent(
     onClickProduct: (product: ProductResponse) -> Unit,
+    onClickAddProduct: () -> Unit,
     products:  State<MutableList<ProductResponse>>,
     currentProductName: MutableState<String>,
     modifier: Modifier = Modifier.fillMaxWidth()
@@ -2424,23 +2427,22 @@ fun SearchBarProductComponent(
         placeholder = { Text(placeholder) },
         query = text.lowercase(),
         onQueryChange = {
-            Log.d("SearchBarProductComponent", "onQueryChange: ${text}")
             text = it
         },
         onSearch = {
             scope.launch {
                 foundedItems.value = products.value.filter {product -> text in product.name.lowercase()}
+
             }.invokeOnCompletion {
                 isSearch = false
             }
             active = true
             isSearch = true
-
-
-
         },
         active = active,
-        onActiveChange = {        },
+        onActiveChange = {
+                         active = it
+        },
         trailingIcon = {
             if (isSearch) {
                 CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
@@ -2478,6 +2480,18 @@ fun SearchBarProductComponent(
                 )
                 {
                     Text(product.name, fontSize = 18.sp)
+                }
+            }
+            item{
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                )
+                {
+                    Text("Не нашлось продукта?")
+                    TextButton(onClick = { onClickAddProduct() }) {
+                        Text("Добавить")
+                    }
                 }
 
             }
