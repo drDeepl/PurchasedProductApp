@@ -32,7 +32,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object ApiModule {
 
-    private val refreshTokenPattern = "http://85.209.9.101:3000/api/auth/refresh".toRegex()
+    private val refreshTokenPattern = "http://85.209.9.101:3003/api/auth/refresh".toRegex()
 
     @Provides
     @Singleton
