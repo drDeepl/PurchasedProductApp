@@ -94,7 +94,7 @@ class ProductListViewModel @Inject constructor(
                         networkResult.data?.let{product ->
                             _products.value.add(0, product)
                         }
-                        onSuccess("Продукт успешно добалвен!")
+                        onSuccess("Продукт успешно добавлен!")
 
                     }
                     is NetworkResult.Error ->{
