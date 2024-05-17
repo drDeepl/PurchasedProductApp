@@ -165,6 +165,8 @@ fun HomeScreen(
         }
     }
     val bottomSheetActive = remember {mutableStateOf(false)}
+    val startDestination =
+        remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
     Scaffold(
         topBar = {
             Column(
@@ -213,8 +215,7 @@ fun HomeScreen(
         content = {paddingValues: PaddingValues ->
 
             val scaffoldScope = rememberCoroutineScope()
-            val startDestination =
-                remember { mutableStateOf(ModalBottomSheetNavigation.AddPurchasedProductRoute) }
+
             val categoryListVM: CategoryListViewModel = hiltViewModel()
             Column(
                 modifier= Modifier.padding(paddingValues)
@@ -484,7 +485,7 @@ fun HomeScreen(
             PrimaryFloatingActionButton(
                 painter = painterResource(id = R.drawable.ic_plus),
                 onClick= {
-                    navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
+                    startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
                     bottomSheetActive.value = !bottomSheetActive.value
                          },
                 )
