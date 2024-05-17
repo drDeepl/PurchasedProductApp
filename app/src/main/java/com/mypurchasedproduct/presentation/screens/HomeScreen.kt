@@ -164,9 +164,7 @@ fun HomeScreen(
     }
     val bottomSheetActive = remember {mutableStateOf(false)}
     Scaffold(
-
         topBar = {
-            // TODO: ADD CALENDAR
             Column(
                 modifier = Modifier
                     .background(
@@ -242,15 +240,15 @@ fun HomeScreen(
                     }
                 )
             }
-//            addPurchasedProductState.value.isActive,
+            val confirmValueChange = remember { mutableStateOf(false) }
             FormModalBottomSheet(
                 openBottomSheet = bottomSheetActive.value,
                 setStateBottomSheet = {
                     bottomSheetActive.value = it
                     purchasedProductListVM.setLoading(it)
                     startDestination.value = ModalBottomSheetNavigation.AddPurchasedProductRoute
-
                 },
+                confirmValueChange = confirmValueChange
             ){
                 Log.wtf("FormModalBottomSheetContent", "START")
                 NavHost(
@@ -260,11 +258,6 @@ fun HomeScreen(
                 ){
                     composable(route = ModalBottomSheetNavigation.AddPurchasedProductRoute){
                         val products = productListVM.products.collectAsState()
-//                        products= products,
-//                        onClickProductItem = {
-//                            addPurchasedProductFormViewModel.setProduct(it)
-//                            navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
-//                        },
                         AddPurchasedProductFormComponent(
                             addPurchasedProductVM = addPurchasedProductFormViewModel,
                             measurementUnitsListVM = measurementUnitsListVM,
@@ -302,6 +295,7 @@ fun HomeScreen(
 
                             onClickProduct = {
                                 addPurchasedProductFormViewModel.setProduct(it)
+                                confirmValueChange.value = true
                             },
                             onClickAddProduct = {
                                 navController.navigate(route=ModalBottomSheetNavigation.AddProductRoute)
@@ -420,9 +414,9 @@ fun HomeScreen(
                             editPurchasedProductVM = editPurchasedProductFormVM,
                             measurementUnitsListVM = measurementUnitsListVM,
                             products = products,
-                            onClickProduct = {
-                                addPurchasedProductFormViewModel.setProduct(it)
-                            },
+//                            onClickProduct = {
+//                                addPurchasedProductFormViewModel.setProduct(it)
+//                            },
                             onConfirm = {editPurchasedProductModel ->
                                 purchasedProductListVM.toEditPurchasedProduct(
                                     editPurchasedProductModel,

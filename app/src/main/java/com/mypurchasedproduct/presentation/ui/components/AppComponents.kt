@@ -1163,14 +1163,16 @@ fun FormModalBottomSheet(
     openBottomSheet: Boolean,
     setStateBottomSheet: (Boolean) -> Unit,
     onDismissRequest: () -> Unit = {},
+    confirmValueChange: MutableState<Boolean>,
     content: @Composable () -> Unit,
+
 
 ){
     Log.wtf(TAG, "FormModalBottomSheet")
     val skipPartiallyExpanded by remember { mutableStateOf(true) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
-        confirmValueChange = {true},
+        confirmValueChange = {confirmValueChange.value},
 
     )
     val scope = rememberCoroutineScope()
@@ -1608,15 +1610,6 @@ fun AddPurchasedProductFormComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        PrimaryCustomClickableOutlinedTextField(
-//            textValue = addPurchasedProductState.value.product?.let { it.name } ?: "",
-//            labelValue = "продукт",
-//            onValueChange = {},
-//            onClickIcon = {
-//                onSelectProduct()
-//            },
-//            onPressed = {onSelectProduct()}
-//        )
         SearchBarProductComponent(
             products = products,
             onClickProduct = {
@@ -1711,7 +1704,7 @@ fun EditPurchasedProductFormComponent(
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    onClickProduct: (product: ProductResponse) -> Unit,
+//    onClickProduct: (product: ProductResponse) -> Unit,
     products:  State<MutableList<ProductResponse>>,
 ){
     val editPurchasedProductState = editPurchasedProductVM.state.collectAsState()
@@ -1752,18 +1745,10 @@ fun EditPurchasedProductFormComponent(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        PrimaryClickableOutlinedTextField(
-//            textValue = newProduct.value.name,
-//            labelValue = "продукт",
-//            isExpanded = false,
-//            onClick = {
-//                onClickAddProduct()
-//            },
-//        )
         SearchBarProductComponent(
             products = products,
             onClickProduct = {
-                onClickProduct(it)
+                newProduct.value = it
             },
             onClickAddProduct = {onClickAddProduct()},
             currentProductName=newProductName
@@ -1825,12 +1810,11 @@ fun EditPurchasedProductFormComponent(
                         editPurchasedProductVM.setLoading(true)
                         val validateErrors = editPurchasedProductVM.validate(newProduct.value, newCount.value, newMeasurementUnit.value, newPrice.value)
                         if(validateErrors.size > 0){
-                            // TODO: SEND REQUEST TO EDIT
                             Log.d(TAG,"VALIDATE SUCCESS IS NOT SUCCESS")
                             editPurchasedProductVM.setErrors(validateErrors)
                         }
                         else{
-                            Log.d(TAG,"VALIDATE IS SUCCESS")
+                            Log.d(TAG,"VALIDATE IS SUCCESS ${newProduct.value.name}")
                             onConfirm(
                                 EditPurchasedProductModel(
                                 id = selectedPurchasedProduct.value.id,
@@ -2423,11 +2407,16 @@ fun SearchBarProductComponent(
         mutableStateOf(listOf<ProductResponse>())
     }
     val scope = rememberCoroutineScope()
-    DockedSearchBar(
+    SearchBar(
         placeholder = { Text(placeholder) },
         query = text.lowercase(),
         onQueryChange = {
             text = it
+            scope.launch {
+                foundedItems.value = products.value.filter {product -> it in product.name.lowercase()}
+            }.invokeOnCompletion {
+                isSearch = false
+            }
         },
         onSearch = {
             scope.launch {
@@ -2454,6 +2443,7 @@ fun SearchBarProductComponent(
                     Icon(Icons.Filled.Close, contentDescription= "",  modifier = Modifier.size(20.dp))
                 }
             }
+
 
         },
         modifier = modifier,
