@@ -70,6 +70,11 @@ class ProductListViewModel @Inject constructor(
         }
     }
 
+    public fun getLastProduct(): ProductResponse {
+        Log.d(TAG, "GET LAST PRODUCT")
+        return _products.value.last()
+    }
+
 
     fun toAddProduct(
         productItem: ProductItem,
@@ -92,7 +97,9 @@ class ProductListViewModel @Inject constructor(
                             )
                         }
                         networkResult.data?.let{product ->
-                            _products.value.add(0, product)
+//                            _products.value.add(0, product)
+                            _products.value.add(product)
+
                         }
                         onSuccess("Продукт успешно добавлен!")
 

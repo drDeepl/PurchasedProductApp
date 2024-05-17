@@ -1587,7 +1587,7 @@ fun AddPurchasedProductFormComponent(
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (addPurchasedProductModel: AddPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
-    onClickAddProduct: () -> Unit,
+    onClickAddProduct: (String) -> Unit,
     onClickProduct: (product: ProductResponse) -> Unit,
     products:  State<MutableList<ProductResponse>>,
 ){
@@ -1615,7 +1615,7 @@ fun AddPurchasedProductFormComponent(
             onClickProduct = {
                 onClickProduct(it)
             },
-            onClickAddProduct = {onClickAddProduct()},
+            onClickAddProduct = {productName -> onClickAddProduct(productName)},
             currentProductName=currentProductName
         )
         Column(modifier = Modifier.animateContentSize())
@@ -1700,7 +1700,7 @@ fun AddPurchasedProductFormComponent(
 fun EditPurchasedProductFormComponent(
     editPurchasedProductVM: EditPurchasedProductFormViewModel,
     measurementUnitsListVM: MeasurementUnitsListViewModel,
-    onClickAddProduct: () -> Unit,
+    onClickAddProduct: (String) -> Unit,
     onClickAddMeasurementUnit: () -> Unit,
     onConfirm: (editPurchasedProductModel: EditPurchasedProductModel) -> Unit,
     onDismiss: () -> Unit,
@@ -1750,7 +1750,7 @@ fun EditPurchasedProductFormComponent(
             onClickProduct = {
                 newProduct.value = it
             },
-            onClickAddProduct = {onClickAddProduct()},
+            onClickAddProduct = {productName -> onClickAddProduct(productName)},
             currentProductName=newProductName
         )
         Column(modifier = Modifier.animateContentSize())
@@ -2393,7 +2393,7 @@ private fun MonthHeader(
 @Composable
 fun SearchBarProductComponent(
     onClickProduct: (product: ProductResponse) -> Unit,
-    onClickAddProduct: () -> Unit,
+    onClickAddProduct: (String) -> Unit,
     products:  State<MutableList<ProductResponse>>,
     currentProductName: MutableState<String>,
     modifier: Modifier = Modifier.fillMaxWidth()
@@ -2479,7 +2479,7 @@ fun SearchBarProductComponent(
                 )
                 {
                     Text("Не нашлось продукта?")
-                    TextButton(onClick = { onClickAddProduct() }) {
+                    TextButton(onClick = { onClickAddProduct(text) }) {
                         Text("Добавить")
                     }
                 }
