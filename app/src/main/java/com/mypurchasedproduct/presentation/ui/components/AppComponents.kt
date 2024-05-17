@@ -1189,8 +1189,19 @@ fun FormModalBottomSheet(
                                },
             sheetState = bottomSheetState,
             windowInsets = BottomSheetDefaults.windowInsets,
+            dragHandle = {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ){
+                    IconButton(onClick = {setStateBottomSheet(false)}) {
+                        Icon(Icons.Filled.Close, contentDescription = "")
+                    }
+                }
+            }
 
         ) {
+
             content()
         }
 

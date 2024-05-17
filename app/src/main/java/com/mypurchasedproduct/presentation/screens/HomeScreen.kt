@@ -484,6 +484,7 @@ fun HomeScreen(
             PrimaryFloatingActionButton(
                 painter = painterResource(id = R.drawable.ic_plus),
                 onClick= {
+                    navController.navigate(ModalBottomSheetNavigation.AddPurchasedProductRoute)
                     bottomSheetActive.value = !bottomSheetActive.value
                          },
                 )
