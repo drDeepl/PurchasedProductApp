@@ -89,7 +89,7 @@ class PurchasedProductListViewModel @Inject constructor(
                             isError = true,
                             error = result.message.toString())
                     }
-                    onError("Ошибка рпи добавлении записи", mutableListOf(result.message.toString()))
+                    onError("Ошибка при добавлении записи", mutableListOf(result.message.toString()))
                 }
             }
         }
