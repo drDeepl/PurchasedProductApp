@@ -10,4 +10,4 @@
 
 ## Демонстрация приложения
 
-![demo_app.gif](info%2Fdemo_app.mp4)
+![demo_app.gif]([info%2Fdemo_app.mp4](https://github.com/drDeepl/PurchasedProductApp/blob/main/info/demo_app.gif))
